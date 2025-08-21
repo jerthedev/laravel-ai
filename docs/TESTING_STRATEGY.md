@@ -4,6 +4,41 @@
 
 JTD Laravel AI follows a comprehensive testing strategy with multiple layers of testing to ensure reliability, performance, and correctness. The testing approach includes unit tests, integration tests, feature tests, and end-to-end tests with extensive mocking capabilities.
 
+## PHPUnit 12 Standards
+
+This package uses **PHPUnit 12** with modern PHP 8+ attributes for test definitions. All tests follow these standards:
+
+### Test Method Attributes
+- Use `#[Test]` attribute instead of `/** @test */` docblock annotations
+- Import `use PHPUnit\Framework\Attributes\Test;` at the top of test classes
+- Method names should be descriptive and use snake_case for readability
+
+### Example Test Structure
+```php
+<?php
+
+namespace JTD\LaravelAI\Tests\Unit;
+
+use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Tests\TestCase;
+
+class ExampleTest extends TestCase
+{
+    #[Test]
+    public function it_performs_expected_behavior(): void
+    {
+        // Test implementation
+        $this->assertTrue(true);
+    }
+}
+```
+
+### Additional PHPUnit 12 Attributes
+- `#[DataProvider('providerMethod')]` for data providers
+- `#[Depends('testMethod')]` for test dependencies
+- `#[Group('integration')]` for test grouping
+- `#[TestDox('Human readable test description')]` for better test output
+
 ## Testing Architecture
 
 ### Test Structure

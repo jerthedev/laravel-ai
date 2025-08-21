@@ -2,6 +2,7 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
+use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
 use JTD\LaravelAI\Facades\AI;
 use JTD\LaravelAI\LaravelAIServiceProvider;
@@ -12,7 +13,7 @@ use JTD\LaravelAI\Tests\TestCase;
 
 class ServiceProviderTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_registers_the_service_provider()
     {
         $this->assertTrue(
@@ -20,8 +21,7 @@ class ServiceProviderTest extends TestCase
             'LaravelAIServiceProvider should be loaded'
         );
     }
-
-    /** @test */
+    #[Test]
     public function it_registers_ai_manager_as_singleton()
     {
         $manager1 = $this->app->make('laravel-ai');
@@ -30,8 +30,7 @@ class ServiceProviderTest extends TestCase
         $this->assertInstanceOf(AIManager::class, $manager1);
         $this->assertSame($manager1, $manager2, 'AIManager should be registered as singleton');
     }
-
-    /** @test */
+    #[Test]
     public function it_registers_configuration_validator_as_singleton()
     {
         $validator1 = $this->app->make('laravel-ai.config.validator');
@@ -40,8 +39,7 @@ class ServiceProviderTest extends TestCase
         $this->assertInstanceOf(ConfigurationValidator::class, $validator1);
         $this->assertSame($validator1, $validator2, 'ConfigurationValidator should be registered as singleton');
     }
-
-    /** @test */
+    #[Test]
     public function it_binds_conversation_builder_interface()
     {
         $builder = $this->app->make(ConversationBuilderInterface::class);
@@ -49,8 +47,7 @@ class ServiceProviderTest extends TestCase
         $this->assertInstanceOf(ConversationBuilder::class, $builder);
         $this->assertInstanceOf(ConversationBuilderInterface::class, $builder);
     }
-
-    /** @test */
+    #[Test]
     public function it_resolves_ai_facade()
     {
         $this->assertTrue(class_exists('JTD\LaravelAI\Facades\AI'));
@@ -59,8 +56,7 @@ class ServiceProviderTest extends TestCase
         $manager = AI::getFacadeRoot();
         $this->assertInstanceOf(AIManager::class, $manager);
     }
-
-    /** @test */
+    #[Test]
     public function it_registers_facade_alias()
     {
         $this->assertTrue($this->app->bound('AI'));
@@ -70,8 +66,7 @@ class ServiceProviderTest extends TestCase
 
         $this->assertSame($originalService, $aliasedService);
     }
-
-    /** @test */
+    #[Test]
     public function it_merges_configuration_from_package()
     {
         $config = config('ai');
@@ -81,16 +76,14 @@ class ServiceProviderTest extends TestCase
         $this->assertArrayHasKey('providers', $config);
         $this->assertArrayHasKey('cost_tracking', $config);
     }
-
-    /** @test */
+    #[Test]
     public function it_loads_migrations_from_package()
     {
         // This test verifies that migrations are loaded
         // The actual migration loading is tested in DatabaseMigrationsTest
         $this->assertTrue(true);
     }
-
-    /** @test */
+    #[Test]
     public function it_provides_correct_services()
     {
         $provider = new LaravelAIServiceProvider($this->app);
@@ -106,8 +99,7 @@ class ServiceProviderTest extends TestCase
             $this->assertContains($service, $provides, "Service '{$service}' should be provided");
         }
     }
-
-    /** @test */
+    #[Test]
     public function it_can_resolve_all_provided_services()
     {
         $provider = new LaravelAIServiceProvider($this->app);
@@ -118,8 +110,7 @@ class ServiceProviderTest extends TestCase
             $this->assertNotNull($resolved, "Service '{$service}' should be resolvable");
         }
     }
-
-    /** @test */
+    #[Test]
     public function ai_manager_can_create_conversation_builder()
     {
         $manager = $this->app->make('laravel-ai');
@@ -127,8 +118,7 @@ class ServiceProviderTest extends TestCase
 
         $this->assertInstanceOf(ConversationBuilderInterface::class, $builder);
     }
-
-    /** @test */
+    #[Test]
     public function conversation_builder_has_fluent_interface()
     {
         $builder = $this->app->make(ConversationBuilderInterface::class);
@@ -143,29 +133,25 @@ class ServiceProviderTest extends TestCase
         $this->assertEquals('mock', $builder->getProvider());
         $this->assertEquals('test-model', $builder->getModel());
     }
-
-    /** @test */
+    #[Test]
     public function it_validates_configuration_in_production()
     {
         // Skip this test in testing environment to avoid migration issues
         $this->markTestSkipped('Skipping production environment test to avoid migration conflicts');
     }
-
-    /** @test */
+    #[Test]
     public function it_handles_configuration_validation_errors_gracefully()
     {
         // Skip this test in testing environment to avoid migration issues
         $this->markTestSkipped('Skipping production environment test to avoid migration conflicts');
     }
-
-    /** @test */
+    #[Test]
     public function it_registers_publishing_groups_in_console()
     {
         // Skip this test to avoid console application dependency issues
         $this->markTestSkipped('Skipping console application test to avoid dependency issues');
     }
-
-    /** @test */
+    #[Test]
     public function facade_provides_expected_methods()
     {
         $facade = new \ReflectionClass(AI::class);
@@ -177,8 +163,7 @@ class ServiceProviderTest extends TestCase
         $this->assertStringContainsString('send', $docComment);
         $this->assertStringContainsString('stream', $docComment);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_extend_ai_manager_with_custom_drivers()
     {
         $manager = $this->app->make('laravel-ai');
@@ -190,8 +175,7 @@ class ServiceProviderTest extends TestCase
 
         $this->assertSame($manager, $result, 'extend() should return the manager for chaining');
     }
-
-    /** @test */
+    #[Test]
     public function service_provider_boots_without_errors()
     {
         // Create a fresh service provider instance
@@ -202,8 +186,7 @@ class ServiceProviderTest extends TestCase
 
         $this->assertTrue(true);
     }
-
-    /** @test */
+    #[Test]
     public function it_handles_missing_configuration_gracefully()
     {
         // Clear AI configuration

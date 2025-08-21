@@ -2,6 +2,7 @@
 
 namespace JTD\LaravelAI\Tests\Integration;
 
+use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\File;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
 use JTD\LaravelAI\Facades\AI;
@@ -23,7 +24,7 @@ use JTD\LaravelAI\Tests\TestCase;
  */
 class PackageInstallationTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function package_service_provider_is_automatically_discovered()
     {
         // Verify the service provider is loaded
@@ -32,8 +33,7 @@ class PackageInstallationTest extends TestCase
             'LaravelAIServiceProvider should be auto-discovered and loaded'
         );
     }
-
-    /** @test */
+    #[Test]
     public function all_core_services_are_registered()
     {
         // Test that all core services can be resolved from the container
@@ -49,8 +49,7 @@ class PackageInstallationTest extends TestCase
             $this->assertInstanceOf($expectedClass, $resolved, "Service '{$abstract}' should resolve to {$expectedClass}");
         }
     }
-
-    /** @test */
+    #[Test]
     public function services_are_registered_as_singletons()
     {
         // Test that core services are singletons
@@ -63,8 +62,7 @@ class PackageInstallationTest extends TestCase
             $this->assertSame($instance1, $instance2, "Service '{$service}' should be a singleton");
         }
     }
-
-    /** @test */
+    #[Test]
     public function ai_facade_is_registered_and_functional()
     {
         // Test facade registration
@@ -77,8 +75,7 @@ class PackageInstallationTest extends TestCase
         // Test facade methods are accessible through the underlying manager
         $this->assertTrue(method_exists($manager, 'conversation'), 'AI facade should have conversation method');
     }
-
-    /** @test */
+    #[Test]
     public function configuration_is_loaded_with_defaults()
     {
         $config = config('ai');
@@ -94,8 +91,7 @@ class PackageInstallationTest extends TestCase
         $this->assertIsArray($config['providers'], 'Providers should be an array');
         $this->assertArrayHasKey('mock', $config['providers'], 'Mock provider should be configured by default');
     }
-
-    /** @test */
+    #[Test]
     public function configuration_can_be_published()
     {
         // Test that the service provider has publishable assets
@@ -110,8 +106,7 @@ class PackageInstallationTest extends TestCase
 
         $this->assertTrue(true, 'Service provider boots successfully with publishing setup');
     }
-
-    /** @test */
+    #[Test]
     public function migrations_can_be_published()
     {
         // Test that migrations are available for publishing
@@ -131,8 +126,7 @@ class PackageInstallationTest extends TestCase
             $this->assertTrue(true, 'Migration publishing is configured in service provider');
         }
     }
-
-    /** @test */
+    #[Test]
     public function package_provides_correct_services()
     {
         $provider = new LaravelAIServiceProvider($this->app);
@@ -149,8 +143,7 @@ class PackageInstallationTest extends TestCase
             $this->assertContains($service, $providedServices, "Service '{$service}' should be provided by the service provider");
         }
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validation_works()
     {
         $validator = $this->app->make('laravel-ai.config.validator');
@@ -178,8 +171,7 @@ class PackageInstallationTest extends TestCase
 
         $validator->validate($invalidConfig);
     }
-
-    /** @test */
+    #[Test]
     public function driver_manager_has_built_in_providers()
     {
         $driverManager = $this->app->make('laravel-ai.driver');
@@ -192,8 +184,7 @@ class PackageInstallationTest extends TestCase
             $this->assertArrayHasKey('description', $registry[$provider], "Provider '{$provider}' should have description");
         }
     }
-
-    /** @test */
+    #[Test]
     public function ai_manager_can_create_conversation_builder()
     {
         $aiManager = $this->app->make('laravel-ai');
@@ -201,8 +192,7 @@ class PackageInstallationTest extends TestCase
 
         $this->assertInstanceOf(ConversationBuilderInterface::class, $builder, 'AIManager should create ConversationBuilder');
     }
-
-    /** @test */
+    #[Test]
     public function facade_provides_fluent_interface()
     {
         $builder = AI::conversation('Integration Test')
@@ -214,8 +204,7 @@ class PackageInstallationTest extends TestCase
         $this->assertEquals('mock', $builder->getProvider(), 'Provider should be set correctly');
         $this->assertEquals('mock-model', $builder->getModel(), 'Model should be set correctly');
     }
-
-    /** @test */
+    #[Test]
     public function package_handles_missing_configuration_gracefully()
     {
         // Test that the package can handle missing configuration
@@ -229,8 +218,7 @@ class PackageInstallationTest extends TestCase
 
         $this->assertTrue(true, 'Package handles configuration gracefully');
     }
-
-    /** @test */
+    #[Test]
     public function package_works_with_different_environments()
     {
         // Test that the package works in the current environment
@@ -246,8 +234,7 @@ class PackageInstallationTest extends TestCase
 
         $this->assertTrue(true, 'Package works across different environments');
     }
-
-    /** @test */
+    #[Test]
     public function package_supports_laravel_auto_discovery()
     {
         // This test verifies that the service provider is properly auto-discovered
@@ -260,8 +247,7 @@ class PackageInstallationTest extends TestCase
         // This confirms auto-discovery is working correctly
         $this->assertTrue(true, 'Laravel auto-discovery is functional');
     }
-
-    /** @test */
+    #[Test]
     public function package_installation_is_complete()
     {
         // This is a comprehensive test that verifies the entire package is properly installed

@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE.md)
 [![Tests](https://github.com/jerthedev/laravel-ai/actions/workflows/tests.yml/badge.svg)](https://github.com/jerthedev/laravel-ai/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/gh/jerthedev/laravel-ai/branch/main/graph/badge.svg)](https://codecov.io/gh/jerthedev/laravel-ai)
+[![PHPUnit](https://img.shields.io/badge/phpunit-12.3-blue.svg?style=flat-square)](https://phpunit.de)
 [![PHPStan Level](https://img.shields.io/badge/phpstan-level%206-brightgreen.svg?style=flat-square)](https://phpstan.org)
 [![Code Style](https://img.shields.io/badge/code%20style-laravel%20pint-orange.svg?style=flat-square)](https://laravel.com/docs/pint)
 

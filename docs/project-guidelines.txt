@@ -4,8 +4,8 @@
 - **Package**: jerthedev/laravel-ai
 - **Namespace**: JTD\LaravelAI
 - **Purpose**: Unified, driver-based interface for multiple AI providers with enterprise features
-- **Target**: Laravel 10.0+ with PHP 8.1+
-- **Standards**: PSR-4 autoloading, PSR-12 coding standards
+- **Target**: Laravel 10.0+/11.0+/12.0+ with PHP 8.1+
+- **Standards**: PSR-4 autoloading, PSR-12 coding standards, PHPUnit 12
 
 ## Core Architecture Principles
 
@@ -55,6 +55,14 @@
 
 ## Testing Strategy
 
+### PHPUnit 12 Standards
+- **Test Framework**: PHPUnit 12.3+ with PHP 8 attributes
+- **Test Attributes**: Use `#[Test]` instead of `/** @test */` docblock annotations
+- **Import Statement**: Always include `use PHPUnit\Framework\Attributes\Test;`
+- **Method Naming**: Descriptive snake_case method names (e.g., `it_handles_error_responses`)
+- **Additional Attributes**: Use `#[DataProvider]`, `#[Group]`, `#[TestDox]` as needed
+- **Schema**: PHPUnit configuration uses schema version 12.0
+
 ### Test Structure
 - Unit tests: Test individual classes/methods in isolation
 - Feature tests: Test complete workflows and user interactions
@@ -67,12 +75,60 @@
 - Use factories for consistent test data generation
 - Test error conditions and edge cases thoroughly
 - Include performance benchmarks and memory usage tests
+- All tests must use PHPUnit 12 attribute syntax
 
 ### Mock System
 - MockAIProvider implements AIProviderInterface
 - Configurable responses via mock_responses config
 - Support for testing streaming, batch operations, and error conditions
 - Response fixtures for different providers (OpenAI, Gemini, etc.)
+- Optimized for fast test execution (no artificial delays in test environment)
+
+### Test Performance Standards
+- Individual tests should complete in <0.1s (fast tests)
+- No tests should exceed 2s execution time
+- Total test suite should complete in <30s
+- Use performance monitoring script: `php scripts/test-performance.php`
+- Optimize retry logic and delays for test environments
+
+### PHPUnit 12 Test Example
+```php
+<?php
+
+namespace JTD\LaravelAI\Tests\Unit;
+
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use JTD\LaravelAI\Tests\TestCase;
+
+class ExampleTest extends TestCase
+{
+    #[Test]
+    public function it_performs_expected_behavior(): void
+    {
+        // Test implementation
+        $this->assertTrue(true);
+    }
+
+    #[Test]
+    #[DataProvider('providerMethod')]
+    #[Group('integration')]
+    public function it_handles_multiple_scenarios($input, $expected): void
+    {
+        // Test with data provider
+        $this->assertEquals($expected, $input);
+    }
+
+    public static function providerMethod(): array
+    {
+        return [
+            ['input1', 'expected1'],
+            ['input2', 'expected2'],
+        ];
+    }
+}
+```
 
 ## Key Features Implementation
 
@@ -174,6 +230,14 @@
 - Use appropriate version constraints
 - Document all dependencies and their purposes
 
+## Development Tools
+
+### Test Annotation Conversion
+- Use `php scripts/convert-test-annotations.php` to convert legacy `@test` annotations
+- Script automatically converts `/** @test */` to `#[Test]` attributes
+- Adds required `use PHPUnit\Framework\Attributes\Test;` imports
+- Maintains PHPUnit 12 compatibility standards
+
 ## Development Workflow
 
 ### Git Workflow
@@ -189,10 +253,13 @@
 - Package publishing to Packagist
 
 ### Continuous Integration
-- Automated testing on multiple PHP/Laravel versions
-- Code coverage reporting
-- Static analysis with PHPStan/Psalm
-- Automated security scanning
+- Automated testing on multiple PHP/Laravel versions (PHP 8.1-8.4, Laravel 10-12)
+- PHPUnit 12 with PHP 8 attributes in all test environments
+- Code coverage reporting with 80%+ target
+- Static analysis with PHPStan level 6
+- Code style enforcement with Laravel Pint
+- Automated security scanning with Composer audit
+- Performance monitoring and regression detection
 
 ## Extension Points
 
@@ -214,4 +281,4 @@
 - External system notifications
 - Analytics and monitoring integrations
 
-This document serves as the authoritative guide for maintaining consistency across all development work on the JTD Laravel AI package.
+This document serves as the authoritative guide for maintaining consistency across all development work on the JTD Laravel AI package. All new development must follow PHPUnit 12 standards with PHP 8 attributes.

@@ -2,6 +2,7 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
+use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\Contracts\AIProviderInterface;
 use JTD\LaravelAI\Exceptions\InvalidConfigurationException;
 use JTD\LaravelAI\Exceptions\ProviderNotFoundException;
@@ -19,14 +20,12 @@ class DriverSystemTest extends TestCase
         parent::setUp();
         $this->driverManager = new DriverManager($this->app);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_create_driver_manager()
     {
         $this->assertInstanceOf(DriverManager::class, $this->driverManager);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_get_default_driver()
     {
         $driver = $this->driverManager->driver();
@@ -34,16 +33,14 @@ class DriverSystemTest extends TestCase
         $this->assertInstanceOf(AIProviderInterface::class, $driver);
         $this->assertInstanceOf(MockProvider::class, $driver);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_get_specific_driver()
     {
         $driver = $this->driverManager->driver('mock');
 
         $this->assertInstanceOf(MockProvider::class, $driver);
     }
-
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_unknown_driver()
     {
         $this->expectException(ProviderNotFoundException::class);
@@ -51,8 +48,7 @@ class DriverSystemTest extends TestCase
 
         $this->driverManager->driver('unknown');
     }
-
-    /** @test */
+    #[Test]
     public function it_can_extend_with_custom_driver()
     {
         $this->driverManager->extend('custom', function ($app, $config) {
@@ -66,8 +62,7 @@ class DriverSystemTest extends TestCase
 
         $this->assertInstanceOf(MockProvider::class, $driver);
     }
-
-    /** @test */
+    #[Test]
     public function it_caches_driver_instances()
     {
         $driver1 = $this->driverManager->driver('mock');
@@ -75,8 +70,7 @@ class DriverSystemTest extends TestCase
 
         $this->assertSame($driver1, $driver2);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_refresh_driver_instances()
     {
         $driver1 = $this->driverManager->driver('mock');
@@ -87,8 +81,7 @@ class DriverSystemTest extends TestCase
 
         $this->assertNotSame($driver1, $driver2);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_refresh_all_drivers()
     {
         $driver1 = $this->driverManager->driver('mock');
@@ -99,8 +92,7 @@ class DriverSystemTest extends TestCase
 
         $this->assertNotSame($driver1, $driver2);
     }
-
-    /** @test */
+    #[Test]
     public function it_gets_available_providers()
     {
         $providers = $this->driverManager->getAvailableProviders();
@@ -108,8 +100,7 @@ class DriverSystemTest extends TestCase
         $this->assertIsArray($providers);
         $this->assertContains('mock', $providers);
     }
-
-    /** @test */
+    #[Test]
     public function it_gets_provider_registry()
     {
         $registry = $this->driverManager->getProviderRegistry();
@@ -121,8 +112,7 @@ class DriverSystemTest extends TestCase
         $this->assertArrayHasKey('gemini', $registry);
         $this->assertArrayHasKey('ollama', $registry);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_register_provider()
     {
         $this->driverManager->registerProvider('test-provider', [
@@ -136,15 +126,13 @@ class DriverSystemTest extends TestCase
         $this->assertEquals('Test provider', $registry['test-provider']['description']);
         $this->assertTrue($registry['test-provider']['supports_streaming']);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_check_if_provider_exists()
     {
         $this->assertTrue($this->driverManager->hasProvider('mock'));
         $this->assertFalse($this->driverManager->hasProvider('nonexistent'));
     }
-
-    /** @test */
+    #[Test]
     public function it_can_get_provider_info()
     {
         $info = $this->driverManager->getProviderInfo('mock');
@@ -154,16 +142,14 @@ class DriverSystemTest extends TestCase
         $this->assertArrayHasKey('description', $info);
         $this->assertArrayHasKey('supports_streaming', $info);
     }
-
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_unknown_provider_info()
     {
         $this->expectException(ProviderNotFoundException::class);
 
         $this->driverManager->getProviderInfo('unknown');
     }
-
-    /** @test */
+    #[Test]
     public function it_can_validate_provider()
     {
         $result = $this->driverManager->validateProvider('mock');
@@ -172,8 +158,7 @@ class DriverSystemTest extends TestCase
         $this->assertArrayHasKey('status', $result);
         $this->assertEquals('valid', $result['status']);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_get_provider_health()
     {
         $health = $this->driverManager->getProviderHealth('mock');
@@ -182,8 +167,7 @@ class DriverSystemTest extends TestCase
         $this->assertArrayHasKey('status', $health);
         $this->assertEquals('healthy', $health['status']);
     }
-
-    /** @test */
+    #[Test]
     public function it_handles_provider_validation_errors()
     {
         // Test with a provider that doesn't exist
@@ -193,8 +177,7 @@ class DriverSystemTest extends TestCase
         $this->assertEquals('invalid', $result['status']);
         $this->assertArrayHasKey('message', $result);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validator_can_validate_valid_config()
     {
         $validator = new ConfigurationValidator;
@@ -212,8 +195,7 @@ class DriverSystemTest extends TestCase
 
         $this->assertTrue($result);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validator_throws_exception_for_invalid_config()
     {
         $validator = new ConfigurationValidator;
@@ -225,8 +207,7 @@ class DriverSystemTest extends TestCase
             'providers' => [],
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validator_validates_provider_credentials()
     {
         $validator = new ConfigurationValidator;
@@ -244,8 +225,7 @@ class DriverSystemTest extends TestCase
             ],
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validator_validates_cost_tracking_config()
     {
         $validator = new ConfigurationValidator;
@@ -262,8 +242,7 @@ class DriverSystemTest extends TestCase
             ],
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function driver_manager_registers_built_in_providers()
     {
         $registry = $this->driverManager->getProviderRegistry();
@@ -276,8 +255,7 @@ class DriverSystemTest extends TestCase
             $this->assertArrayHasKey('supports_streaming', $registry[$provider]);
         }
     }
-
-    /** @test */
+    #[Test]
     public function driver_manager_handles_unimplemented_drivers()
     {
         $this->expectException(\BadMethodCallException::class);

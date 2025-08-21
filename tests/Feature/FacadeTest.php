@@ -2,6 +2,7 @@
 
 namespace JTD\LaravelAI\Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
 use JTD\LaravelAI\Facades\AI;
 use JTD\LaravelAI\Services\AIManager;
@@ -9,39 +10,35 @@ use JTD\LaravelAI\Tests\TestCase;
 
 class FacadeTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function facade_resolves_to_ai_manager()
     {
         $manager = AI::getFacadeRoot();
 
         $this->assertInstanceOf(AIManager::class, $manager);
     }
-
-    /** @test */
+    #[Test]
     public function facade_can_create_conversation_builder()
     {
         $builder = AI::conversation('Test Conversation');
 
         $this->assertInstanceOf(ConversationBuilderInterface::class, $builder);
     }
-
-    /** @test */
+    #[Test]
     public function facade_can_get_providers()
     {
         $providers = AI::getProviders();
 
         $this->assertIsArray($providers);
     }
-
-    /** @test */
+    #[Test]
     public function facade_can_get_models()
     {
         $models = AI::getModels();
 
         $this->assertIsArray($models);
     }
-
-    /** @test */
+    #[Test]
     public function facade_can_calculate_cost()
     {
         $cost = AI::calculateCost('Hello, world!');
@@ -50,16 +47,14 @@ class FacadeTest extends TestCase
         $this->assertArrayHasKey('total', $cost);
         $this->assertArrayHasKey('currency', $cost);
     }
-
-    /** @test */
+    #[Test]
     public function facade_can_validate_provider()
     {
         $isValid = AI::validateProvider('mock');
 
         $this->assertIsBool($isValid);
     }
-
-    /** @test */
+    #[Test]
     public function facade_can_get_provider_health()
     {
         $health = AI::getProviderHealth('mock');
@@ -67,8 +62,7 @@ class FacadeTest extends TestCase
         $this->assertIsArray($health);
         $this->assertArrayHasKey('status', $health);
     }
-
-    /** @test */
+    #[Test]
     public function facade_can_get_usage_stats()
     {
         $stats = AI::getUsageStats('day');
@@ -77,8 +71,7 @@ class FacadeTest extends TestCase
         $this->assertArrayHasKey('period', $stats);
         $this->assertArrayHasKey('total_requests', $stats);
     }
-
-    /** @test */
+    #[Test]
     public function facade_can_get_analytics()
     {
         $analytics = AI::getAnalytics(['provider' => 'mock']);
@@ -87,8 +80,7 @@ class FacadeTest extends TestCase
         $this->assertArrayHasKey('filters', $analytics);
         $this->assertArrayHasKey('data', $analytics);
     }
-
-    /** @test */
+    #[Test]
     public function facade_can_extend_with_custom_driver()
     {
         AI::extend('custom-test', function ($app, $config) {
@@ -98,8 +90,7 @@ class FacadeTest extends TestCase
         // If we reach here, extend worked without throwing an exception
         $this->assertTrue(true);
     }
-
-    /** @test */
+    #[Test]
     public function facade_provides_fluent_conversation_interface()
     {
         $builder = AI::conversation('Fluent Test')
@@ -113,8 +104,7 @@ class FacadeTest extends TestCase
         $this->assertEquals('test-model', $builder->getModel());
         $this->assertCount(1, $builder->getMessages());
     }
-
-    /** @test */
+    #[Test]
     public function facade_conversation_supports_method_chaining()
     {
         $builder = AI::conversation()
@@ -135,8 +125,7 @@ class FacadeTest extends TestCase
         $messages = $builder->getMessages();
         $this->assertCount(2, $messages); // system prompt + user message
     }
-
-    /** @test */
+    #[Test]
     public function facade_conversation_supports_conditional_logic()
     {
         $useAdvancedModel = true;
@@ -152,8 +141,7 @@ class FacadeTest extends TestCase
         $this->assertEquals('advanced-model', $builder->getModel());
         $this->assertEquals(0.3, $builder->getOptions()['temperature']);
     }
-
-    /** @test */
+    #[Test]
     public function facade_conversation_supports_callbacks()
     {
         $successCalled = false;
@@ -174,8 +162,7 @@ class FacadeTest extends TestCase
         // Callbacks are registered but not executed until send() is called
         // This test just verifies the fluent interface works
     }
-
-    /** @test */
+    #[Test]
     public function facade_conversation_can_be_cloned()
     {
         $original = AI::conversation()
@@ -190,8 +177,7 @@ class FacadeTest extends TestCase
         $this->assertCount(1, $original->getMessages());
         $this->assertCount(2, $cloned->getMessages());
     }
-
-    /** @test */
+    #[Test]
     public function facade_conversation_can_be_reset()
     {
         $builder = AI::conversation()
@@ -209,8 +195,7 @@ class FacadeTest extends TestCase
         $this->assertNull($builder->getProvider());
         $this->assertEmpty($builder->getOptions());
     }
-
-    /** @test */
+    #[Test]
     public function facade_handles_method_calls_gracefully()
     {
         // Test that facade doesn't break when calling methods that don't exist yet

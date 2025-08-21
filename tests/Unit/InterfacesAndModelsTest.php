@@ -2,6 +2,7 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
+use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Validation\ValidationException;
 use JTD\LaravelAI\Exceptions\CostCalculationException;
 use JTD\LaravelAI\Exceptions\InvalidCredentialsException;
@@ -17,7 +18,7 @@ use JTD\LaravelAI\Tests\TestCase;
 
 class InterfacesAndModelsTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_can_create_user_message()
     {
         $message = AIMessage::user('Hello, how are you?');
@@ -27,8 +28,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals(AIMessage::CONTENT_TYPE_TEXT, $message->contentType);
         $this->assertInstanceOf(\DateTime::class, $message->timestamp);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_create_system_message()
     {
         $message = AIMessage::system('You are a helpful assistant.');
@@ -36,8 +36,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals(AIMessage::ROLE_SYSTEM, $message->role);
         $this->assertEquals('You are a helpful assistant.', $message->content);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_create_assistant_message_with_function_calls()
     {
         $functionCalls = [
@@ -51,16 +50,14 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals($functionCalls, $message->functionCalls);
         $this->assertTrue($message->hasFunctionCalls());
     }
-
-    /** @test */
+    #[Test]
     public function it_validates_message_data()
     {
         $this->expectException(ValidationException::class);
 
         new AIMessage('invalid_role', 'content');
     }
-
-    /** @test */
+    #[Test]
     public function it_can_convert_message_to_array()
     {
         $message = AIMessage::user('Hello', AIMessage::CONTENT_TYPE_TEXT, [
@@ -75,8 +72,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertArrayHasKey('attachments', $array);
         $this->assertArrayHasKey('timestamp', $array);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_create_message_from_array()
     {
         $data = [
@@ -92,8 +88,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals('Hello', $message->content);
         $this->assertEquals('text', $message->contentType);
     }
-
-    /** @test */
+    #[Test]
     public function it_estimates_token_count()
     {
         $message = AIMessage::user('This is a test message for token estimation.');
@@ -103,8 +98,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertIsInt($tokenCount);
         $this->assertGreaterThan(0, $tokenCount);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_create_token_usage()
     {
         $usage = TokenUsage::create(100, 50);
@@ -113,8 +107,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals(50, $usage->outputTokens);
         $this->assertEquals(150, $usage->totalTokens);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_create_token_usage_with_costs()
     {
         $usage = TokenUsage::withCosts(100, 50, 0.001, 0.002, 'USD');
@@ -124,8 +117,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals(0.003, $usage->totalCost);
         $this->assertEquals('USD', $usage->currency);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_calculate_costs_from_rates()
     {
         $usage = TokenUsage::create(1000, 500)
@@ -136,8 +128,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals(0.02, $usage->totalCost);
         $this->assertTrue($usage->hasCosts());
     }
-
-    /** @test */
+    #[Test]
     public function it_can_add_token_usage()
     {
         $usage1 = TokenUsage::withCosts(100, 50, 0.001, 0.002);
@@ -150,8 +141,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals(450, $combined->totalTokens);
         $this->assertEquals(0.009, round($combined->totalCost, 3));
     }
-
-    /** @test */
+    #[Test]
     public function it_formats_token_usage_cost()
     {
         $usage = TokenUsage::withCosts(100, 50, 0.001, 0.002);
@@ -160,8 +150,7 @@ class InterfacesAndModelsTest extends TestCase
 
         $this->assertEquals('0.0030 USD', $formatted);
     }
-
-    /** @test */
+    #[Test]
     public function it_provides_token_usage_summary()
     {
         $usage = TokenUsage::withCosts(100, 50, 0.001, 0.002);
@@ -173,8 +162,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertStringContainsString('50 output', $summary);
         $this->assertStringContainsString('0.0030 USD', $summary);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_create_successful_ai_response()
     {
         $tokenUsage = TokenUsage::create(100, 50);
@@ -187,8 +175,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals(AIResponse::FINISH_REASON_STOP, $response->finishReason);
         $this->assertTrue($response->isSuccessful());
     }
-
-    /** @test */
+    #[Test]
     public function it_can_create_streaming_response_chunk()
     {
         $response = AIResponse::streamingChunk('Hello', 'gpt-4', 'openai', false);
@@ -197,8 +184,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertTrue($response->isStreaming);
         $this->assertFalse($response->metadata['is_complete']);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_create_error_response()
     {
         $response = AIResponse::error('Something went wrong', 'gpt-4', 'openai');
@@ -208,8 +194,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals(AIResponse::FINISH_REASON_ERROR, $response->finishReason);
         $this->assertFalse($response->isSuccessful());
     }
-
-    /** @test */
+    #[Test]
     public function it_can_convert_response_to_message()
     {
         $tokenUsage = TokenUsage::create(100, 50);
@@ -221,8 +206,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals('Hello!', $message->content);
         $this->assertEquals(AIMessage::ROLE_ASSISTANT, $message->role);
     }
-
-    /** @test */
+    #[Test]
     public function rate_limit_exception_provides_retry_info()
     {
         $exception = new RateLimitException(
@@ -238,8 +222,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals(60, $exception->rateLimit);
         $this->assertEquals('requests', $exception->limitType);
     }
-
-    /** @test */
+    #[Test]
     public function invalid_credentials_exception_provides_context()
     {
         $exception = new InvalidCredentialsException(
@@ -253,8 +236,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals('account-123', $exception->getAccount());
         $this->assertEquals(['error_code' => 'invalid_api_key'], $exception->getDetails());
     }
-
-    /** @test */
+    #[Test]
     public function provider_exception_indicates_retryability()
     {
         $retryableException = new ProviderException(
@@ -276,8 +258,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertTrue($retryableException->isRetryable());
         $this->assertFalse($nonRetryableException->isRetryable());
     }
-
-    /** @test */
+    #[Test]
     public function model_not_found_exception_provides_alternatives()
     {
         $exception = new ModelNotFoundException(
@@ -291,8 +272,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals('openai', $exception->getProvider());
         $this->assertEquals(['gpt-4', 'gpt-3.5-turbo'], $exception->getAvailableModels());
     }
-
-    /** @test */
+    #[Test]
     public function streaming_not_supported_exception_provides_context()
     {
         $exception = new StreamingNotSupportedException(
@@ -304,8 +284,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals('custom-provider', $exception->getProvider());
         $this->assertEquals('custom-model', $exception->getModel());
     }
-
-    /** @test */
+    #[Test]
     public function cost_calculation_exception_provides_details()
     {
         $exception = new CostCalculationException(
@@ -319,8 +298,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals('gpt-4', $exception->getModel());
         $this->assertEquals(['reason' => 'missing_pricing_data'], $exception->getDetails());
     }
-
-    /** @test */
+    #[Test]
     public function provider_not_found_exception_lists_alternatives()
     {
         $exception = new ProviderNotFoundException(
@@ -332,8 +310,7 @@ class InterfacesAndModelsTest extends TestCase
         $this->assertEquals('unknown-provider', $exception->getProvider());
         $this->assertEquals(['openai', 'xai', 'gemini'], $exception->getAvailableProviders());
     }
-
-    /** @test */
+    #[Test]
     public function interfaces_exist_and_are_properly_defined()
     {
         $this->assertTrue(interface_exists('JTD\LaravelAI\Contracts\AIProviderInterface'));

@@ -2,6 +2,7 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
+use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\Exceptions\InvalidCredentialsException;
 use JTD\LaravelAI\Exceptions\ProviderException;
 use JTD\LaravelAI\Exceptions\RateLimitException;
@@ -21,16 +22,14 @@ class MockProviderTest extends TestCase
         parent::setUp();
         $this->provider = new MockProvider;
     }
-
-    /** @test */
+    #[Test]
     public function it_can_create_mock_provider()
     {
         $this->assertInstanceOf(MockProvider::class, $this->provider);
         $this->assertEquals('mock', $this->provider->getName());
         $this->assertEquals('1.0.0', $this->provider->getVersion());
     }
-
-    /** @test */
+    #[Test]
     public function it_can_send_basic_message()
     {
         $message = AIMessage::user('Hello, world!');
@@ -41,8 +40,7 @@ class MockProviderTest extends TestCase
         $this->assertInstanceOf(TokenUsage::class, $response->tokenUsage);
         $this->assertEquals('mock', $response->provider);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_send_streaming_message()
     {
         $message = AIMessage::user('Hello, world!');
@@ -57,8 +55,7 @@ class MockProviderTest extends TestCase
         $lastChunk = end($chunks);
         $this->assertTrue($lastChunk->metadata['is_complete'] ?? false);
     }
-
-    /** @test */
+    #[Test]
     public function it_returns_available_models()
     {
         $models = $this->provider->getAvailableModels();
@@ -74,8 +71,7 @@ class MockProviderTest extends TestCase
             $this->assertArrayHasKey('supports_streaming', $model);
         }
     }
-
-    /** @test */
+    #[Test]
     public function it_can_get_model_info()
     {
         $modelInfo = $this->provider->getModelInfo('mock-model');
@@ -85,16 +81,14 @@ class MockProviderTest extends TestCase
         $this->assertArrayHasKey('name', $modelInfo);
         $this->assertArrayHasKey('description', $modelInfo);
     }
-
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_unknown_model()
     {
         $this->expectException(\JTD\LaravelAI\Exceptions\ModelNotFoundException::class);
 
         $this->provider->getModelInfo('unknown-model');
     }
-
-    /** @test */
+    #[Test]
     public function it_can_calculate_cost()
     {
         $cost = $this->provider->calculateCost('Hello, world!');
@@ -106,8 +100,7 @@ class MockProviderTest extends TestCase
         $this->assertArrayHasKey('currency', $cost);
         $this->assertArrayHasKey('tokens', $cost);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_estimate_tokens()
     {
         $tokens = $this->provider->estimateTokens('Hello, world!');
@@ -115,8 +108,7 @@ class MockProviderTest extends TestCase
         $this->assertIsInt($tokens);
         $this->assertGreaterThan(0, $tokens);
     }
-
-    /** @test */
+    #[Test]
     public function it_validates_credentials()
     {
         $result = $this->provider->validateCredentials();
@@ -125,8 +117,7 @@ class MockProviderTest extends TestCase
         $this->assertArrayHasKey('status', $result);
         $this->assertEquals('valid', $result['status']);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_invalidate_credentials()
     {
         $provider = new MockProvider(['valid_credentials' => false]);
@@ -134,8 +125,7 @@ class MockProviderTest extends TestCase
 
         $this->assertEquals('invalid', $result['status']);
     }
-
-    /** @test */
+    #[Test]
     public function it_returns_health_status()
     {
         $health = $this->provider->getHealthStatus();
@@ -145,8 +135,7 @@ class MockProviderTest extends TestCase
         $this->assertArrayHasKey('response_time', $health);
         $this->assertEquals('healthy', $health['status']);
     }
-
-    /** @test */
+    #[Test]
     public function it_returns_capabilities()
     {
         $capabilities = $this->provider->getCapabilities();
@@ -157,16 +146,14 @@ class MockProviderTest extends TestCase
         $this->assertTrue($capabilities['streaming']);
         $this->assertTrue($capabilities['function_calling']);
     }
-
-    /** @test */
+    #[Test]
     public function it_supports_feature_checking()
     {
         $this->assertTrue($this->provider->supportsFeature('streaming'));
         $this->assertTrue($this->provider->supportsFeature('function_calling'));
         $this->assertFalse($this->provider->supportsFeature('nonexistent_feature'));
     }
-
-    /** @test */
+    #[Test]
     public function it_returns_rate_limits()
     {
         $rateLimits = $this->provider->getRateLimits();
@@ -175,8 +162,7 @@ class MockProviderTest extends TestCase
         $this->assertArrayHasKey('requests_per_minute', $rateLimits);
         $this->assertArrayHasKey('tokens_per_minute', $rateLimits);
     }
-
-    /** @test */
+    #[Test]
     public function it_returns_usage_stats()
     {
         $stats = $this->provider->getUsageStats();
@@ -187,16 +173,14 @@ class MockProviderTest extends TestCase
         $this->assertArrayHasKey('tokens', $stats);
         $this->assertArrayHasKey('cost', $stats);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_set_model()
     {
         $this->provider->setModel('mock-advanced');
 
         $this->assertEquals('mock-advanced', $this->provider->getCurrentModel());
     }
-
-    /** @test */
+    #[Test]
     public function it_can_set_options()
     {
         $options = ['temperature' => 0.7, 'max_tokens' => 1000];
@@ -206,8 +190,7 @@ class MockProviderTest extends TestCase
         $this->assertEquals(0.7, $currentOptions['temperature']);
         $this->assertEquals(1000, $currentOptions['max_tokens']);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_configure_error_simulation()
     {
         // Create provider with no retries to avoid infinite loops
@@ -224,8 +207,7 @@ class MockProviderTest extends TestCase
         $message = AIMessage::user('Test message');
         $provider->sendMessage($message);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_simulate_timeout_error()
     {
         $provider = new MockProvider([
@@ -241,8 +223,7 @@ class MockProviderTest extends TestCase
         $message = AIMessage::user('Test message');
         $provider->sendMessage($message);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_simulate_invalid_credentials_error()
     {
         $provider = new MockProvider([
@@ -258,8 +239,7 @@ class MockProviderTest extends TestCase
         $message = AIMessage::user('Test message');
         $provider->sendMessage($message);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_set_response_delay()
     {
         $provider = new MockProvider(['response_delay' => 50]); // 50ms
@@ -272,8 +252,7 @@ class MockProviderTest extends TestCase
         $duration = ($endTime - $startTime) * 1000; // Convert to milliseconds
         $this->assertGreaterThanOrEqual(40, $duration); // Allow some tolerance
     }
-
-    /** @test */
+    #[Test]
     public function it_can_add_custom_mock_responses()
     {
         $this->provider->addMockResponse('custom_trigger', [
@@ -288,8 +267,7 @@ class MockProviderTest extends TestCase
 
         $this->assertEquals('Custom response content', $response->content);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_load_provider_fixtures()
     {
         $this->provider->loadFixtures('openai');
@@ -299,8 +277,7 @@ class MockProviderTest extends TestCase
 
         $this->assertStringContainsString('ChatGPT', $response->content);
     }
-
-    /** @test */
+    #[Test]
     public function it_uses_appropriate_fixtures_for_content()
     {
         $this->provider->loadFixtures('openai');
@@ -315,11 +292,15 @@ class MockProviderTest extends TestCase
         $codeResponse = $this->provider->sendMessage($codeMessage);
         $this->assertStringContainsString('php', $codeResponse->content);
     }
-
-    /** @test */
+    #[Test]
     public function it_handles_error_responses_from_fixtures()
     {
-        $this->provider->addMockResponse('error_test', [
+        // Create provider with no retries to avoid long delays
+        $provider = new MockProvider([
+            'retry' => ['max_attempts' => 1],
+        ]);
+
+        $provider->addMockResponse('error_test', [
             'error' => 'rate_limit',
             'message' => 'Rate limit exceeded',
             'retry_after' => 60,
@@ -328,10 +309,9 @@ class MockProviderTest extends TestCase
         $this->expectException(RateLimitException::class);
 
         $message = AIMessage::user('error_test');
-        $this->provider->sendMessage($message);
+        $provider->sendMessage($message);
     }
-
-    /** @test */
+    #[Test]
     public function response_fixtures_contain_all_providers()
     {
         $fixtures = ResponseFixtures::all();
@@ -343,8 +323,7 @@ class MockProviderTest extends TestCase
         $this->assertArrayHasKey('generic', $fixtures);
         $this->assertArrayHasKey('errors', $fixtures);
     }
-
-    /** @test */
+    #[Test]
     public function response_fixtures_can_get_specific_fixture()
     {
         $openaiHello = ResponseFixtures::get('openai', 'hello');
@@ -353,8 +332,7 @@ class MockProviderTest extends TestCase
         $this->assertArrayHasKey('content', $openaiHello);
         $this->assertStringContainsString('ChatGPT', $openaiHello['content']);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_handle_streaming_with_custom_chunk_size()
     {
         $provider = new MockProvider([

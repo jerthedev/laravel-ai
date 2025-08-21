@@ -2,6 +2,7 @@
 
 namespace JTD\LaravelAI\Tests\Integration;
 
+use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\Config;
 use JTD\LaravelAI\Exceptions\InvalidConfigurationException;
 use JTD\LaravelAI\Services\ConfigurationValidator;
@@ -15,7 +16,7 @@ use JTD\LaravelAI\Tests\TestCase;
  */
 class ConfigurationSystemTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function configuration_is_loaded_correctly()
     {
         $config = config('ai');
@@ -26,8 +27,7 @@ class ConfigurationSystemTest extends TestCase
         $this->assertArrayHasKey('cost_tracking', $config);
         $this->assertArrayHasKey('analytics', $config);
     }
-
-    /** @test */
+    #[Test]
     public function default_configuration_values_are_correct()
     {
         $config = config('ai');
@@ -53,8 +53,7 @@ class ConfigurationSystemTest extends TestCase
             $this->assertTrue(true, 'Analytics config not loaded in test environment');
         }
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_is_configured_correctly()
     {
         $mockConfig = config('ai.providers.mock');
@@ -64,8 +63,7 @@ class ConfigurationSystemTest extends TestCase
         $this->assertArrayHasKey('valid_credentials', $mockConfig);
         $this->assertTrue($mockConfig['valid_credentials']);
     }
-
-    /** @test */
+    #[Test]
     public function environment_variables_override_defaults()
     {
         // Test that environment variables can be used
@@ -85,8 +83,7 @@ class ConfigurationSystemTest extends TestCase
         Config::set('ai.cost_tracking.enabled', true);
         Config::set('ai.analytics.enabled', true);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validator_validates_complete_config()
     {
         $validator = app(ConfigurationValidator::class);
@@ -113,8 +110,7 @@ class ConfigurationSystemTest extends TestCase
         $result = $validator->validate($validConfig);
         $this->assertTrue($result);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validator_rejects_invalid_default_provider()
     {
         $validator = app(ConfigurationValidator::class);
@@ -131,8 +127,7 @@ class ConfigurationSystemTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $validator->validate($invalidConfig);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validator_rejects_missing_providers()
     {
         $validator = app(ConfigurationValidator::class);
@@ -145,8 +140,7 @@ class ConfigurationSystemTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $validator->validate($invalidConfig);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validator_validates_provider_structure()
     {
         $validator = app(ConfigurationValidator::class);
@@ -163,8 +157,7 @@ class ConfigurationSystemTest extends TestCase
         $this->expectException(\Throwable::class);
         $validator->validate($invalidConfig);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validator_validates_cost_tracking_config()
     {
         $validator = app(ConfigurationValidator::class);
@@ -182,8 +175,7 @@ class ConfigurationSystemTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $validator->validate($invalidConfig);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validator_validates_rate_limiting_config()
     {
         $validator = app(ConfigurationValidator::class);
@@ -201,8 +193,7 @@ class ConfigurationSystemTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $validator->validate($invalidConfig);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_can_be_modified_at_runtime()
     {
         // Modify configuration at runtime
@@ -216,8 +207,7 @@ class ConfigurationSystemTest extends TestCase
         $this->assertEquals('custom-provider', config('ai.default'));
         $this->assertTrue(config('ai.providers.custom-provider.custom_setting'));
     }
-
-    /** @test */
+    #[Test]
     public function configuration_supports_nested_provider_settings()
     {
         $config = config('ai.providers.mock');
@@ -229,8 +219,7 @@ class ConfigurationSystemTest extends TestCase
         Config::set('ai.providers.mock.nested.setting', 'value');
         $this->assertEquals('value', config('ai.providers.mock.nested.setting'));
     }
-
-    /** @test */
+    #[Test]
     public function configuration_handles_missing_optional_sections()
     {
         // Create minimal configuration
@@ -248,8 +237,7 @@ class ConfigurationSystemTest extends TestCase
 
         $this->assertTrue($result);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_supports_multiple_providers()
     {
         $multiProviderConfig = [
@@ -274,8 +262,7 @@ class ConfigurationSystemTest extends TestCase
 
         $this->assertTrue($result);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validates_provider_credentials_by_type()
     {
         $validator = app(ConfigurationValidator::class);
@@ -308,8 +295,7 @@ class ConfigurationSystemTest extends TestCase
         $this->expectException(InvalidConfigurationException::class);
         $validator->validate($ollamaConfig);
     }
-
-    /** @test */
+    #[Test]
     public function configuration_system_integrates_with_service_container()
     {
         // Test that configuration validator is properly bound
@@ -323,8 +309,7 @@ class ConfigurationSystemTest extends TestCase
         $this->assertTrue($validator1->validate(['default' => 'mock', 'providers' => ['mock' => ['driver' => 'mock']]]));
         $this->assertTrue($validator2->validate(['default' => 'mock', 'providers' => ['mock' => ['driver' => 'mock']]]));
     }
-
-    /** @test */
+    #[Test]
     public function configuration_supports_feature_flags()
     {
         $config = config('ai');
@@ -340,8 +325,7 @@ class ConfigurationSystemTest extends TestCase
         $this->assertFalse(config('ai.cost_tracking.enabled'));
         $this->assertFalse(config('ai.analytics.enabled'));
     }
-
-    /** @test */
+    #[Test]
     public function configuration_provides_sensible_defaults()
     {
         $config = config('ai');
@@ -365,8 +349,7 @@ class ConfigurationSystemTest extends TestCase
             $this->assertTrue(true, 'Analytics config not loaded in test environment');
         }
     }
-
-    /** @test */
+    #[Test]
     public function configuration_validation_provides_helpful_error_messages()
     {
         $validator = app(ConfigurationValidator::class);

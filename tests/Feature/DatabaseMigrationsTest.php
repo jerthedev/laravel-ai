@@ -2,13 +2,14 @@
 
 namespace JTD\LaravelAI\Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use JTD\LaravelAI\Tests\TestCase;
 
 class DatabaseMigrationsTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_can_run_all_migrations()
     {
         // Fresh migration
@@ -23,8 +24,7 @@ class DatabaseMigrationsTest extends TestCase
         $this->assertDatabaseTableExists('ai_messages');
         $this->assertDatabaseTableExists('ai_usage_analytics');
     }
-
-    /** @test */
+    #[Test]
     public function ai_providers_table_has_correct_structure()
     {
         $this->assertDatabaseTableHasColumns('ai_providers', [
@@ -37,8 +37,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function ai_accounts_table_has_correct_structure()
     {
         $this->assertDatabaseTableHasColumns('ai_accounts', [
@@ -54,8 +53,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function ai_provider_models_table_has_correct_structure()
     {
         $this->assertDatabaseTableHasColumns('ai_provider_models', [
@@ -75,8 +73,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function ai_provider_model_costs_table_has_correct_structure()
     {
         $this->assertDatabaseTableHasColumns('ai_provider_model_costs', [
@@ -89,8 +86,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function ai_conversations_table_has_correct_structure()
     {
         $this->assertDatabaseTableHasColumns('ai_conversations', [
@@ -107,8 +103,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function ai_messages_table_has_correct_structure()
     {
         $this->assertDatabaseTableHasColumns('ai_messages', [
@@ -128,8 +123,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function ai_usage_analytics_table_has_correct_structure()
     {
         $this->assertDatabaseTableHasColumns('ai_usage_analytics', [
@@ -158,8 +152,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function it_can_rollback_all_migrations()
     {
         // Run migrations first
@@ -186,8 +179,7 @@ class DatabaseMigrationsTest extends TestCase
         $this->assertFalse(Schema::hasTable('ai_accounts'));
         $this->assertFalse(Schema::hasTable('ai_providers'));
     }
-
-    /** @test */
+    #[Test]
     public function it_can_rollback_and_re_migrate()
     {
         // Fresh migration
@@ -208,8 +200,7 @@ class DatabaseMigrationsTest extends TestCase
         $this->assertDatabaseTableExists('ai_messages');
         $this->assertDatabaseTableExists('ai_usage_analytics');
     }
-
-    /** @test */
+    #[Test]
     public function foreign_key_constraints_are_properly_set()
     {
         // Enable foreign key constraints for SQLite
@@ -240,8 +231,7 @@ class DatabaseMigrationsTest extends TestCase
             'name' => 'Test Account',
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function unique_constraints_are_enforced()
     {
         // Test unique constraints
@@ -264,8 +254,7 @@ class DatabaseMigrationsTest extends TestCase
             'updated_at' => now(),
         ]);
     }
-
-    /** @test */
+    #[Test]
     public function indexes_are_created_properly()
     {
         // This is a basic test - in a real scenario you'd query the database

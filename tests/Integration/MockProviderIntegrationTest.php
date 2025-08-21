@@ -2,6 +2,7 @@
 
 namespace JTD\LaravelAI\Tests\Integration;
 
+use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\Exceptions\RateLimitException;
 use JTD\LaravelAI\Facades\AI;
 use JTD\LaravelAI\Models\AIMessage;
@@ -22,7 +23,7 @@ use JTD\LaravelAI\Tests\TestCase;
  */
 class MockProviderIntegrationTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function mock_provider_integrates_with_ai_facade()
     {
         $response = AI::conversation()
@@ -35,8 +36,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertEquals('mock', $response->provider);
         $this->assertInstanceOf(\JTD\LaravelAI\Models\TokenUsage::class, $response->tokenUsage);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_works_with_conversation_builder()
     {
         $builder = AI::conversation('Test Conversation')
@@ -53,10 +53,12 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertNotEmpty($response->content);
         $this->assertEquals('mock', $response->provider);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_supports_streaming()
     {
+        // Configure mock provider with faster streaming for tests
+        config(['ai.providers.mock.streaming_delay' => 5]); // 5ms instead of 50ms
+
         $chunks = [];
 
         // Use a longer message to ensure multiple chunks
@@ -74,8 +76,7 @@ class MockProviderIntegrationTest extends TestCase
         $lastChunk = end($chunks);
         $this->assertTrue($lastChunk->metadata['is_complete'] ?? false);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_handles_multiple_messages()
     {
         $response = AI::conversation()
@@ -88,8 +89,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertNotEmpty($response->content);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_uses_response_fixtures()
     {
         // Test with OpenAI fixtures
@@ -102,8 +102,7 @@ class MockProviderIntegrationTest extends TestCase
         // The provider is still 'mock' but uses OpenAI-style responses
         $this->assertEquals('mock', $response->provider);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_simulates_different_providers()
     {
         $providers = ['openai', 'xai', 'gemini', 'ollama'];
@@ -134,8 +133,7 @@ class MockProviderIntegrationTest extends TestCase
             }
         }
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_handles_error_simulation()
     {
         $mockProvider = new MockProvider([
@@ -150,8 +148,7 @@ class MockProviderIntegrationTest extends TestCase
 
         $mockProvider->sendMessage(AIMessage::user('Test message'));
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_integrates_with_driver_system()
     {
         // Test that mock provider is registered in driver system
@@ -165,8 +162,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertNotEmpty($response->content);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_respects_configuration()
     {
         // Test with custom configuration
@@ -180,8 +176,7 @@ class MockProviderIntegrationTest extends TestCase
         // Reset configuration
         config(['ai.providers.mock.valid_credentials' => true]);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_calculates_costs_correctly()
     {
         $cost = AI::calculateCost('Hello, world!', 'mock');
@@ -196,8 +191,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertIsFloat($cost['total']);
         $this->assertGreaterThan(0, $cost['total']);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_estimates_tokens_correctly()
     {
         $tokens = AI::estimateTokens('Hello, world!', 'mock');
@@ -209,8 +203,7 @@ class MockProviderIntegrationTest extends TestCase
         $longerTokens = AI::estimateTokens('This is a much longer message that should have more tokens', 'mock');
         $this->assertGreaterThan($tokens, $longerTokens);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_returns_available_models()
     {
         $models = AI::getModels('mock');
@@ -226,16 +219,14 @@ class MockProviderIntegrationTest extends TestCase
             $this->assertArrayHasKey('supports_streaming', $model);
         }
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_validates_correctly()
     {
         $isValid = AI::validateProvider('mock');
 
         $this->assertTrue($isValid);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_reports_health_status()
     {
         $health = AI::getProviderHealth('mock');
@@ -247,8 +238,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertArrayHasKey('provider', $health);
         $this->assertEquals('mock', $health['provider']);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_supports_custom_responses()
     {
         $mockProvider = new MockProvider;
@@ -263,8 +253,7 @@ class MockProviderIntegrationTest extends TestCase
 
         $this->assertEquals('The weather is sunny today!', $response->content);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_handles_response_delays()
     {
         $mockProvider = new MockProvider(['response_delay' => 100]); // 100ms delay
@@ -278,8 +267,7 @@ class MockProviderIntegrationTest extends TestCase
 
         $this->assertInstanceOf(AIResponse::class, $response);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_works_with_different_message_types()
     {
         $messages = [
@@ -298,8 +286,7 @@ class MockProviderIntegrationTest extends TestCase
             $this->assertNotEmpty($response->content);
         }
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_maintains_conversation_context()
     {
         $builder = AI::conversation('Context Test')
@@ -316,8 +303,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertNotEmpty($response1->content);
         $this->assertNotEmpty($response2->content);
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_integrates_with_event_system()
     {
         $eventsFired = [];
@@ -346,8 +332,7 @@ class MockProviderIntegrationTest extends TestCase
         // If not implemented yet, this test still passes
         $this->assertTrue(true, 'Event system integration test completed');
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_handles_batch_operations()
     {
         $conversations = [];
@@ -373,8 +358,7 @@ class MockProviderIntegrationTest extends TestCase
             $this->assertEquals('mock', $response->provider);
         }
     }
-
-    /** @test */
+    #[Test]
     public function mock_provider_works_with_all_configuration_options()
     {
         $config = [

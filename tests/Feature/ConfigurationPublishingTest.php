@@ -2,12 +2,13 @@
 
 namespace JTD\LaravelAI\Tests\Feature;
 
+use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\File;
 use JTD\LaravelAI\Tests\TestCase;
 
 class ConfigurationPublishingTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_can_publish_configuration_file()
     {
         // Ensure config file doesn't exist
@@ -30,8 +31,7 @@ class ConfigurationPublishingTest extends TestCase
             File::delete($configPath);
         }
     }
-
-    /** @test */
+    #[Test]
     public function it_can_publish_all_assets()
     {
         // Ensure files don't exist
@@ -54,8 +54,7 @@ class ConfigurationPublishingTest extends TestCase
             File::delete($configPath);
         }
     }
-
-    /** @test */
+    #[Test]
     public function published_config_has_correct_structure()
     {
         // Publish the configuration
@@ -95,8 +94,7 @@ class ConfigurationPublishingTest extends TestCase
             File::delete($configPath);
         }
     }
-
-    /** @test */
+    #[Test]
     public function published_config_contains_environment_variables()
     {
         // Publish the configuration
@@ -127,8 +125,7 @@ class ConfigurationPublishingTest extends TestCase
             File::delete($configPath);
         }
     }
-
-    /** @test */
+    #[Test]
     public function it_can_list_publishable_assets()
     {
         $output = $this->artisan('vendor:publish', [
@@ -137,8 +134,7 @@ class ConfigurationPublishingTest extends TestCase
 
         $this->assertEquals(0, $output);
     }
-
-    /** @test */
+    #[Test]
     public function service_provider_merges_config_correctly()
     {
         // Test that the service provider merges the config correctly
@@ -152,8 +148,7 @@ class ConfigurationPublishingTest extends TestCase
         $this->assertIsArray($config['cost_tracking']);
         $this->assertIsArray($config['model_sync']);
     }
-
-    /** @test */
+    #[Test]
     public function config_can_be_overridden_by_published_file()
     {
         // This test would require actually publishing and modifying the config

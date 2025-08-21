@@ -2,12 +2,13 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
+use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\LaravelAIServiceProvider;
 use JTD\LaravelAI\Tests\TestCase;
 
 class PackageTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function it_loads_the_service_provider()
     {
         $this->assertTrue(
@@ -15,8 +16,7 @@ class PackageTest extends TestCase
             'LaravelAIServiceProvider should be loaded'
         );
     }
-
-    /** @test */
+    #[Test]
     public function it_registers_the_ai_facade()
     {
         $this->assertTrue(
@@ -24,8 +24,7 @@ class PackageTest extends TestCase
             'AI facade class should exist'
         );
     }
-
-    /** @test */
+    #[Test]
     public function it_has_correct_package_configuration()
     {
         // Test that configuration is loaded
@@ -33,24 +32,21 @@ class PackageTest extends TestCase
         $this->assertEquals('mock', config('ai.default'));
         $this->assertIsArray(config('ai.providers'));
     }
-
-    /** @test */
+    #[Test]
     public function it_has_correct_database_configuration()
     {
         $this->assertEquals('testing', config('database.default'));
         $this->assertEquals('sqlite', config('database.connections.testing.driver'));
         $this->assertEquals(':memory:', config('database.connections.testing.database'));
     }
-
-    /** @test */
+    #[Test]
     public function it_has_correct_test_environment_setup()
     {
         $this->assertEquals('testing', app()->environment());
         $this->assertEquals('array', config('cache.default'));
         $this->assertEquals('sync', config('queue.default'));
     }
-
-    /** @test */
+    #[Test]
     public function it_can_resolve_services_from_container()
     {
         // These will fail until we implement the actual services,
@@ -60,8 +56,7 @@ class PackageTest extends TestCase
         $this->assertTrue(app()->bound('cache'));
         $this->assertTrue(app()->bound('queue'));
     }
-
-    /** @test */
+    #[Test]
     public function it_has_proper_autoloading_setup()
     {
         // Test that our namespace is properly autoloaded
@@ -70,8 +65,7 @@ class PackageTest extends TestCase
             'Test namespace should be autoloaded'
         );
     }
-
-    /** @test */
+    #[Test]
     public function it_has_required_directories()
     {
         $basePath = dirname(__DIR__, 2);
@@ -91,8 +85,7 @@ class PackageTest extends TestCase
         $this->assertDirectoryExists($basePath . '/tests/Integration');
         $this->assertDirectoryExists($basePath . '/tests/Mocks');
     }
-
-    /** @test */
+    #[Test]
     public function it_has_required_files()
     {
         $basePath = dirname(__DIR__, 2);
@@ -102,8 +95,7 @@ class PackageTest extends TestCase
         $this->assertFileExists($basePath . '/LICENSE.md');
         $this->assertFileExists($basePath . '/phpunit.xml');
     }
-
-    /** @test */
+    #[Test]
     public function composer_json_has_correct_structure()
     {
         $basePath = dirname(__DIR__, 2);
@@ -118,8 +110,7 @@ class PackageTest extends TestCase
         $this->assertArrayHasKey('providers', $composerJson['extra']['laravel']);
         $this->assertArrayHasKey('aliases', $composerJson['extra']['laravel']);
     }
-
-    /** @test */
+    #[Test]
     public function it_has_correct_php_and_laravel_requirements()
     {
         $basePath = dirname(__DIR__, 2);
