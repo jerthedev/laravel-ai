@@ -1,0 +1,217 @@
+# JTD Laravel AI - Project Guidelines
+
+## Package Identity
+- **Package**: jerthedev/laravel-ai
+- **Namespace**: JTD\LaravelAI
+- **Purpose**: Unified, driver-based interface for multiple AI providers with enterprise features
+- **Target**: Laravel 10.0+ with PHP 8.1+
+- **Standards**: PSR-4 autoloading, PSR-12 coding standards
+
+## Core Architecture Principles
+
+### Driver-Based System
+- Follow Laravel's database connection pattern for AI providers
+- All drivers implement AIProviderInterface with consistent methods
+- Support OpenAI, xAI, Gemini, Ollama, and extensible custom drivers
+- Provider switching without breaking conversation continuity
+
+### Event-Driven Architecture
+- Immediate response return (~2005ms) with background processing
+- Fire events after response generation for cost tracking, analytics, notifications
+- Use queued event listeners for non-critical operations
+- Events: MessageSent, ResponseGenerated, ConversationUpdated, CostCalculated, etc.
+
+### Database Schema Design
+- Provider management: ai_providers, ai_accounts, ai_provider_models, ai_provider_model_costs
+- Conversations: ai_conversations, ai_messages, ai_conversation_participants
+- Analytics: ai_usage_analytics, ai_cost_tracking, ai_model_performance
+
+## Development Standards
+
+### Code Organization
+- Drivers in JTD\LaravelAI\Drivers namespace
+- Services in JTD\LaravelAI\Services namespace
+- Models use Eloquent with proper relationships
+- Facades provide Laravel-style interface (AI::conversation())
+- Contracts define interfaces for extensibility
+
+### Method Chaining & Fluent Interface
+- ConversationBuilder supports fluent chaining: AI::conversation()->provider('openai')->model('gpt-4')->message('Hello')->send()
+- Support conditional chaining with when()/unless()
+- Enable macro extensions for custom functionality
+- Provide callback-based response handling (onSuccess, onError, onProgress)
+
+### Error Handling
+- Graceful degradation with provider fallbacks
+- Exponential backoff retry logic with jitter
+- Specific exceptions: RateLimitException, InvalidCredentialsException, ProviderException
+- Comprehensive error logging and monitoring
+
+### Configuration Management
+- Environment-driven configuration following Laravel conventions
+- Support multiple accounts per provider
+- Dynamic runtime configuration support
+- Secure credential management with encryption
+
+## Testing Strategy
+
+### Test Structure
+- Unit tests: Test individual classes/methods in isolation
+- Feature tests: Test complete workflows and user interactions
+- Integration tests: Test component interactions and database operations
+- Performance tests: Load testing and memory usage validation
+
+### Testing Requirements
+- 90%+ code coverage target
+- Mock all external AI provider APIs using comprehensive mock system
+- Use factories for consistent test data generation
+- Test error conditions and edge cases thoroughly
+- Include performance benchmarks and memory usage tests
+
+### Mock System
+- MockAIProvider implements AIProviderInterface
+- Configurable responses via mock_responses config
+- Support for testing streaming, batch operations, and error conditions
+- Response fixtures for different providers (OpenAI, Gemini, etc.)
+
+## Key Features Implementation
+
+### Cost Tracking
+- Real-time token usage calculation
+- Provider-specific pricing models
+- Budget controls and spending limits
+- Analytics and trend reporting
+- Background cost calculation via events
+
+### Model Context Protocol (MCP)
+- Built-in Sequential Thinking support
+- Extensible MCP server architecture
+- Tool calling and function execution
+- Context management and memory systems
+
+### Conversation Management
+- Persistent conversation threads in database
+- Cross-provider conversation continuity
+- Message history with token usage tracking
+- Multi-user conversation support
+
+### Background Processing
+- Queue jobs: SyncModelsJob, CalculateCostsJob, GenerateAnalyticsJob
+- Scheduled tasks for model synchronization and cleanup
+- Event-driven background processing for analytics
+
+## Performance & Optimization
+
+### Caching Strategy
+- Multi-level caching: request, model, cost, response
+- Cache keys: ai:models:{provider_id}, ai:costs:{provider_id}:{model_id}
+- TTL configuration: models (1h), costs (24h), responses (5m)
+- Cache invalidation on model updates
+
+### Connection Management
+- HTTP connection pooling for better performance
+- Timeout handling with provider-specific settings
+- Rate limiting per provider and user
+- Circuit breaker pattern for provider outages
+
+## Security Requirements
+
+### Credential Management
+- Encrypted storage of API keys using Laravel encryption
+- Environment-based configuration with validation
+- Credential rotation support
+- Audit logging for credential access
+
+### Request Security
+- Request validation and sanitization
+- Response filtering for sensitive data
+- Rate limiting implementation
+- Audit trails for all AI interactions
+
+## Laravel Integration
+
+### Service Provider Pattern
+- Auto-discovery support
+- Configuration publishing
+- Migration publishing
+- Artisan command registration
+
+### Facade Implementation
+- AI facade as primary entry point
+- Support for Laravel's container binding
+- Integration with Laravel's event system
+- Queue integration for background processing
+
+### Artisan Commands
+- ai:config:validate - Validate configuration
+- ai:providers:test - Test provider connections
+- ai:models:sync - Synchronize provider models
+- ai:costs:calculate - Calculate conversation costs
+
+## Code Quality Standards
+
+### PHP Standards
+- Follow PSR-12 coding standards
+- Use strict typing where appropriate
+- Comprehensive docblocks for all public methods
+- Consistent naming conventions
+
+### Laravel Conventions
+- Use Laravel's built-in features (validation, caching, queues)
+- Follow Laravel's directory structure
+- Use Eloquent relationships properly
+- Implement proper middleware patterns
+
+### Documentation Requirements
+- Comprehensive inline documentation
+- Usage examples in docblocks
+- Architecture decision records
+- API documentation for all public interfaces
+
+## Package Management
+- Always use package managers (composer) for dependency management
+- Never manually edit composer.json without using composer commands
+- Use appropriate version constraints
+- Document all dependencies and their purposes
+
+## Development Workflow
+
+### Git Workflow
+- Feature branches for all development
+- Comprehensive commit messages
+- Pull request reviews required
+- Automated testing on all commits
+
+### Release Process
+- Semantic versioning (MAJOR.MINOR.PATCH)
+- Changelog maintenance
+- Tag releases properly
+- Package publishing to Packagist
+
+### Continuous Integration
+- Automated testing on multiple PHP/Laravel versions
+- Code coverage reporting
+- Static analysis with PHPStan/Psalm
+- Automated security scanning
+
+## Extension Points
+
+### Custom Drivers
+- Implement AIProviderInterface
+- Register via AI::extend() method
+- Support all required methods (sendMessage, getAvailableModels, etc.)
+- Include proper error handling and retry logic
+
+### Middleware System
+- Request/response middleware support
+- Global and per-request middleware
+- Logging, rate limiting, authentication middleware
+- Custom middleware registration
+
+### Event System
+- Custom event listeners
+- Webhook integrations
+- External system notifications
+- Analytics and monitoring integrations
+
+This document serves as the authoritative guide for maintaining consistency across all development work on the JTD Laravel AI package.

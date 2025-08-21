@@ -1,0 +1,148 @@
+# Dependencies
+/vendor/
+node_modules/
+bower_components/
+
+# Composer
+composer.phar
+composer.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+.env.backup
+.env.production
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# PHPStorm
+.phpstorm.meta.php
+_ide_helper.php
+_ide_helper_models.php
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# Testing
+/coverage/
+/coverage.xml
+coverage.clover
+.phpunit.result.cache
+phpunit.xml
+.phpunit.cache
+
+# Build artifacts
+/build/
+/dist/
+*.log
+
+# Laravel specific
+/bootstrap/compiled.php
+/bootstrap/cache/
+/storage/
+/public/storage
+/public/hot
+
+# Package specific
+/docs/coverage/
+/.phpunit.cache
+/phpstan.cache
+/coverage*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# next.js build output
+.next
+
+# nuxt.js build output
+.nuxt
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Package-specific ignores
+/Tasks_*.md

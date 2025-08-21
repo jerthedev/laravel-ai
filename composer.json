@@ -1,0 +1,78 @@
+{
+    "name": "jerthedev/laravel-ai",
+    "description": "A comprehensive Laravel package that provides a unified, driver-based interface for multiple AI providers with conversation management, cost tracking, and enterprise-level features.",
+    "keywords": [
+        "laravel",
+        "ai",
+        "openai",
+        "gemini",
+        "xai",
+        "ollama",
+        "artificial-intelligence",
+        "machine-learning",
+        "conversation",
+        "cost-tracking"
+    ],
+    "homepage": "https://github.com/jerthedev/laravel-ai",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jeremy Fall",
+            "email": "142279948+jerthedev@users.noreply.github.com",
+            "homepage": "https://github.com/jerthedev",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/contracts": "^10.0|^11.0|^12.0",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "illuminate/database": "^10.0|^11.0|^12.0",
+        "illuminate/http": "^10.0|^11.0|^12.0",
+        "illuminate/validation": "^10.0|^11.0|^12.0",
+        "illuminate/events": "^10.0|^11.0|^12.0",
+        "illuminate/queue": "^10.0|^11.0|^12.0",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.0",
+        "mockery/mockery": "^1.4",
+        "phpstan/phpstan": "^1.0",
+        "laravel/pint": "^1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "JTD\\LaravelAI\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "JTD\\LaravelAI\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "test-coverage": "vendor/bin/phpunit --coverage-html coverage",
+        "format": "vendor/bin/pint",
+        "analyse": "vendor/bin/phpstan analyse"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "JTD\\LaravelAI\\LaravelAIServiceProvider"
+            ],
+            "aliases": {
+                "AI": "JTD\\LaravelAI\\Facades\\AI"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

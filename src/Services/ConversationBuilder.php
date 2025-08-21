@@ -1,0 +1,590 @@
+<?php
+
+namespace JTD\LaravelAI\Services;
+
+use Closure;
+use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
+use JTD\LaravelAI\Models\AIMessage;
+use JTD\LaravelAI\Models\AIResponse;
+
+/**
+ * Conversation Builder
+ *
+ * Provides a fluent interface for building AI conversations with method chaining,
+ * conditional logic, and callback support.
+ */
+class ConversationBuilder implements ConversationBuilderInterface
+{
+    /**
+     * The AI manager instance.
+     */
+    protected AIManager $manager;
+
+    /**
+     * The conversation messages.
+     */
+    protected array $messages = [];
+
+    /**
+     * The selected provider.
+     */
+    protected ?string $provider = null;
+
+    /**
+     * The selected model.
+     */
+    protected ?string $model = null;
+
+    /**
+     * Request options.
+     */
+    protected array $options = [];
+
+    /**
+     * Conversation metadata.
+     */
+    protected array $metadata = [];
+
+    /**
+     * Event callbacks.
+     */
+    protected array $callbacks = [];
+
+    /**
+     * Conversation title.
+     */
+    protected ?string $title = null;
+
+    /**
+     * User association.
+     *
+     * @var mixed
+     */
+    protected $user = null;
+
+    /**
+     * Session ID for anonymous conversations.
+     */
+    protected ?string $sessionId = null;
+
+    /**
+     * Feature flags.
+     */
+    protected array $features = [
+        'streaming' => false,
+        'cost_tracking' => true,
+        'performance_tracking' => true,
+        'debug' => false,
+    ];
+
+    /**
+     * Create a new conversation builder.
+     */
+    public function __construct(AIManager $manager)
+    {
+        $this->manager = $manager;
+    }
+
+    /**
+     * Set the AI provider to use.
+     */
+    public function provider(string $provider): self
+    {
+        $this->provider = $provider;
+
+        return $this;
+    }
+
+    /**
+     * Set the model to use.
+     */
+    public function model(string $model): self
+    {
+        $this->model = $model;
+
+        return $this;
+    }
+
+    /**
+     * Set the temperature for response generation.
+     */
+    public function temperature(float $temperature): self
+    {
+        $this->options['temperature'] = $temperature;
+
+        return $this;
+    }
+
+    /**
+     * Set the maximum number of tokens to generate.
+     */
+    public function maxTokens(int $maxTokens): self
+    {
+        $this->options['max_tokens'] = $maxTokens;
+
+        return $this;
+    }
+
+    /**
+     * Set the top-p value for nucleus sampling.
+     */
+    public function topP(float $topP): self
+    {
+        $this->options['top_p'] = $topP;
+
+        return $this;
+    }
+
+    /**
+     * Set the frequency penalty.
+     */
+    public function frequencyPenalty(float $penalty): self
+    {
+        $this->options['frequency_penalty'] = $penalty;
+
+        return $this;
+    }
+
+    /**
+     * Set the presence penalty.
+     */
+    public function presencePenalty(float $penalty): self
+    {
+        $this->options['presence_penalty'] = $penalty;
+
+        return $this;
+    }
+
+    /**
+     * Add a system prompt to the conversation.
+     */
+    public function systemPrompt(string $prompt): self
+    {
+        $this->messages[] = AIMessage::system($prompt);
+
+        return $this;
+    }
+
+    /**
+     * Add a user message to the conversation.
+     */
+    public function message($content, ?array $attachments = null): self
+    {
+        $contentType = $attachments ? AIMessage::CONTENT_TYPE_MULTIMODAL : AIMessage::CONTENT_TYPE_TEXT;
+        $this->messages[] = AIMessage::user($content, $contentType, $attachments);
+
+        return $this;
+    }
+
+    /**
+     * Add multiple messages to the conversation.
+     */
+    public function messages(array $messages): self
+    {
+        foreach ($messages as $message) {
+            if ($message instanceof AIMessage) {
+                $this->messages[] = $message;
+            } elseif (is_array($message)) {
+                $this->messages[] = AIMessage::fromArray($message);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add context data to the conversation.
+     */
+    public function context(array $context): self
+    {
+        $this->metadata['context'] = array_merge($this->metadata['context'] ?? [], $context);
+
+        return $this;
+    }
+
+    /**
+     * Enable streaming for the response.
+     */
+    public function streaming(bool $enabled = true): self
+    {
+        $this->features['streaming'] = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Enable function calling with provided functions.
+     */
+    public function functions(array $functions): self
+    {
+        $this->options['functions'] = $functions;
+
+        return $this;
+    }
+
+    /**
+     * Enable tool calling with provided tools.
+     */
+    public function tools(array $tools): self
+    {
+        $this->options['tools'] = $tools;
+
+        return $this;
+    }
+
+    /**
+     * Set custom options for the request.
+     */
+    public function options(array $options): self
+    {
+        $this->options = array_merge($this->options, $options);
+
+        return $this;
+    }
+
+    /**
+     * Set a timeout for the request.
+     */
+    public function timeout(int $seconds): self
+    {
+        $this->options['timeout'] = $seconds;
+
+        return $this;
+    }
+
+    /**
+     * Set the number of retry attempts.
+     */
+    public function retries(int $attempts): self
+    {
+        $this->options['retries'] = $attempts;
+
+        return $this;
+    }
+
+    /**
+     * Conditionally execute a callback.
+     */
+    public function when($condition, Closure $callback, ?Closure $default = null): self
+    {
+        $conditionResult = $condition instanceof Closure ? $condition($this) : $condition;
+
+        if ($conditionResult) {
+            $callback($this);
+        } elseif ($default) {
+            $default($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Conditionally execute a callback when condition is false.
+     */
+    public function unless($condition, Closure $callback): self
+    {
+        return $this->when(! $condition, $callback);
+    }
+
+    /**
+     * Set a callback to execute on successful response.
+     */
+    public function onSuccess(Closure $callback): self
+    {
+        $this->callbacks['success'] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Set a callback to execute on error.
+     */
+    public function onError(Closure $callback): self
+    {
+        $this->callbacks['error'] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Set a callback to execute on each streaming chunk.
+     */
+    public function onProgress(Closure $callback): self
+    {
+        $this->callbacks['progress'] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Set a callback to execute before sending the request.
+     */
+    public function beforeSend(Closure $callback): self
+    {
+        $this->callbacks['before_send'] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Set a callback to execute after receiving the response.
+     */
+    public function afterReceive(Closure $callback): self
+    {
+        $this->callbacks['after_receive'] = $callback;
+
+        return $this;
+    }
+
+    /**
+     * Enable debug mode for detailed logging.
+     */
+    public function debug(bool $enabled = true): self
+    {
+        $this->features['debug'] = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Set tags for the conversation.
+     */
+    public function tags(array $tags): self
+    {
+        $this->metadata['tags'] = $tags;
+
+        return $this;
+    }
+
+    /**
+     * Set metadata for the conversation.
+     */
+    public function metadata(array $metadata): self
+    {
+        $this->metadata = array_merge($this->metadata, $metadata);
+
+        return $this;
+    }
+
+    /**
+     * Set the conversation title.
+     */
+    public function title(string $title): self
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    /**
+     * Associate the conversation with a user.
+     */
+    public function user($user): self
+    {
+        $this->user = $user;
+
+        return $this;
+    }
+
+    /**
+     * Set a session ID for anonymous conversations.
+     */
+    public function session(string $sessionId): self
+    {
+        $this->sessionId = $sessionId;
+
+        return $this;
+    }
+
+    /**
+     * Enable cost tracking for the conversation.
+     */
+    public function trackCosts(bool $enabled = true): self
+    {
+        $this->features['cost_tracking'] = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Enable performance tracking for the conversation.
+     */
+    public function trackPerformance(bool $enabled = true): self
+    {
+        $this->features['performance_tracking'] = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Send the conversation and get a response.
+     */
+    public function send(): AIResponse
+    {
+        $this->executeCallback('before_send');
+
+        try {
+            $provider = $this->getProviderInstance();
+
+            if ($this->model) {
+                $provider->setModel($this->model);
+            }
+
+            $provider->setOptions($this->options);
+
+            $messages = $this->getMessages();
+            $response = $provider->sendMessage($messages, $this->options);
+
+            $this->executeCallback('success', $response);
+            $this->executeCallback('after_receive', $response);
+
+            return $response;
+        } catch (\Exception $e) {
+            $this->executeCallback('error', $e);
+            throw $e;
+        }
+    }
+
+    /**
+     * Send the conversation as a streaming request.
+     */
+    public function stream(): \Generator
+    {
+        $this->executeCallback('before_send');
+
+        try {
+            $provider = $this->getProviderInstance();
+
+            if ($this->model) {
+                $provider->setModel($this->model);
+            }
+
+            $provider->setOptions($this->options);
+
+            $messages = $this->getMessages();
+            $stream = $provider->sendStreamingMessage($messages, $this->options);
+
+            foreach ($stream as $chunk) {
+                $this->executeCallback('progress', $chunk);
+                yield $chunk;
+            }
+
+            $this->executeCallback('after_receive');
+        } catch (\Exception $e) {
+            $this->executeCallback('error', $e);
+            throw $e;
+        }
+    }
+
+    /**
+     * Get the conversation as an array of messages.
+     */
+    public function getMessages(): array
+    {
+        return $this->messages;
+    }
+
+    /**
+     * Get the current configuration options.
+     */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    /**
+     * Get the selected provider.
+     */
+    public function getProvider(): ?string
+    {
+        return $this->provider;
+    }
+
+    /**
+     * Get the conversation title.
+     */
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
+
+    /**
+     * Get the temperature setting.
+     */
+    public function getTemperature(): ?float
+    {
+        return $this->options['temperature'] ?? null;
+    }
+
+    /**
+     * Get the max tokens setting.
+     */
+    public function getMaxTokens(): ?int
+    {
+        return $this->options['max_tokens'] ?? null;
+    }
+
+    /**
+     * Get the selected model.
+     */
+    public function getModel(): ?string
+    {
+        return $this->model;
+    }
+
+    /**
+     * Clone the builder for reuse.
+     */
+    public function clone(): self
+    {
+        return clone $this;
+    }
+
+    /**
+     * Reset the builder to initial state.
+     */
+    public function reset(): self
+    {
+        $this->messages = [];
+        $this->provider = null;
+        $this->model = null;
+        $this->options = [];
+        $this->metadata = [];
+        $this->callbacks = [];
+        $this->title = null;
+        $this->user = null;
+        $this->sessionId = null;
+        $this->features = [
+            'streaming' => false,
+            'cost_tracking' => true,
+            'performance_tracking' => true,
+            'debug' => false,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Get the provider instance.
+     *
+     * @return \JTD\LaravelAI\Contracts\AIProviderInterface
+     */
+    protected function getProviderInstance()
+    {
+        return $this->provider
+            ? $this->manager->driver($this->provider)
+            : $this->manager->driver();
+    }
+
+    /**
+     * Execute a callback if it exists.
+     *
+     * @param  mixed  ...$args
+     */
+    protected function executeCallback(string $event, ...$args): void
+    {
+        if (isset($this->callbacks[$event])) {
+            $this->callbacks[$event](...$args);
+        }
+    }
+}

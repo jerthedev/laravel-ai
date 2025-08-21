@@ -1,0 +1,13 @@
+Post-Sprint Review Process:
+- Review the SprintX.md file for the current sprint
+- Check the work completed for every story (review code, run all tests)
+- Update the task list under each story once you have verified the task has been fully completed
+- Review "Definition of Done" and ensure each item is met
+- If any Story is incomplete or Definition of Done items are not met, call out the specific items that need to be addressed
+- Only after all Story tasks are complete and Definition of Done items are met, create a new "Sprint Retrospective" section at the end of the file.  Include the following:
+  - What went well
+  - What could be improved
+  - What we learned
+  - What we will do differently next time
+  - Any other notes or feedback
+- Again, only after everything is complete, update the filename to "SprintX-Done.md"

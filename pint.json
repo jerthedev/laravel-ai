@@ -1,0 +1,17 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "simplified_null_return": true,
+        "braces": {
+            "position_after_control_structures": "same"
+        },
+        "concat_space": {
+            "spacing": "one"
+        },
+        "method_chaining_indentation": true,
+        "multiline_whitespace_before_semicolons": {
+            "strategy": "no_multi_line"
+        },
+        "single_trait_insert_per_statement": true
+    }
+}
