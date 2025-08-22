@@ -1,8 +1,8 @@
-# Driver System
+# Driver System Architecture
 
 ## Overview
 
-JTD Laravel AI uses a driver-based architecture similar to Laravel's database system. This allows for seamless switching between AI providers while maintaining a consistent interface. The driver system is extensible, allowing you to create custom drivers for new AI providers or specialized use cases.
+JTD Laravel AI uses a sophisticated driver-based architecture that provides a unified interface for multiple AI providers while maintaining provider-specific optimizations. The system is built on proven patterns from Laravel's ecosystem and includes comprehensive error handling, retry logic, streaming support, function calling, and performance optimization.
 
 ## Driver Architecture
 
@@ -11,19 +11,43 @@ JTD Laravel AI uses a driver-based architecture similar to Laravel's database sy
 ```
 AIManager
 ├── DriverManager
-│   ├── OpenAIDriver
-│   ├── XAIDriver
-│   ├── GeminiDriver
-│   ├── OllamaDriver
-│   └── CustomDriver
-├── ProviderRegistry
-├── ModelManager
-└── CostCalculator
+│   ├── OpenAIDriver (Complete Implementation)
+│   │   ├── Traits/
+│   │   │   ├── HandlesApiCommunication
+│   │   │   ├── HandlesErrors
+│   │   │   ├── HandlesStreaming
+│   │   │   ├── HandlesFunctionCalling
+│   │   │   ├── ValidatesHealth
+│   │   │   └── CalculatesCosts
+│   │   └── Support/
+│   │       ├── ErrorMapper
+│   │       ├── ModelPricing
+│   │       └── ResponseParser
+│   ├── MockProvider (Testing)
+│   └── CustomDrivers (Extensible)
+├── Event System
+│   ├── MessageSent
+│   ├── ResponseGenerated
+│   ├── CostCalculated
+│   └── ConversationUpdated
+├── Exception Hierarchy
+│   ├── OpenAI/
+│   │   ├── OpenAIException
+│   │   ├── OpenAIRateLimitException
+│   │   ├── OpenAIInvalidCredentialsException
+│   │   ├── OpenAIQuotaExceededException
+│   │   └── OpenAIServerException
+│   └── Base Exceptions
+└── Models & Data Structures
+    ├── AIMessage
+    ├── AIResponse
+    ├── TokenUsage
+    └── Database Models
 ```
 
 ### Driver Interface
 
-All drivers must implement the `AIProviderInterface`:
+All drivers must implement the comprehensive `AIProviderInterface`:
 
 ```php
 <?php
@@ -38,60 +62,82 @@ use JTD\LaravelAI\Models\TokenUsage;
 interface AIProviderInterface
 {
     /**
-     * Send a message to the AI provider
+     * Send a single message to the AI provider
      */
     public function sendMessage(AIMessage $message, array $options = []): AIResponse;
-    
+
     /**
-     * Send multiple messages in batch
+     * Send multiple messages in a conversation
      */
-    public function sendBatch(array $messages, array $options = []): Collection;
-    
+    public function sendMessages(array $messages, array $options = []): AIResponse;
+
+    /**
+     * Send streaming message with real-time response chunks
+     */
+    public function sendStreamingMessage(AIMessage $message, array $options = []): \Generator;
+
+    /**
+     * Send streaming conversation with real-time response chunks
+     */
+    public function sendStreamingMessages(array $messages, array $options = []): \Generator;
+
     /**
      * Get available models from the provider
      */
     public function getAvailableModels(): Collection;
-    
+
     /**
-     * Sync models from the provider
+     * Sync models from the provider API
      */
-    public function syncModels(): void;
-    
+    public function syncModels(): array;
+
     /**
      * Calculate cost for token usage
      */
     public function calculateCost(TokenUsage $usage, string $modelId): float;
-    
+
     /**
-     * Validate provider credentials
+     * Validate provider credentials and configuration
      */
-    public function validateCredentials(): bool;
-    
+    public function validateCredentials(): array;
+
     /**
-     * Get provider capabilities
+     * Get provider capabilities and features
      */
     public function getCapabilities(): array;
-    
+
     /**
-     * Get provider name
+     * Get provider configuration (with sensitive data masked)
+     */
+    public function getConfig(): array;
+
+    /**
+     * Get provider name/identifier
      */
     public function getName(): string;
-    
+
     /**
-     * Check if provider supports streaming
+     * Check if provider supports streaming responses
      */
     public function supportsStreaming(): bool;
-    
+
     /**
-     * Stream a message response
+     * Check if provider supports function calling
      */
-    public function streamMessage(AIMessage $message, callable $callback, array $options = []): AIResponse;
+    public function supportsFunctionCalling(): bool;
+
+    /**
+     * Check if provider supports vision/image inputs
+     */
+    public function supportsVision(): bool;
 }
 ```
 
 ## Built-in Drivers
 
-### OpenAI Driver
+### OpenAI Driver (Complete Implementation)
+
+The OpenAI driver serves as the reference implementation showcasing all driver system capabilities:
 
 ```php
 <?php
@@ -99,90 +145,270 @@ interface AIProviderInterface
 namespace JTD\LaravelAI\Drivers;
 
 use JTD\LaravelAI\Contracts\AIProviderInterface;
+use JTD\LaravelAI\Drivers\AbstractAIProvider;
+use JTD\LaravelAI\Drivers\OpenAI\Traits\HandlesApiCommunication;
+use JTD\LaravelAI\Drivers\OpenAI\Traits\HandlesErrors;
+use JTD\LaravelAI\Drivers\OpenAI\Traits\HandlesStreaming;
+use JTD\LaravelAI\Drivers\OpenAI\Traits\HandlesFunctionCalling;
+use JTD\LaravelAI\Drivers\OpenAI\Traits\ValidatesHealth;
+use JTD\LaravelAI\Drivers\OpenAI\Traits\CalculatesCosts;
 use OpenAI\Client as OpenAIClient;
 
-class OpenAIDriver implements AIProviderInterface
+class OpenAIDriver extends AbstractAIProvider implements AIProviderInterface
 {
+    use HandlesApiCommunication,
+        HandlesErrors,
+        HandlesStreaming,
+        HandlesFunctionCalling,
+        ValidatesHealth,
+        CalculatesCosts;
+
     protected OpenAIClient $client;
-    protected array $config;
-    
+    protected string $name = 'openai';
+
     public function __construct(array $config)
     {
-        $this->config = $config;
-        $this->client = OpenAI::client($config['api_key']);
+        parent::__construct($config);
+        $this->validateConfiguration($config);
+        $this->initializeClient();
     }
-    
+
+    /**
+     * Initialize the OpenAI client with configuration
+     */
+    protected function initializeClient(): void
+    {
+        $this->client = \OpenAI::client($this->config['api_key'])
+            ->withOrganization($this->config['organization'] ?? null)
+            ->withProject($this->config['project'] ?? null)
+            ->withHttpClient($this->createHttpClient());
+    }
+
+    /**
+     * Send a single message with comprehensive error handling and retry logic
+     */
     public function sendMessage(AIMessage $message, array $options = []): AIResponse
     {
-        $response = $this->client->chat()->create([
-            'model' => $options['model'] ?? 'gpt-3.5-turbo',
-            'messages' => $this->formatMessages($message),
-            'temperature' => $options['temperature'] ?? 0.7,
-            'max_tokens' => $options['max_tokens'] ?? null,
-        ]);
-        
-        return $this->formatResponse($response);
+        return $this->withRetry(function () use ($message, $options) {
+            return $this->makeApiCall([$message], $options);
+        });
     }
-    
+
+    /**
+     * Send streaming message with real-time chunks
+     */
+    public function sendStreamingMessage(AIMessage $message, array $options = []): \Generator
+    {
+        return $this->withRetry(function () use ($message, $options) {
+            return $this->makeStreamingApiCall([$message], $options);
+        });
+    }
+
+    /**
+     * Get available models with caching and error handling
+     */
     public function getAvailableModels(): Collection
     {
-        $models = $this->client->models()->list();
-        
-        return collect($models->data)
-            ->filter(fn($model) => str_starts_with($model->id, 'gpt'))
-            ->map(fn($model) => [
-                'id' => $model->id,
-                'name' => $model->id,
-                'type' => 'chat',
-                'context_length' => $this->getContextLength($model->id),
-                'capabilities' => $this->getModelCapabilities($model->id),
-            ]);
+        return $this->withRetry(function () {
+            $models = $this->client->models()->list();
+
+            return collect($models->data)
+                ->filter(fn($model) => $this->isValidModel($model))
+                ->map(fn($model) => $this->formatModelInfo($model))
+                ->values();
+        });
     }
-    
-    // ... other interface methods
+
+    /**
+     * Comprehensive credential validation
+     */
+    public function validateCredentials(): array
+    {
+        try {
+            $models = $this->client->models()->list();
+
+            return [
+                'valid' => true,
+                'account_info' => $this->getAccountInfo(),
+                'available_models' => count($models->data),
+                'organization' => $this->config['organization'] ?? null,
+                'project' => $this->config['project'] ?? null,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'valid' => false,
+                'errors' => [$this->enhanceErrorMessage($e->getMessage())],
+                'error_type' => $this->classifyError($e),
+            ];
+        }
+    }
+
+    /**
+     * Get comprehensive provider capabilities
+     */
+    public function getCapabilities(): array
+    {
+        return [
+            'chat' => true,
+            'streaming' => true,
+            'function_calling' => true,
+            'parallel_function_calling' => true,
+            'vision' => true,
+            'audio' => false,
+            'image_generation' => false,
+            'embeddings' => true,
+            'fine_tuning' => true,
+            'max_context_length' => 128000, // GPT-4 Turbo
+            'supported_formats' => ['text', 'image', 'json'],
+            'rate_limits' => $this->getRateLimits(),
+        ];
+    }
 }
 ```
 
-### Gemini Driver
+### Driver Trait System
+
+The OpenAI driver uses a comprehensive trait system that can be reused for other providers:
+
+#### HandlesApiCommunication Trait
+```php
+trait HandlesApiCommunication
+{
+    /**
+     * Make API call with comprehensive error handling
+     */
+    protected function makeApiCall(array $messages, array $options): AIResponse
+    {
+        $startTime = microtime(true);
+
+        try {
+            $response = $this->client->chat()->create(
+                $this->buildApiRequest($messages, $options)
+            );
+
+            $aiResponse = $this->parseResponse($response, $startTime);
+            $this->fireEvents($messages, $aiResponse, $options);
+
+            return $aiResponse;
+        } catch (\Exception $e) {
+            throw $this->mapException($e);
+        }
+    }
+}
+```
+
+#### HandlesErrors Trait
+```php
+trait HandlesErrors
+{
+    /**
+     * Execute operation with retry logic and exponential backoff
+     */
+    protected function withRetry(callable $operation, int $maxAttempts = null): mixed
+    {
+        $maxAttempts = $maxAttempts ?? $this->config['retry_attempts'];
+        $attempt = 1;
+
+        while ($attempt <= $maxAttempts) {
+            try {
+                return $operation();
+            } catch (\Exception $e) {
+                if ($attempt === $maxAttempts || !$this->isRetryableError($e)) {
+                    throw $this->mapException($e);
+                }
+
+                $delay = $this->calculateRetryDelay($attempt);
+                usleep($delay * 1000);
+                $attempt++;
+            }
+        }
+    }
+}
+```
+
+#### HandlesFunctionCalling Trait
+```php
+trait HandlesFunctionCalling
+{
+    /**
+     * Process function calls with parallel execution support
+     */
+    protected function processFunctionCalls(array $toolCalls): array
+    {
+        $results = [];
+
+        foreach ($toolCalls as $toolCall) {
+            $results[] = [
+                'tool_call_id' => $toolCall->id,
+                'role' => 'tool',
+                'content' => $this->executeFunctionCall($toolCall),
+            ];
+        }
+
+        return $results;
+    }
+}
+```
+
+### Exception System
+
+The driver system includes a comprehensive exception hierarchy:
 
 ```php
-<?php
+// Base exceptions
+JTD\LaravelAI\Exceptions\AIException
+├── ProviderException
+├── InvalidCredentialsException
+├── RateLimitException
+├── QuotaExceededException
+└── ServerException
 
-namespace JTD\LaravelAI\Drivers;
+// OpenAI-specific exceptions
+JTD\LaravelAI\Exceptions\OpenAI\OpenAIException
+├── OpenAIInvalidCredentialsException
+├── OpenAIRateLimitException
+├── OpenAIQuotaExceededException
+└── OpenAIServerException
+```
 
-use JTD\LaravelAI\Contracts\AIProviderInterface;
-use Google\Cloud\AIPlatform\V1\PredictionServiceClient;
-
-class GeminiDriver implements AIProviderInterface
+#### Error Mapping System
+```php
+class ErrorMapper
 {
-    protected PredictionServiceClient $client;
-    protected array $config;
-    
-    public function __construct(array $config)
+    protected static array $exceptionMap = [
+        'invalid_api_key' => OpenAIInvalidCredentialsException::class,
+        'rate_limit_exceeded' => OpenAIRateLimitException::class,
+        'quota_exceeded' => OpenAIQuotaExceededException::class,
+        'server_error' => OpenAIServerException::class,
+    ];
+
+    public static function mapException(\Exception $exception): \Exception
     {
-        $this->config = $config;
-        $this->client = new PredictionServiceClient([
-            'apiEndpoint' => $config['base_url'],
-            'credentials' => ['key' => $config['api_key']],
-        ]);
+        $errorInfo = static::extractErrorInfo($exception);
+        $errorType = static::classifyError($errorInfo);
+
+        if (isset(static::$exceptionMap[$errorType])) {
+            $exceptionClass = static::$exceptionMap[$errorType];
+            return static::createSpecificException($exceptionClass, $errorType, $errorInfo, $exception);
+        }
+
+        return new OpenAIException(
+            static::enhanceErrorMessage($errorInfo['message'], $errorType),
+            $errorType,
+            null,
+            null,
+            $errorInfo,
+            static::isRetryableError($exception),
+            $exception->getCode(),
+            $exception
+        );
     }
-    
-    public function sendMessage(AIMessage $message, array $options = []): AIResponse
-    {
-        // Gemini-specific implementation
-        $request = $this->buildGeminiRequest($message, $options);
-        $response = $this->client->predict($request);
-        
-        return $this->formatResponse($response);
-    }
-    
-    // ... other interface methods
 }
 ```
 
 ## Creating Custom Drivers
 
-### Basic Custom Driver
+### Modern Custom Driver Pattern
 
 ```php
 <?php
@@ -190,48 +416,75 @@ class GeminiDriver implements AIProviderInterface
 namespace App\AI\Drivers;
 
 use JTD\LaravelAI\Contracts\AIProviderInterface;
+use JTD\LaravelAI\Drivers\AbstractAIProvider;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Models\TokenUsage;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Client\Factory as HttpClient;
 
-class CustomAIDriver implements AIProviderInterface
+class CustomAIDriver extends AbstractAIProvider implements AIProviderInterface
 {
     protected HttpClient $http;
-    protected array $config;
-    
+    protected string $name = 'custom-ai';
+
     public function __construct(array $config)
     {
-        $this->config = $config;
+        parent::__construct($config);
+        $this->validateConfiguration($config);
         $this->http = app(HttpClient::class);
     }
-    
-    public function getName(): string
+
+    /**
+     * Validate driver-specific configuration
+     */
+    protected function validateConfiguration(array $config): void
     {
-        return 'custom-ai';
+        $required = ['api_key', 'base_url'];
+
+        foreach ($required as $key) {
+            if (empty($config[$key])) {
+                throw new \InvalidArgumentException("Missing required config: {$key}");
+            }
+        }
     }
-    
+
+    /**
+     * Send message with comprehensive error handling
+     */
     public function sendMessage(AIMessage $message, array $options = []): AIResponse
     {
-        $response = $this->http
-            ->withHeaders([
-                'Authorization' => 'Bearer ' . $this->config['api_key'],
-                'Content-Type' => 'application/json',
-            ])
-            ->timeout($this->config['timeout'] ?? 30)
-            ->post($this->config['base_url'] . '/chat/completions', [
-                'model' => $options['model'] ?? $this->config['default_model'],
-                'messages' => $this->formatMessages($message),
-                'temperature' => $options['temperature'] ?? 0.7,
-                'max_tokens' => $options['max_tokens'] ?? 1000,
-            ]);
-        
-        if ($response->failed()) {
-            throw new \Exception('API request failed: ' . $response->body());
+        return $this->withRetry(function () use ($message, $options) {
+            return $this->makeApiCall([$message], $options);
+        });
+    }
+
+    /**
+     * Make API call with proper error handling
+     */
+    protected function makeApiCall(array $messages, array $options): AIResponse
+    {
+        $startTime = microtime(true);
+
+        try {
+            $response = $this->http
+                ->withHeaders($this->getHeaders())
+                ->timeout($this->config['timeout'] ?? 30)
+                ->post($this->config['base_url'] . '/chat/completions',
+                    $this->buildApiRequest($messages, $options)
+                );
+
+            if ($response->failed()) {
+                throw new \Exception('API request failed: ' . $response->body());
+            }
+
+            $aiResponse = $this->parseResponse($response->json(), $startTime);
+            $this->fireEvents($messages, $aiResponse, $options);
+
+            return $aiResponse;
+        } catch (\Exception $e) {
+            throw $this->mapException($e);
         }
-        
-        return $this->parseResponse($response->json());
     }
     
     public function getAvailableModels(): Collection
@@ -446,33 +699,74 @@ class StreamingCustomDriver extends BaseDriver
 
 ### Registering Custom Drivers
 
+Register your custom driver in a service provider with comprehensive configuration:
+
 ```php
-// In a service provider
-use JTD\LaravelAI\Facades\AI;
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use JTD\LaravelAI\AIManager;
 use App\AI\Drivers\CustomAIDriver;
 
-public function boot()
+class AIServiceProvider extends ServiceProvider
 {
-    // Register the driver
-    AI::extend('custom-ai', function ($config) {
-        return new CustomAIDriver($config);
-    });
+    public function boot()
+    {
+        $this->app->resolving(AIManager::class, function (AIManager $manager) {
+            $manager->extend('custom-ai', function ($app, $config) {
+                return new CustomAIDriver($config);
+            });
+        });
+    }
 }
 ```
 
-### Configuration for Custom Drivers
+### Comprehensive Driver Configuration
+
+Add the driver configuration to your `config/ai.php` with all standard options:
 
 ```php
-// config/ai.php
 'providers' => [
+    'openai' => [
+        'driver' => 'openai',
+        'api_key' => env('OPENAI_API_KEY'),
+        'organization' => env('OPENAI_ORGANIZATION'),
+        'project' => env('OPENAI_PROJECT'),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+        'timeout' => (int) env('OPENAI_TIMEOUT', 30),
+        'retry_attempts' => (int) env('OPENAI_RETRY_ATTEMPTS', 3),
+        'retry_delay' => (int) env('OPENAI_RETRY_DELAY', 1000),
+        'max_retry_delay' => (int) env('OPENAI_MAX_RETRY_DELAY', 30000),
+        'logging' => [
+            'enabled' => (bool) env('AI_LOGGING_ENABLED', true),
+            'channel' => env('AI_LOG_CHANNEL', 'default'),
+            'level' => env('AI_LOG_LEVEL', 'info'),
+            'include_content' => (bool) env('AI_LOG_INCLUDE_CONTENT', false),
+        ],
+        'rate_limiting' => [
+            'enabled' => (bool) env('AI_RATE_LIMITING_ENABLED', true),
+            'requests_per_minute' => (int) env('OPENAI_RPM_LIMIT', 3500),
+            'tokens_per_minute' => (int) env('OPENAI_TPM_LIMIT', 90000),
+        ],
+    ],
+
     'custom-ai' => [
         'driver' => 'custom-ai',
         'api_key' => env('CUSTOM_AI_API_KEY'),
-        'base_url' => env('CUSTOM_AI_BASE_URL', 'https://api.custom-ai.com/v1'),
-        'timeout' => 30,
-        'default_model' => 'custom-model-v1',
-        'retry_attempts' => 3,
-        'retry_delay' => 1000,
+        'base_url' => env('CUSTOM_AI_BASE_URL'),
+        'timeout' => (int) env('CUSTOM_AI_TIMEOUT', 30),
+        'retry_attempts' => (int) env('CUSTOM_AI_RETRY_ATTEMPTS', 3),
+        'retry_delay' => (int) env('CUSTOM_AI_RETRY_DELAY', 1000),
+        'max_retry_delay' => (int) env('CUSTOM_AI_MAX_RETRY_DELAY', 30000),
+        'default_model' => env('CUSTOM_AI_DEFAULT_MODEL', 'custom-model-v1'),
+        'logging' => [
+            'enabled' => (bool) env('AI_LOGGING_ENABLED', true),
+            'channel' => env('AI_LOG_CHANNEL', 'default'),
+            'level' => env('AI_LOG_LEVEL', 'info'),
+            'include_content' => (bool) env('AI_LOG_INCLUDE_CONTENT', false),
+        ],
     ],
 ],
 ```
@@ -687,18 +981,168 @@ class CustomDriverIntegrationTest extends TestCase
 
 ## Best Practices
 
-### Driver Development Guidelines
+### Modern Driver Development Guidelines
 
-1. **Implement all interface methods**: Ensure complete interface compliance
-2. **Handle errors gracefully**: Provide meaningful error messages
-3. **Support configuration**: Make drivers configurable through config arrays
-4. **Add retry logic**: Implement exponential backoff for transient failures
-5. **Cache expensive operations**: Cache model lists and pricing information
-6. **Log important events**: Log API calls, errors, and performance metrics
-7. **Validate inputs**: Always validate message content and options
-8. **Support streaming**: Implement streaming where the provider supports it
-9. **Calculate costs accurately**: Ensure precise cost calculations
-10. **Test thoroughly**: Write comprehensive unit and integration tests
+1. **Extend AbstractAIProvider**: Use the base class for common functionality
+2. **Use Trait System**: Leverage existing traits for error handling, streaming, etc.
+3. **Comprehensive Error Handling**: Implement proper exception mapping and retry logic
+4. **Event-Driven Architecture**: Fire events for all major operations
+5. **Configuration Validation**: Validate all configuration parameters
+6. **Security First**: Mask sensitive data in logs and configuration output
+7. **Performance Optimization**: Implement caching, connection pooling, and efficient parsing
+8. **Comprehensive Testing**: Write unit, integration, and E2E tests
+9. **Documentation**: Document all capabilities, limitations, and configuration options
+10. **Monitoring & Observability**: Include comprehensive logging and metrics
+
+### Required Implementation Patterns
+
+#### 1. Configuration Validation
+```php
+protected function validateConfiguration(array $config): void
+{
+    $required = ['api_key', 'base_url'];
+
+    foreach ($required as $key) {
+        if (empty($config[$key])) {
+            throw new \InvalidArgumentException("Missing required config: {$key}");
+        }
+    }
+
+    // Validate API key format
+    if (!$this->isValidApiKeyFormat($config['api_key'])) {
+        throw new InvalidCredentialsException('Invalid API key format');
+    }
+}
+```
+
+#### 2. Error Mapping
+```php
+protected function mapException(\Exception $exception): \Exception
+{
+    $errorInfo = $this->extractErrorInfo($exception);
+    $errorType = $this->classifyError($errorInfo);
+
+    return match ($errorType) {
+        'invalid_credentials' => new InvalidCredentialsException($errorInfo['message']),
+        'rate_limit' => new RateLimitException($errorInfo['message'], $errorInfo['retry_after']),
+        'quota_exceeded' => new QuotaExceededException($errorInfo['message']),
+        default => new ProviderException($errorInfo['message'], 0, $exception),
+    };
+}
+```
+
+#### 3. Event Integration
+```php
+protected function fireEvents(array $messages, AIResponse $response, array $options): void
+{
+    event(new MessageSent($this->getName(), $messages, $options));
+    event(new ResponseGenerated($this->getName(), $response));
+    event(new CostCalculated($this->getName(), $response->cost, $response->tokenUsage));
+}
+```
+
+### Comprehensive Testing Strategy
+
+#### 1. Unit Tests
+```php
+<?php
+
+namespace Tests\Unit\Drivers;
+
+use Tests\TestCase;
+use App\AI\Drivers\CustomAIDriver;
+use JTD\LaravelAI\Models\AIMessage;
+use JTD\LaravelAI\Models\AIResponse;
+use Illuminate\Support\Facades\Http;
+
+class CustomAIDriverTest extends TestCase
+{
+    protected CustomAIDriver $driver;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->driver = new CustomAIDriver([
+            'api_key' => 'test-key-1234567890',
+            'base_url' => 'https://api.test.com',
+            'timeout' => 30,
+            'retry_attempts' => 3,
+            'retry_delay' => 1, // Fast for tests
+        ]);
+    }
+
+    public function test_sends_message_successfully()
+    {
+        $message = AIMessage::user('Hello, world!');
+
+        Http::fake([
+            'api.test.com/*' => Http::response([
+                'choices' => [['message' => ['content' => 'Hello back!']]],
+                'usage' => ['total_tokens' => 15],
+                'model' => 'test-model',
+            ]),
+        ]);
+
+        $response = $this->driver->sendMessage($message);
+
+        $this->assertInstanceOf(AIResponse::class, $response);
+        $this->assertEquals('Hello back!', $response->content);
+        $this->assertEquals('custom-ai', $response->provider);
+    }
+
+    public function test_handles_rate_limit_errors()
+    {
+        Http::fake([
+            'api.test.com/*' => Http::response([
+                'error' => ['message' => 'Rate limit exceeded']
+            ], 429),
+        ]);
+
+        $this->expectException(RateLimitException::class);
+        $this->driver->sendMessage(AIMessage::user('Test'));
+    }
+
+    public function test_validates_credentials()
+    {
+        Http::fake(['api.test.com/*' => Http::response(['models' => []])]);
+
+        $result = $this->driver->validateCredentials();
+        $this->assertTrue($result['valid']);
+    }
+}
+```
+
+#### 2. Integration Tests
+```php
+public function test_full_conversation_flow()
+{
+    $messages = [
+        AIMessage::system('You are a helpful assistant.'),
+        AIMessage::user('What is 2+2?'),
+    ];
+
+    $response = $this->driver->sendMessages($messages);
+
+    $this->assertNotEmpty($response->content);
+    $this->assertGreaterThan(0, $response->tokenUsage->totalTokens);
+}
+```
+
+#### 3. E2E Tests
+```php
+public function test_real_api_integration()
+{
+    if (!$this->hasRealCredentials()) {
+        $this->markTestSkipped('Real credentials not available');
+    }
+
+    $driver = new CustomAIDriver($this->getRealConfig());
+    $response = $driver->sendMessage(AIMessage::user('Hello'));
+
+    $this->assertNotEmpty($response->content);
+}
+```
 
 ### Performance Considerations
 
@@ -707,3 +1151,20 @@ class CustomDriverIntegrationTest extends TestCase
 3. **Memory management**: Handle large responses efficiently
 4. **Timeout handling**: Set appropriate timeouts for different operations
 5. **Rate limiting**: Respect provider rate limits and implement backoff
+6. **Caching**: Cache expensive operations like model lists and pricing
+7. **Streaming optimization**: Use efficient streaming for real-time responses
+8. **Error recovery**: Implement circuit breakers for failing providers
+
+## Conclusion
+
+The JTD Laravel AI driver system provides a robust, extensible architecture for integrating multiple AI providers. The OpenAI driver serves as a comprehensive reference implementation showcasing:
+
+- **Comprehensive error handling** with retry logic and exponential backoff
+- **Event-driven architecture** for monitoring and observability
+- **Security best practices** with credential masking and validation
+- **Performance optimization** with caching and efficient API communication
+- **Streaming support** for real-time responses
+- **Function calling** capabilities for advanced AI interactions
+- **Comprehensive testing** with unit, integration, and E2E tests
+
+When creating custom drivers, follow the established patterns and leverage the trait system to ensure consistency, reliability, and maintainability across all AI provider integrations.

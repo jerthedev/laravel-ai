@@ -5,8 +5,46 @@ namespace JTD\LaravelAI\Models;
 /**
  * Data Transfer Object for AI provider responses.
  *
- * Represents a response from an AI provider, including the generated content,
- * token usage, cost information, and metadata.
+ * Represents a complete response from an AI provider, including the generated
+ * content, token usage statistics, cost information, performance metrics,
+ * and metadata. This class provides a unified interface for AI responses
+ * across different providers.
+ *
+ * Key features:
+ * - Generated content and role information
+ * - Token usage tracking for cost calculation
+ * - Performance metrics (response time, etc.)
+ * - Function/tool call support
+ * - Streaming response support
+ * - Provider-specific metadata
+ *
+ * Finish reasons indicate why the AI stopped generating:
+ * - stop: Natural completion
+ * - length: Hit maximum token limit
+ * - content_filter: Content was filtered
+ * - function_call: AI wants to call a function
+ * - tool_calls: AI wants to call tools
+ * - error: An error occurred
+ *
+ * @package JTD\LaravelAI\Models
+ * @version 1.0.0
+ * @since 1.0.0
+ *
+ * @example
+ * ```php
+ * $response = new AIResponse(
+ *     content: 'Hello! How can I help you today?',
+ *     role: 'assistant',
+ *     finishReason: AIResponse::FINISH_REASON_STOP,
+ *     tokenUsage: new TokenUsage(10, 8, 18),
+ *     model: 'gpt-4',
+ *     provider: 'openai'
+ * );
+ *
+ * echo $response->content;
+ * echo "Cost: $" . number_format($response->cost, 4);
+ * echo "Tokens: {$response->tokenUsage->totalTokens}";
+ * ```
  */
 class AIResponse
 {
@@ -318,7 +356,7 @@ class AIResponse
     {
         return new AIMessage(
             $this->role,
-            $this->content,
+            $this->content ?: '', // Ensure content is not null
             AIMessage::CONTENT_TYPE_TEXT,
             null,
             $this->functionCalls,

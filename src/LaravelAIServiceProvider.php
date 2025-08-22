@@ -127,8 +127,11 @@ class LaravelAIServiceProvider extends ServiceProvider
      */
     protected function registerEventListeners(): void
     {
-        // Register event listeners for cost tracking, analytics, etc.
-        // This will be expanded when we implement the event system
+        // Core system events
+        Event::listen(\JTD\LaravelAI\Events\ResponseGenerated::class, \JTD\LaravelAI\Listeners\CostTrackingListener::class . '@handleResponseGenerated');
+        Event::listen(\JTD\LaravelAI\Events\CostCalculated::class, \JTD\LaravelAI\Listeners\CostTrackingListener::class);
+
+        // Additional event listeners will be added as we implement more features
     }
 
     /**
@@ -136,8 +139,12 @@ class LaravelAIServiceProvider extends ServiceProvider
      */
     protected function registerCommands(): void
     {
-        // Register artisan commands
-        // This will be expanded when we implement commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \JTD\LaravelAI\Console\Commands\SyncOpenAIModelsCommand::class,
+                \JTD\LaravelAI\Console\Commands\SetupE2ECommand::class,
+            ]);
+        }
     }
 
     /**

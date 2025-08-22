@@ -8,8 +8,44 @@ use Illuminate\Validation\ValidationException;
 /**
  * Data Transfer Object for AI messages.
  *
- * Represents a message in an AI conversation, supporting various content types
- * and metadata. Used for both user inputs and AI responses.
+ * Represents a message in an AI conversation, supporting various content types,
+ * roles, and metadata. This class is used throughout the system for both user
+ * inputs and AI responses, providing a consistent interface for message handling.
+ *
+ * Supports multiple message roles:
+ * - System: Instructions and context for the AI
+ * - User: Messages from the human user
+ * - Assistant: Responses from the AI
+ * - Function: Results from function calls
+ * - Tool: Tool call results and metadata
+ *
+ * Supports multiple content types:
+ * - Text: Plain text messages
+ * - Image: Image content with URLs or base64 data
+ * - Audio: Audio content and transcriptions
+ * - File: File attachments and references
+ * - Multimodal: Mixed content types in a single message
+ *
+ * @package JTD\LaravelAI\Models
+ * @version 1.0.0
+ * @since 1.0.0
+ *
+ * @example
+ * ```php
+ * // Simple text message
+ * $message = AIMessage::user('Hello, world!');
+ *
+ * // System message with instructions
+ * $system = AIMessage::system('You are a helpful assistant.');
+ *
+ * // Function call result
+ * $result = AIMessage::tool('call_123', json_encode(['result' => 'success']));
+ *
+ * // Image message
+ * $image = AIMessage::user('What do you see?', AIMessage::CONTENT_TYPE_IMAGE, [
+ *     ['type' => 'image_url', 'image_url' => ['url' => 'https://example.com/image.jpg']]
+ * ]);
+ * ```
  */
 class AIMessage
 {
@@ -40,42 +76,83 @@ class AIMessage
     public const CONTENT_TYPE_MULTIMODAL = 'multimodal';
 
     /**
-     * @var string Message role
+     * Message role identifier.
+     *
+     * Defines the role of the message sender in the conversation.
+     * Must be one of the ROLE_* constants.
+     *
+     * @var string One of: 'system', 'user', 'assistant', 'function', 'tool'
      */
     public string $role;
 
     /**
-     * @var string|array Message content
+     * Message content.
+     *
+     * Can be a simple string for text messages, or an array for complex
+     * content types like multimodal messages with images, audio, etc.
+     *
+     * @var string|array Simple text string or structured content array
      */
     public $content;
 
     /**
-     * @var string Content type
+     * Content type identifier.
+     *
+     * Specifies the type of content in this message.
+     * Must be one of the CONTENT_TYPE_* constants.
+     *
+     * @var string One of: 'text', 'image', 'audio', 'file', 'multimodal'
      */
     public string $contentType;
 
     /**
-     * @var array|null Message attachments
+     * Message attachments.
+     *
+     * Array of file attachments, images, or other media associated
+     * with this message. Structure varies by content type.
+     *
+     * @var array|null Array of attachment objects or null if no attachments
      */
     public ?array $attachments;
 
     /**
-     * @var array|null Function calls
+     * Function calls (deprecated).
+     *
+     * Legacy function call data. Use toolCalls instead for new implementations.
+     * Maintained for backward compatibility with older OpenAI API versions.
+     *
+     * @var array|null Array of function call objects or null
+     * @deprecated Use toolCalls instead
      */
     public ?array $functionCalls;
 
     /**
-     * @var array|null Tool calls
+     * Tool calls.
+     *
+     * Array of tool/function calls made by the AI assistant.
+     * Each tool call includes an ID, function name, and arguments.
+     *
+     * @var array|null Array of tool call objects or null
      */
     public ?array $toolCalls;
 
     /**
-     * @var array|null Additional metadata
+     * Additional metadata.
+     *
+     * Arbitrary metadata associated with the message, such as
+     * timestamps, user IDs, conversation context, etc.
+     *
+     * @var array|null Associative array of metadata or null
      */
     public ?array $metadata;
 
     /**
-     * @var string|null Message name (for function/tool messages)
+     * Message name.
+     *
+     * Required for function and tool messages to identify the
+     * specific function or tool being called or responded to.
+     *
+     * @var string|null Function/tool name or null for other message types
      */
     public ?string $name;
 
@@ -194,7 +271,7 @@ class AIMessage
             'name' => $this->name,
         ], [
             'role' => 'required|in:system,user,assistant,function,tool',
-            'content' => 'required',
+            'content' => 'nullable|string',
             'content_type' => 'required|in:text,image,audio,file,multimodal',
             'attachments' => 'nullable|array',
             'function_calls' => 'nullable|array',

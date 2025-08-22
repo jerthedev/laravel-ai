@@ -144,5 +144,12 @@ jspm_packages/
 # TernJS port file
 .tern-port
 
+# E2E Testing Credentials
+tests/credentials/e2e-credentials.json
+tests/credentials/*.local.json
+tests/credentials/.env.e2e
+tests/credentials/e2e-credentials.*.json
+!tests/credentials/e2e-credentials.example.json
+
 # Package-specific ignores
 /Tasks_*.md

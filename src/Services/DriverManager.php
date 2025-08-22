@@ -352,8 +352,7 @@ class DriverManager
      */
     protected function createOpenaiDriver(array $config): AIProviderInterface
     {
-        // This will be implemented when we create the OpenAI provider
-        throw new \BadMethodCallException('OpenAI driver not yet implemented');
+        return new \JTD\LaravelAI\Drivers\OpenAIDriver($config);
     }
 
     /**

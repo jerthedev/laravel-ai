@@ -35,11 +35,17 @@ return [
             'project' => env('AI_OPENAI_PROJECT'),
             'base_url' => env('AI_OPENAI_BASE_URL', 'https://api.openai.com/v1'),
             'timeout' => env('AI_OPENAI_TIMEOUT', 30),
+            'connect_timeout' => env('AI_OPENAI_CONNECT_TIMEOUT', 10),
             'retry_attempts' => env('AI_OPENAI_RETRY_ATTEMPTS', 3),
             'retry_delay' => env('AI_OPENAI_RETRY_DELAY', 1000),
-            'default_model' => env('AI_OPENAI_DEFAULT_MODEL', 'gpt-4'),
+            'default_model' => env('AI_OPENAI_DEFAULT_MODEL', 'gpt-4o-mini'),
             'default_temperature' => env('AI_OPENAI_DEFAULT_TEMPERATURE', 0.7),
             'default_max_tokens' => env('AI_OPENAI_DEFAULT_MAX_TOKENS', 1000),
+            'default_top_p' => env('AI_OPENAI_DEFAULT_TOP_P', 1.0),
+            'default_frequency_penalty' => env('AI_OPENAI_DEFAULT_FREQUENCY_PENALTY', 0.0),
+            'default_presence_penalty' => env('AI_OPENAI_DEFAULT_PRESENCE_PENALTY', 0.0),
+            'streaming_enabled' => env('AI_OPENAI_STREAMING_ENABLED', true),
+            'function_calling_enabled' => env('AI_OPENAI_FUNCTION_CALLING_ENABLED', true),
         ],
 
         'xai' => [
