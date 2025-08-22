@@ -13,7 +13,7 @@ Welcome to the comprehensive documentation for JTD Laravel AI, a production-read
 
 ### Core Documentation
 - [API Reference](API_REFERENCE.md) - Complete API documentation
-- [Driver System](DRIVER_SYSTEM.md) - Architecture and driver development guide
+- [Driver System](Driver%20System/README.md) - Architecture and driver development guide
 - [OpenAI Driver](OPENAI_DRIVER.md) - Complete OpenAI integration documentation
 
 ### Advanced Features
