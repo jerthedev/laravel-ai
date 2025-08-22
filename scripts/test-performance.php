@@ -2,7 +2,7 @@
 
 /**
  * Test Performance Analysis Script
- * 
+ *
  * Analyzes PHPUnit test performance and identifies slow tests.
  * Usage: php scripts/test-performance.php [--threshold=1.0] [--format=table|json]
  */
@@ -25,18 +25,95 @@ if (isset($options['help'])) {
 $threshold = (float)($options['threshold'] ?? 0.5);
 $format = $options['format'] ?? 'table';
 
-// Run tests with JUnit output
+// Run tests with JUnit output in batches to identify hanging tests
 echo "Running tests to collect performance data...\n";
-$output = shell_exec('vendor/bin/phpunit --log-junit junit.xml 2>/dev/null');
 
-if (!file_exists('junit.xml')) {
-    echo "Error: Could not generate junit.xml file. Make sure PHPUnit is configured correctly.\n";
+// Define test directories to run separately
+$testDirs = [
+    'tests/Unit' => 'Unit Tests',
+    'tests/Feature' => 'Feature Tests',
+    'tests/Integration' => 'Integration Tests',
+    'tests/Performance' => 'Performance Tests',
+    'tests/E2E' => 'E2E Tests'
+];
+
+$allTests = [];
+$failedDirs = [];
+
+foreach ($testDirs as $dir => $name) {
+    if (!is_dir($dir)) {
+        echo "Skipping $name - directory not found\n";
+        continue;
+    }
+
+    echo "Running $name...\n";
+    $junitFile = "junit-" . basename($dir) . ".xml";
+
+    // Set a reasonable timeout for each test suite
+    $command = "vendor/bin/phpunit --log-junit $junitFile $dir 2>/dev/null";
+
+    // Use proc_open to have better control over the process
+    $descriptorspec = [
+        0 => ["pipe", "r"],  // stdin
+        1 => ["pipe", "w"],  // stdout
+        2 => ["pipe", "w"]   // stderr
+    ];
+
+    $process = proc_open($command, $descriptorspec, $pipes);
+
+    if (is_resource($process)) {
+        // Close stdin
+        fclose($pipes[0]);
+
+        // Set a timeout of 5 minutes per test suite
+        $timeout = 300;
+        $start = time();
+
+        while (proc_get_status($process)['running'] && (time() - $start) < $timeout) {
+            usleep(100000); // 0.1 second
+        }
+
+        $status = proc_get_status($process);
+        if ($status['running']) {
+            echo "  ⚠️  $name timed out after {$timeout}s - terminating\n";
+            proc_terminate($process);
+            $failedDirs[] = $name;
+        } else {
+            echo "  ✅ $name completed\n";
+        }
+
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        proc_close($process);
+
+        // Parse results if junit file was created
+        if (file_exists($junitFile)) {
+            $xml = simplexml_load_file($junitFile);
+            if ($xml) {
+                extractTests($xml, $allTests);
+            }
+            unlink($junitFile);
+        }
+    } else {
+        echo "  ❌ Failed to start $name\n";
+        $failedDirs[] = $name;
+    }
+}
+
+if (!empty($failedDirs)) {
+    echo "\n⚠️  The following test suites had issues:\n";
+    foreach ($failedDirs as $dir) {
+        echo "  - $dir\n";
+    }
+    echo "\n";
+}
+
+if (empty($allTests)) {
+    echo "Error: No test data collected\n";
     exit(1);
 }
 
-// Parse JUnit XML
-$xml = simplexml_load_file('junit.xml');
-$tests = [];
+$tests = $allTests;
 
 function extractTests($element, &$tests) {
     if ($element->getName() === 'testcase') {
@@ -50,16 +127,14 @@ function extractTests($element, &$tests) {
             'full_name' => $class . '::' . $name
         ];
     }
-    
+
     foreach ($element->children() as $child) {
         extractTests($child, $tests);
     }
 }
 
-extractTests($xml, $tests);
-
 if (empty($tests)) {
-    echo "Error: No test data found in junit.xml\n";
+    echo "Error: No test data found\n";
     exit(1);
 }
 
@@ -67,8 +142,8 @@ if (empty($tests)) {
 usort($tests, function($a, $b) { return $b['time'] <=> $a['time']; });
 
 // Filter slow tests
-$slowTests = array_filter($tests, function($t) use ($threshold) { 
-    return $t['time'] > $threshold; 
+$slowTests = array_filter($tests, function($t) use ($threshold) {
+    return $t['time'] > $threshold;
 });
 
 // Calculate statistics
@@ -134,7 +209,7 @@ switch ($format) {
         echo "🚨 Very slow tests (>2s): " . count($verySlowTests) . "\n";
         echo "⚠️  Slow tests (>0.5s): " . count($mediumTests) . "\n";
         echo "✅ Fast tests (<0.1s): " . count($fastTests) . "\n\n";
-        
+
         if (!empty($slowTests)) {
             echo "🐌 TESTS REQUIRING ATTENTION (>" . $threshold . "s):\n";
             foreach (array_slice($slowTests, 0, 10) as $test) {
@@ -147,39 +222,39 @@ switch ($format) {
     default: // table
         echo "\n📊 TEST PERFORMANCE ANALYSIS\n";
         echo "============================\n\n";
-        
+
         if (!empty($slowTests)) {
             echo "🐌 SLOW TESTS (>" . $threshold . "s):\n";
             echo str_pad('Time (s)', 10) . str_pad('Class', 40) . 'Method' . "\n";
             echo str_repeat('-', 100) . "\n";
-            
+
             foreach (array_slice($slowTests, 0, 20) as $test) {
                 $className = basename(str_replace('\\', '/', $test['class']));
-                echo str_pad(number_format($test['time'], 3), 10) . 
-                     str_pad($className, 40) . 
+                echo str_pad(number_format($test['time'], 3), 10) .
+                     str_pad($className, 40) .
                      $test['method'] . "\n";
             }
             echo "\n";
         }
-        
+
         echo "📈 PERFORMANCE STATISTICS:\n";
         echo "Total tests: " . count($tests) . "\n";
         echo "Total time: " . number_format($totalTime, 3) . "s\n";
         echo "Average time: " . number_format($averageTime, 3) . "s\n";
         echo "Median time: " . number_format($medianTime, 3) . "s\n\n";
-        
+
         echo "🚨 Very slow tests (>2s): " . count($verySlowTests) . "\n";
         echo "⚠️  Medium tests (0.5-2s): " . count($mediumTests) . "\n";
         echo "✅ Fast tests (<0.1s): " . count($fastTests) . "\n\n";
-        
+
         echo "📊 TEST SUITE BREAKDOWN:\n";
         foreach (array_slice($suites, 0, 10, true) as $suite => $data) {
-            echo str_pad($suite, 40) . 
-                 str_pad($data['count'] . ' tests', 15) . 
-                 number_format($data['time'], 3) . "s (avg: " . 
+            echo str_pad($suite, 40) .
+                 str_pad($data['count'] . ' tests', 15) .
+                 number_format($data['time'], 3) . "s (avg: " .
                  number_format($data['time'] / $data['count'], 3) . "s)\n";
         }
-        
+
         if (!empty($verySlowTests)) {
             echo "\n🚨 RECOMMENDATIONS:\n";
             echo "- Consider optimizing tests that take >2s\n";
@@ -190,7 +265,6 @@ switch ($format) {
         break;
 }
 
-// Cleanup
-unlink('junit.xml');
+// Cleanup handled in the loop above
 
 echo "\n";

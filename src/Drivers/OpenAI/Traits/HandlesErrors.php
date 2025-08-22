@@ -51,10 +51,12 @@ trait HandlesErrors
 
                 // Calculate delay for next attempt
                 $delay = $this->calculateRetryDelay($attempt, $baseDelay, $maxDelay, $e);
-                
-                // Wait before retrying
-                usleep($delay * 1000); // Convert to microseconds
-                
+
+                // Wait before retrying (skip in test environment)
+                if (!$this->isTestEnvironment()) {
+                    usleep($delay * 1000); // Convert to microseconds
+                }
+
                 $attempt++;
             }
         }
@@ -76,13 +78,23 @@ trait HandlesErrors
 
         // Exponential backoff: delay = baseDelay * (2 ^ (attempt - 1))
         $exponentialDelay = $baseDelay * (2 ** ($attempt - 1));
-        
+
         // Add jitter (random factor between 0.5 and 1.5)
         $jitter = 0.5 + (mt_rand() / mt_getrandmax());
         $delayWithJitter = (int) ($exponentialDelay * $jitter);
-        
+
         // Cap at maximum delay
         return min($delayWithJitter, $maxDelay);
+    }
+
+    /**
+     * Check if we're running in a test environment.
+     */
+    protected function isTestEnvironment(): bool
+    {
+        return defined('PHPUNIT_COMPOSER_INSTALL') ||
+               (function_exists('app') && app()->environment('testing')) ||
+               isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'testing';
     }
 
     /**
@@ -148,7 +160,7 @@ trait HandlesErrors
     {
         // This can be extended to integrate with Laravel's logging system
         // For now, we'll keep it simple to avoid dependencies
-        
+
         if (config('app.debug', false)) {
             error_log(sprintf(
                 '[OpenAI Driver] %s: %s (Context: %s)',
@@ -165,24 +177,24 @@ trait HandlesErrors
     protected function handleSpecificError(\Exception $exception, array $context = []): void
     {
         $errorInfo = $this->extractErrorInfo($exception);
-        
+
         // Log the error
         $this->logError($exception, array_merge($context, $errorInfo));
-        
+
         // Handle specific error types
         switch ($errorInfo['type']) {
             case 'rate_limit_exceeded':
                 $this->handleRateLimitError($exception, $errorInfo);
                 break;
-                
+
             case 'quota_exceeded':
                 $this->handleQuotaError($exception, $errorInfo);
                 break;
-                
+
             case 'invalid_api_key':
                 $this->handleCredentialError($exception, $errorInfo);
                 break;
-                
+
             case 'server_error':
                 $this->handleServerError($exception, $errorInfo);
                 break;
@@ -246,7 +258,7 @@ trait HandlesErrors
     protected function shouldFailFast(\Exception $exception): bool
     {
         $errorInfo = $this->extractErrorInfo($exception);
-        
+
         // Fail fast for these error types (no retry)
         $failFastTypes = [
             'invalid_api_key',
@@ -255,7 +267,7 @@ trait HandlesErrors
             'invalid_request_error',
             'invalid_model',
         ];
-        
+
         return in_array($errorInfo['type'], $failFastTypes);
     }
 

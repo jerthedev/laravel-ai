@@ -150,6 +150,7 @@ tests/credentials/*.local.json
 tests/credentials/.env.e2e
 tests/credentials/e2e-credentials.*.json
 !tests/credentials/e2e-credentials.example.json
+junit*
 
 # Package-specific ignores
 /Tasks_*.md
