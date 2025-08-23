@@ -2,41 +2,164 @@
 
 namespace JTD\LaravelAI\Drivers\Gemini\Support;
 
+use JTD\LaravelAI\Contracts\PricingInterface;
+use JTD\LaravelAI\Enums\BillingModel;
+use JTD\LaravelAI\Enums\PricingUnit;
+
 /**
  * Gemini Model Pricing Data
  *
- * Centralized pricing information for Gemini models.
- * Prices are per 1K tokens (input/output).
+ * Centralized pricing information for Gemini models implementing the standardized
+ * pricing interface with proper enums and validation.
  */
-class ModelPricing
+class ModelPricing implements PricingInterface
 {
     /**
-     * Gemini model pricing per 1K tokens (input/output).
+     * Gemini model pricing with standardized format using enums.
      * Prices are in USD per 1K tokens (updated 2025).
      */
     public static array $pricing = [
         // Current generation models (2025 pricing)
-        'gemini-2.5-pro' => ['input' => 1.25, 'output' => 10.00],
-        'gemini-2.5-flash' => ['input' => 0.30, 'output' => 2.50],
-        'gemini-2.5-flash-lite' => ['input' => 0.10, 'output' => 0.40],
-        'gemini-2.0-flash' => ['input' => 0.075, 'output' => 0.30], // Updated pricing
-        'gemini-2.0-flash-lite' => ['input' => 0.075, 'output' => 0.30],
-        'gemini-2.0-pro' => ['input' => 1.25, 'output' => 10.00], // New model
+        'gemini-2.5-pro' => [
+            'input' => 1.25,
+            'output' => 10.00,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::PAY_PER_USE,
+            'effective_date' => '2025-01-01',
+        ],
+        'gemini-2.5-flash' => [
+            'input' => 0.30,
+            'output' => 2.50,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::PAY_PER_USE,
+            'effective_date' => '2025-01-01',
+        ],
+        'gemini-2.5-flash-lite' => [
+            'input' => 0.10,
+            'output' => 0.40,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::PAY_PER_USE,
+            'effective_date' => '2025-01-01',
+        ],
+        'gemini-2.0-flash' => [
+            'input' => 0.075,
+            'output' => 0.30,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::PAY_PER_USE,
+            'effective_date' => '2025-01-01',
+        ],
+        'gemini-2.0-flash-lite' => [
+            'input' => 0.075,
+            'output' => 0.30,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::PAY_PER_USE,
+            'effective_date' => '2025-01-01',
+        ],
+        'gemini-2.0-pro' => [
+            'input' => 1.25,
+            'output' => 10.00,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::PAY_PER_USE,
+            'effective_date' => '2025-01-01',
+        ],
 
         // Previous generation models (updated pricing)
-        'gemini-1.5-pro' => ['input' => 1.25, 'output' => 5.00],
-        'gemini-1.5-flash' => ['input' => 0.075, 'output' => 0.30],
-        'gemini-1.5-pro-exp-0801' => ['input' => 1.25, 'output' => 5.00],
-        'gemini-1.5-flash-exp-0827' => ['input' => 0.075, 'output' => 0.30],
+        'gemini-1.5-pro' => [
+            'input' => 1.25,
+            'output' => 5.00,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::PAY_PER_USE,
+            'effective_date' => '2024-08-01',
+        ],
+        'gemini-1.5-flash' => [
+            'input' => 0.075,
+            'output' => 0.30,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::PAY_PER_USE,
+            'effective_date' => '2024-08-01',
+        ],
+        'gemini-1.5-pro-exp-0801' => [
+            'input' => 1.25,
+            'output' => 5.00,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::PAY_PER_USE,
+            'effective_date' => '2024-08-01',
+        ],
+        'gemini-1.5-flash-exp-0827' => [
+            'input' => 0.075,
+            'output' => 0.30,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::PAY_PER_USE,
+            'effective_date' => '2024-08-27',
+        ],
 
         // Legacy models (legacy pricing)
-        'gemini-pro' => ['input' => 0.0005, 'output' => 0.0015],
-        'gemini-pro-vision' => ['input' => 0.00025, 'output' => 0.00025],
-        'gemini-1.0-pro' => ['input' => 0.0005, 'output' => 0.0015],
-        'gemini-1.0-pro-vision' => ['input' => 0.00025, 'output' => 0.00025],
-        'gemini-1.0-pro-001' => ['input' => 0.0005, 'output' => 0.0015],
-        'gemini-1.0-pro-latest' => ['input' => 0.0005, 'output' => 0.0015],
-        'gemini-1.0-pro-vision-latest' => ['input' => 0.00025, 'output' => 0.00025],
+        'gemini-pro' => [
+            'input' => 0.0005,
+            'output' => 0.0015,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::FREE_TIER,
+            'effective_date' => '2024-01-01',
+        ],
+        'gemini-pro-vision' => [
+            'input' => 0.00025,
+            'output' => 0.00025,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::FREE_TIER,
+            'effective_date' => '2024-01-01',
+        ],
+        'gemini-1.0-pro' => [
+            'input' => 0.0005,
+            'output' => 0.0015,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::FREE_TIER,
+            'effective_date' => '2024-01-01',
+        ],
+        'gemini-1.0-pro-vision' => [
+            'input' => 0.00025,
+            'output' => 0.00025,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::FREE_TIER,
+            'effective_date' => '2024-01-01',
+        ],
+        'gemini-1.0-pro-001' => [
+            'input' => 0.0005,
+            'output' => 0.0015,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::FREE_TIER,
+            'effective_date' => '2024-01-01',
+        ],
+        'gemini-1.0-pro-latest' => [
+            'input' => 0.0005,
+            'output' => 0.0015,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::FREE_TIER,
+            'effective_date' => '2024-01-01',
+        ],
+        'gemini-1.0-pro-vision-latest' => [
+            'input' => 0.00025,
+            'output' => 0.00025,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::FREE_TIER,
+            'effective_date' => '2024-01-01',
+        ],
     ];
 
     /**
@@ -86,30 +209,148 @@ class ModelPricing
     /**
      * Get pricing for a specific model.
      */
-    public static function getModelPricing(string $modelId): array
+    public function getModelPricing(string $model): array
     {
         // Handle model variations and fallbacks
-        $normalizedModel = static::normalizeModelName($modelId);
+        $normalizedModel = $this->normalizeModelName($model);
 
         if (isset(static::$pricing[$normalizedModel])) {
             return static::$pricing[$normalizedModel];
         }
 
         // Try to find a base model match
-        foreach (static::$pricing as $model => $pricing) {
-            if (str_starts_with($normalizedModel, $model)) {
+        foreach (static::$pricing as $modelName => $pricing) {
+            if (str_starts_with($normalizedModel, $modelName)) {
                 return $pricing;
             }
         }
 
         // Default fallback pricing (Gemini Pro rates)
-        return ['input' => 0.0005, 'output' => 0.0015];
+        return [
+            'input' => 0.0005,
+            'output' => 0.0015,
+            'unit' => PricingUnit::PER_1K_TOKENS,
+            'currency' => 'USD',
+            'billing_model' => BillingModel::FREE_TIER,
+            'effective_date' => '2024-01-01',
+            'source' => 'fallback',
+        ];
+    }
+
+    /**
+     * Calculate cost based on usage metrics.
+     */
+    public function calculateCost(string $model, array $usage): float
+    {
+        $pricing = $this->getModelPricing($model);
+
+        if (empty($pricing)) {
+            return 0.0;
+        }
+
+        $unit = $pricing['unit'];
+
+        return match ($unit) {
+            PricingUnit::PER_1K_TOKENS => $this->calculateTokenCost($pricing, $usage),
+            default => 0.0,
+        };
+    }
+
+    /**
+     * Calculate cost for token-based models.
+     */
+    private function calculateTokenCost(array $pricing, array $usage): float
+    {
+        $inputTokens = $usage['input_tokens'] ?? 0;
+        $outputTokens = $usage['output_tokens'] ?? 0;
+
+        $inputCost = ($inputTokens / 1000) * ($pricing['input'] ?? 0);
+        $outputCost = ($outputTokens / 1000) * ($pricing['output'] ?? 0);
+
+        return $inputCost + $outputCost;
+    }
+
+    /**
+     * Get all available models with pricing.
+     */
+    public function getAllModelPricing(): array
+    {
+        return static::$pricing;
+    }
+
+    /**
+     * Get the pricing units supported by this provider.
+     */
+    public function getSupportedUnits(): array
+    {
+        return [
+            PricingUnit::PER_1K_TOKENS,
+        ];
+    }
+
+    /**
+     * Validate the pricing configuration for this provider.
+     */
+    public function validatePricing(): array
+    {
+        $errors = [];
+
+        foreach (static::$pricing as $model => $data) {
+            if (! isset($data['unit']) || ! $data['unit'] instanceof PricingUnit) {
+                $errors[] = "Model '{$model}' missing or invalid unit";
+            }
+
+            if (! isset($data['billing_model']) || ! $data['billing_model'] instanceof BillingModel) {
+                $errors[] = "Model '{$model}' missing or invalid billing_model";
+            }
+
+            if (! isset($data['currency'])) {
+                $errors[] = "Model '{$model}' missing currency";
+            }
+
+            // Unit-specific validation
+            if (isset($data['unit']) && $data['unit'] === PricingUnit::PER_1K_TOKENS) {
+                if (! isset($data['input']) || ! isset($data['output'])) {
+                    $errors[] = "Model '{$model}' with token pricing must have 'input' and 'output' fields";
+                }
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Get the default currency used by this provider.
+     */
+    public function getDefaultCurrency(): string
+    {
+        return 'USD';
+    }
+
+    /**
+     * Check if a model supports a specific pricing unit.
+     */
+    public function supportsUnit(string $model, PricingUnit $unit): bool
+    {
+        $pricing = $this->getModelPricing($model);
+
+        return isset($pricing['unit']) && $pricing['unit'] === $unit;
+    }
+
+    /**
+     * Get the effective date for pricing information.
+     */
+    public function getEffectiveDate(string $model): ?string
+    {
+        $pricing = $this->getModelPricing($model);
+
+        return $pricing['effective_date'] ?? null;
     }
 
     /**
      * Normalize model name for pricing lookup.
      */
-    protected static function normalizeModelName(string $modelId): string
+    protected function normalizeModelName(string $modelId): string
     {
         // Remove common suffixes that don't affect pricing
         $modelId = preg_replace('/-\d{4}-\d{2}-\d{2}$/', '', $modelId);
@@ -119,260 +360,133 @@ class ModelPricing
     }
 
     /**
-     * Calculate cost for token usage.
+     * Calculate cost breakdown with detailed information.
      */
-    public static function calculateCost(int $inputTokens, int $outputTokens, string $modelId): array
+    public function calculateDetailedCost(string $model, array $usage): array
     {
-        $pricing = static::getModelPricing($modelId);
+        $pricing = $this->getModelPricing($model);
+        $totalCost = $this->calculateCost($model, $usage);
 
-        $inputCost = ($inputTokens / 1000) * $pricing['input'];
-        $outputCost = ($outputTokens / 1000) * $pricing['output'];
-        $totalCost = $inputCost + $outputCost;
+        $inputTokens = $usage['input_tokens'] ?? 0;
+        $outputTokens = $usage['output_tokens'] ?? 0;
 
         return [
-            'model' => $modelId,
+            'model' => $model,
             'input_tokens' => $inputTokens,
             'output_tokens' => $outputTokens,
-            'input_cost' => $inputCost,
-            'output_cost' => $outputCost,
+            'input_cost' => ($inputTokens / 1000) * ($pricing['input'] ?? 0),
+            'output_cost' => ($outputTokens / 1000) * ($pricing['output'] ?? 0),
             'total_cost' => $totalCost,
-            'pricing_per_1k' => $pricing,
-            'currency' => 'USD',
+            'currency' => $pricing['currency'] ?? 'USD',
+            'unit' => $pricing['unit']?->value ?? 'unknown',
+            'billing_model' => $pricing['billing_model']?->value ?? 'unknown',
         ];
     }
 
     /**
-     * Estimate cost for a given number of tokens.
+     * Get pricing tiers if the provider uses tiered pricing.
      */
-    public static function estimateCost(int $estimatedTokens, string $modelId): array
+    public function getPricingTiers(string $model): array
     {
-        $pricing = static::getModelPricing($modelId);
+        // Gemini uses tiered pricing for some models
+        $pricing = $this->getModelPricing($model);
 
-        // Estimate 75% input, 25% output for cost estimation
-        $estimatedInputTokens = (int) ($estimatedTokens * 0.75);
-        $estimatedOutputTokens = (int) ($estimatedTokens * 0.25);
+        if (isset($pricing['billing_model']) && $pricing['billing_model'] === BillingModel::TIERED) {
+            return [
+                ['min' => 0, 'max' => 1000000, 'rate' => $pricing['input']],
+                ['min' => 1000001, 'max' => 10000000, 'rate' => $pricing['input'] * 0.8],
+                ['min' => 10000001, 'max' => null, 'rate' => $pricing['input'] * 0.6],
+            ];
+        }
 
-        return static::calculateCost($estimatedInputTokens, $estimatedOutputTokens, $modelId);
+        return [];
     }
 
     /**
-     * Get cost efficiency score for a model.
+     * Check if pricing data is current and up-to-date.
      */
-    public static function getCostEfficiency(string $modelId): float
+    public function isPricingCurrent(): bool
     {
-        $pricing = static::getModelPricing($modelId);
-        $avgCost = ($pricing['input'] + $pricing['output']) / 2;
+        // Consider pricing current if it's within the last 30 days
+        $lastUpdated = $this->getLastUpdated();
+        if (! $lastUpdated) {
+            return false;
+        }
 
-        // Lower cost = higher efficiency score
-        return 1 / max($avgCost * 1000, 0.001);
+        return $lastUpdated->diff(new \DateTime)->days <= 30;
     }
 
     /**
-     * Compare costs between models for the same input.
+     * Get the last update timestamp for pricing data.
      */
-    public static function compareModelCosts(int $inputTokens, int $outputTokens, ?array $modelIds = null): array
+    public function getLastUpdated(): ?\DateTimeInterface
     {
-        $models = $modelIds ?? array_keys(static::$pricing);
-        $comparisons = [];
-
-        foreach ($models as $modelId) {
-            $cost = static::calculateCost($inputTokens, $outputTokens, $modelId);
-            $comparisons[$modelId] = $cost;
-        }
-
-        // Sort by total cost
-        uasort($comparisons, function ($a, $b) {
-            return $a['total_cost'] <=> $b['total_cost'];
-        });
-
-        return $comparisons;
-    }
-
-    /**
-     * Get the most cost-effective model for a task.
-     */
-    public static function getMostCostEffectiveModel(array $requirements = []): string
-    {
-        $candidates = array_keys(static::$pricing);
-
-        // Filter by requirements
-        if (isset($requirements['vision']) && $requirements['vision']) {
-            $candidates = array_filter($candidates, function ($model) {
-                return str_contains($model, 'vision') || str_contains($model, '1.5');
-            });
-        }
-
-        if (isset($requirements['large_context']) && $requirements['large_context']) {
-            $candidates = array_filter($candidates, function ($model) {
-                return str_contains($model, '1.5');
-            });
-        }
-
-        // Find the cheapest among candidates
-        $cheapest = null;
-        $lowestCost = PHP_FLOAT_MAX;
-
-        foreach ($candidates as $model) {
-            $pricing = static::getModelPricing($model);
-            $avgCost = ($pricing['input'] + $pricing['output']) / 2;
-
-            if ($avgCost < $lowestCost) {
-                $lowestCost = $avgCost;
-                $cheapest = $model;
+        // Return the most recent effective date from all models
+        $dates = [];
+        foreach (static::$pricing as $pricing) {
+            if (isset($pricing['effective_date'])) {
+                $dates[] = $pricing['effective_date'];
             }
         }
 
-        return $cheapest ?? 'gemini-pro';
+        if (empty($dates)) {
+            return null;
+        }
+
+        $latestDate = max($dates);
+
+        return \DateTime::createFromFormat('Y-m-d', $latestDate) ?: null;
     }
 
     /**
-     * Get rate limits for a model.
+     * Estimate cost for a given input before making the actual request.
      */
-    public static function getRateLimits(string $modelId, bool $isPaidTier = false): array
+    public function estimateCost(string $model, string $input, array $options = []): float
     {
-        $limits = $isPaidTier ? static::$paidTierLimits : static::$freeTierLimits;
+        $pricing = $this->getModelPricing($model);
 
-        $requestsPerMinute = $limits[$modelId] ?? ($isPaidTier ? 360 : 60);
+        if (empty($pricing) || ! isset($pricing['unit'])) {
+            return 0.0;
+        }
 
-        return [
-            'requests_per_minute' => $requestsPerMinute,
-            'requests_per_day' => $requestsPerMinute * 60 * 24,
-            'tokens_per_minute' => $requestsPerMinute * 1000, // Rough estimate
-            'concurrent_requests' => $isPaidTier ? 5 : 1,
-            'tier' => $isPaidTier ? 'paid' : 'free',
-        ];
+        // Rough estimation: 4 characters per token
+        $estimatedTokens = strlen($input) / 4;
+        $maxTokens = $options['max_tokens'] ?? ($estimatedTokens * 0.5); // Estimate output
+
+        // Estimate 75% input, 25% output for cost estimation
+        $estimatedInputTokens = (int) ($estimatedTokens);
+        $estimatedOutputTokens = (int) ($maxTokens);
+
+        return $this->calculateCost($model, [
+            'input_tokens' => $estimatedInputTokens,
+            'output_tokens' => $estimatedOutputTokens,
+        ]);
     }
 
     /**
-     * Calculate monthly cost estimate based on usage patterns.
+     * Get minimum billable unit for a model.
      */
-    public static function estimateMonthlyCost(array $usagePattern, string $modelId): array
+    public function getMinimumBillableUnit(string $model): ?int
     {
-        $pricing = static::getModelPricing($modelId);
+        $pricing = $this->getModelPricing($model);
 
-        $dailyInputTokens = $usagePattern['daily_input_tokens'] ?? 0;
-        $dailyOutputTokens = $usagePattern['daily_output_tokens'] ?? 0;
-        $workingDaysPerMonth = $usagePattern['working_days_per_month'] ?? 22;
+        if (! isset($pricing['unit'])) {
+            return null;
+        }
 
-        $monthlyInputTokens = $dailyInputTokens * $workingDaysPerMonth;
-        $monthlyOutputTokens = $dailyOutputTokens * $workingDaysPerMonth;
-
-        $monthlyCost = static::calculateCost($monthlyInputTokens, $monthlyOutputTokens, $modelId);
-
-        return [
-            'model' => $modelId,
-            'monthly_usage' => [
-                'input_tokens' => $monthlyInputTokens,
-                'output_tokens' => $monthlyOutputTokens,
-                'total_tokens' => $monthlyInputTokens + $monthlyOutputTokens,
-            ],
-            'monthly_cost' => $monthlyCost,
-            'daily_average' => [
-                'input_tokens' => $dailyInputTokens,
-                'output_tokens' => $dailyOutputTokens,
-                'cost' => $monthlyCost['total_cost'] / $workingDaysPerMonth,
-            ],
-            'assumptions' => [
-                'working_days_per_month' => $workingDaysPerMonth,
-                'pricing_per_1k' => $pricing,
-            ],
-        ];
+        return match ($pricing['unit']) {
+            PricingUnit::PER_1K_TOKENS => 1000, // Minimum 1K tokens
+            default => 1,
+        };
     }
 
     /**
-     * Get pricing tier information.
+     * Check if a model has pricing information.
      */
-    public static function getPricingTiers(): array
+    public function hasPricing(string $modelId): bool
     {
-        return [
-            'free' => [
-                'name' => 'Free Tier',
-                'description' => 'Limited requests per minute, no billing required',
-                'features' => [
-                    'Rate limited requests',
-                    'All model access',
-                    'Safety settings',
-                    'Basic support',
-                ],
-                'limitations' => [
-                    'Lower rate limits',
-                    'No SLA guarantee',
-                    'Community support only',
-                ],
-            ],
-            'paid' => [
-                'name' => 'Pay-as-you-go',
-                'description' => 'Higher rate limits, pay only for what you use',
-                'features' => [
-                    'Higher rate limits',
-                    'All model access',
-                    'Priority support',
-                    'Usage analytics',
-                ],
-                'benefits' => [
-                    'Scalable usage',
-                    'Production ready',
-                    'SLA guarantee',
-                ],
-            ],
-        ];
-    }
+        $normalizedModel = $this->normalizeModelName($modelId);
 
-    /**
-     * Check if a model has free tier access.
-     */
-    public static function hasFreeTierAccess(string $modelId): bool
-    {
-        return isset(static::$freeTierLimits[$modelId]);
-    }
-
-    /**
-     * Get all available models with pricing.
-     */
-    public static function getAllModelPricing(): array
-    {
-        return static::$pricing;
-    }
-
-    /**
-     * Get pricing history (placeholder for future implementation).
-     */
-    public static function getPricingHistory(string $modelId): array
-    {
-        // This would contain historical pricing data
-        return [
-            'model' => $modelId,
-            'current_pricing' => static::getModelPricing($modelId),
-            'price_changes' => [],
-            'last_updated' => '2024-01-01',
-        ];
-    }
-
-    /**
-     * Calculate break-even point between models.
-     */
-    public static function calculateBreakEvenPoint(string $model1, string $model2, int $tokensPerDay): array
-    {
-        $pricing1 = static::getModelPricing($model1);
-        $pricing2 = static::getModelPricing($model2);
-
-        $dailyCost1 = (($tokensPerDay * 0.75) / 1000) * $pricing1['input'] +
-                      (($tokensPerDay * 0.25) / 1000) * $pricing1['output'];
-
-        $dailyCost2 = (($tokensPerDay * 0.75) / 1000) * $pricing2['input'] +
-                      (($tokensPerDay * 0.25) / 1000) * $pricing2['output'];
-
-        $costDifference = abs($dailyCost1 - $dailyCost2);
-        $cheaperModel = $dailyCost1 < $dailyCost2 ? $model1 : $model2;
-        $expensiveModel = $dailyCost1 < $dailyCost2 ? $model2 : $model1;
-
-        return [
-            'cheaper_model' => $cheaperModel,
-            'expensive_model' => $expensiveModel,
-            'daily_cost_difference' => $costDifference,
-            'monthly_savings' => $costDifference * 30,
-            'yearly_savings' => $costDifference * 365,
-            'tokens_per_day' => $tokensPerDay,
-        ];
+        return isset(static::$pricing[$normalizedModel]);
     }
 }

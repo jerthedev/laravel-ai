@@ -63,11 +63,12 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
         $model = $message->model ?? $this->getDefaultModel($provider);
 
         // Use centralized pricing service for cost calculation
-        $inputTokens = (int)($estimatedTokens * 0.75); // Estimate 75% input
-        $outputTokens = (int)($estimatedTokens * 0.25); // Estimate 25% output
+        $inputTokens = (int) ($estimatedTokens * 0.75); // Estimate 75% input
+        $outputTokens = (int) ($estimatedTokens * 0.25); // Estimate 25% output
 
         try {
             $costData = $this->pricingService->calculateCost($provider, $model, $inputTokens, $outputTokens);
+
             return $costData['total_cost'] ?? $estimatedTokens * 0.00001;
         } catch (\Exception $e) {
             // Fallback to simple estimation if pricing service fails
@@ -88,7 +89,7 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
     }
 
     /**
-     * Get cost estimate using the centralized PricingService.
+     * Get cost estimate using the enhanced centralized PricingService.
      *
      * @param  string  $provider  The provider name
      * @param  int  $tokens  The estimated token count
@@ -98,9 +99,13 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
     protected function getProviderCostEstimate(string $provider, int $tokens, string $model): float
     {
         try {
-            $estimate = $this->pricingService->estimateCost($provider, $model, $tokens);
+            // Use the enhanced PricingService with database-first fallback
+            $inputTokens = (int) ($tokens * 0.75); // Estimate 75% input
+            $outputTokens = (int) ($tokens * 0.25); // Estimate 25% output
 
-            return $estimate['estimated_total_cost'] ?? $estimate['total_cost'] ?? $tokens * 0.00001;
+            $costData = $this->pricingService->calculateCost($provider, $model, $inputTokens, $outputTokens);
+
+            return $costData['total_cost'] ?? $tokens * 0.00001;
         } catch (\Exception $e) {
             // Fallback on error
             return $tokens * 0.00001;

@@ -85,7 +85,7 @@ class CostTrackingListener implements ShouldQueue
     }
 
     /**
-     * Calculate the cost of a message and response using centralized pricing.
+     * Calculate the cost of a message and response using enhanced centralized pricing.
      *
      * @param  \JTD\LaravelAI\Models\AIMessage  $message  The message
      * @param  \JTD\LaravelAI\Models\AIResponse  $response  The response
@@ -99,12 +99,32 @@ class CostTrackingListener implements ShouldQueue
         $model = $response->model ?? $message->model ?? 'gpt-4o-mini';
 
         try {
+            // Use enhanced PricingService with database-first fallback
             $costData = $this->pricingService->calculateCost($provider, $model, $inputTokens, $outputTokens);
+
+            // Log pricing source for monitoring
+            if (isset($costData['source'])) {
+                logger()->debug('Cost calculated using pricing source', [
+                    'provider' => $provider,
+                    'model' => $model,
+                    'source' => $costData['source'],
+                    'cost' => $costData['total_cost'] ?? 0.0,
+                ]);
+            }
 
             return $costData['total_cost'] ?? 0.0;
         } catch (\Exception $e) {
-            // Fallback calculation
-            return ($inputTokens * 0.00001) + ($outputTokens * 0.00002);
+            // Log pricing service error
+            logger()->warning('PricingService failed, using fallback calculation', [
+                'provider' => $provider,
+                'model' => $model,
+                'error' => $e->getMessage(),
+                'input_tokens' => $inputTokens,
+                'output_tokens' => $outputTokens,
+            ]);
+
+            // Enhanced fallback calculation with better rates
+            return ($inputTokens / 1000 * 0.01) + ($outputTokens / 1000 * 0.02);
         }
     }
 

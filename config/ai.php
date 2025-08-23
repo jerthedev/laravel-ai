@@ -143,6 +143,7 @@ return [
     |
     | These settings control how the package synchronizes available models
     | from AI providers. Models are cached and updated periodically.
+    | Enhanced with pricing discovery capabilities.
     |
     */
 
@@ -152,6 +153,103 @@ return [
         'auto_sync' => env('AI_MODEL_SYNC_AUTO', true),
         'batch_size' => env('AI_MODEL_SYNC_BATCH_SIZE', 50),
         'timeout' => env('AI_MODEL_SYNC_TIMEOUT', 60),
+
+        /*
+        |----------------------------------------------------------------------
+        | Pricing Discovery Configuration
+        |----------------------------------------------------------------------
+        |
+        | Configure pricing synchronization and AI-powered pricing discovery.
+        | These settings control how pricing data is fetched, validated,
+        | and stored in the database.
+        |
+        */
+
+        'pricing' => [
+            'enabled' => env('AI_PRICING_SYNC_ENABLED', true),
+            'sync_with_models' => env('AI_PRICING_SYNC_WITH_MODELS', true),
+            'update_existing' => env('AI_PRICING_UPDATE_EXISTING', true),
+            'validate_pricing' => env('AI_PRICING_VALIDATE', true),
+            'store_to_database' => env('AI_PRICING_STORE_DATABASE', true),
+            'cache_duration' => env('AI_PRICING_CACHE_DURATION', 3600), // 1 hour
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | AI-Powered Pricing Discovery
+        |----------------------------------------------------------------------
+        |
+        | Enable intelligent pricing discovery using AI search capabilities.
+        | This feature uses MCP (Brave Search) to find current pricing when
+        | provider APIs don't include pricing information.
+        |
+        */
+
+        'ai_discovery' => [
+            'enabled' => env('AI_PRICING_DISCOVERY_ENABLED', false), // Disabled by default
+            'provider' => env('AI_PRICING_DISCOVERY_PROVIDER', 'brave_search'),
+            'confidence_threshold' => env('AI_PRICING_DISCOVERY_CONFIDENCE', 0.8),
+            'max_cost_per_discovery' => env('AI_PRICING_DISCOVERY_MAX_COST', 0.01), // $0.01 max per discovery
+            'require_confirmation' => env('AI_PRICING_DISCOVERY_CONFIRM', true),
+            'fallback_on_failure' => env('AI_PRICING_DISCOVERY_FALLBACK', true),
+            'cache_discoveries' => env('AI_PRICING_DISCOVERY_CACHE', true),
+            'cache_duration' => env('AI_PRICING_DISCOVERY_CACHE_TTL', 86400), // 24 hours
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Validation Settings
+        |----------------------------------------------------------------------
+        |
+        | Configure validation rules for pricing data to ensure accuracy
+        | and consistency across all providers.
+        |
+        */
+
+        'validation' => [
+            'strict_mode' => env('AI_PRICING_VALIDATION_STRICT', false),
+            'allow_zero_costs' => env('AI_PRICING_ALLOW_ZERO', true), // For free tier models
+            'max_cost_per_token' => env('AI_PRICING_MAX_COST_TOKEN', 0.001), // $0.001 per token max
+            'require_effective_date' => env('AI_PRICING_REQUIRE_DATE', true),
+            'warn_on_inconsistencies' => env('AI_PRICING_WARN_INCONSISTENT', true),
+            'auto_fix_units' => env('AI_PRICING_AUTO_FIX_UNITS', true),
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Database Configuration
+        |----------------------------------------------------------------------
+        |
+        | Settings for storing pricing data in the database with proper
+        | versioning and historical tracking.
+        |
+        */
+
+        'database' => [
+            'store_historical' => env('AI_PRICING_STORE_HISTORICAL', true),
+            'max_versions_per_model' => env('AI_PRICING_MAX_VERSIONS', 10),
+            'cleanup_old_versions' => env('AI_PRICING_CLEANUP_OLD', true),
+            'backup_before_update' => env('AI_PRICING_BACKUP_UPDATE', true),
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Command Options
+        |----------------------------------------------------------------------
+        |
+        | Default options for the sync commands that can be overridden
+        | via command-line flags.
+        |
+        */
+
+        'command_defaults' => [
+            'skip_pricing' => env('AI_SYNC_SKIP_PRICING', false),
+            'enable_ai_discovery' => env('AI_SYNC_ENABLE_AI_DISCOVERY', false),
+            'dry_run' => env('AI_SYNC_DRY_RUN', false),
+            'show_pricing' => env('AI_SYNC_SHOW_PRICING', true),
+            'validate_only' => env('AI_SYNC_VALIDATE_ONLY', false),
+            'force_update' => env('AI_SYNC_FORCE_UPDATE', false),
+        ],
     ],
 
     /*

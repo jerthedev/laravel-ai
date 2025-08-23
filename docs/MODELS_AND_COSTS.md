@@ -2,7 +2,16 @@
 
 ## Overview
 
-JTD Laravel AI automatically syncs available models from AI providers and tracks costs in real-time. This system provides comprehensive cost management, usage analytics, and budget controls for enterprise deployments.
+JTD Laravel AI features an **Enhanced Pricing System** with database-first architecture, AI-powered pricing discovery, and comprehensive cost management. The system automatically syncs available models from AI providers, tracks costs in real-time, and provides advanced analytics and budget controls for enterprise deployments.
+
+### Enhanced Pricing System Features
+
+- **Database-First Architecture**: Centralized pricing storage with intelligent fallback chains
+- **AI-Powered Discovery**: Automatic pricing discovery using web search and NLP extraction
+- **Multi-Unit Support**: Handle different pricing models (per token, per request, per image, etc.)
+- **Real-Time Validation**: Comprehensive pricing validation with consistency checks
+- **Cost Optimization**: Smart caching and performance optimization
+- **Migration Tools**: Seamless migration from legacy pricing systems
 
 ## Model Management
 
@@ -89,6 +98,189 @@ $response = AI::conversation()
     ->model($bestModel->name, $bestModel->provider)
     ->message('Hello')
     ->send();
+```
+
+## Enhanced Pricing System
+
+### Database-First Architecture
+
+The Enhanced Pricing System uses a three-tier fallback architecture for maximum reliability:
+
+1. **Database Pricing** (Primary): Current pricing from `ai_provider_model_costs` table
+2. **Driver Static Defaults** (Fallback): Hardcoded pricing in driver classes
+3. **Universal Fallback** (Last Resort): Basic fallback pricing for unknown models
+
+```php
+use JTD\LaravelAI\Services\PricingService;
+
+$pricingService = app(PricingService::class);
+
+// Get pricing with automatic fallback
+$pricing = $pricingService->getModelPricing('openai', 'gpt-4o');
+echo $pricing['source']; // 'database', 'driver_static', or 'universal_fallback'
+echo $pricing['input'];  // Input cost per unit
+echo $pricing['output']; // Output cost per unit
+echo $pricing['unit']->value; // Pricing unit (1k_tokens, 1m_tokens, etc.)
+```
+
+### Pricing Synchronization
+
+Sync pricing data from static files to database:
+
+```bash
+# Sync models and pricing
+php artisan ai:sync-models --show-pricing
+
+# Enable AI-powered pricing discovery
+php artisan ai:sync-models --enable-ai-discovery --show-pricing
+
+# Validate pricing without storing
+php artisan ai:sync-models --validate-only
+
+# Force pricing update
+php artisan ai:sync-models --force-pricing
+```
+
+### AI-Powered Pricing Discovery
+
+Automatically discover current pricing using web search and NLP extraction:
+
+```bash
+# Configure AI discovery (disabled by default for safety)
+AI_PRICING_DISCOVERY_ENABLED=true
+AI_PRICING_DISCOVERY_MAX_COST=0.01
+AI_PRICING_DISCOVERY_CONFIDENCE=0.8
+AI_PRICING_DISCOVERY_CONFIRM=true
+```
+
+```php
+use JTD\LaravelAI\Services\IntelligentPricingDiscovery;
+
+$discovery = app(IntelligentPricingDiscovery::class);
+
+// Discover pricing for a model
+$result = $discovery->discoverPricing('openai', 'gpt-4o', [
+    'confirmed' => true, // Skip confirmation prompt
+]);
+
+if ($result['status'] === 'success') {
+    echo "Discovered pricing: " . json_encode($result['pricing']);
+    echo "Confidence: " . $result['confidence_score'];
+}
+```
+
+### Pricing Validation
+
+Comprehensive validation ensures pricing data quality:
+
+```php
+use JTD\LaravelAI\Services\PricingValidator;
+
+$validator = app(PricingValidator::class);
+
+// Validate pricing array
+$pricing = [
+    'gpt-4o' => [
+        'input' => 0.0025,
+        'output' => 0.01,
+        'unit' => \JTD\LaravelAI\Enums\PricingUnit::PER_1K_TOKENS,
+        'currency' => 'USD',
+        'billing_model' => \JTD\LaravelAI\Enums\BillingModel::PAY_PER_USE,
+    ],
+];
+
+$errors = $validator->validatePricingArray($pricing);
+if (empty($errors)) {
+    echo "Pricing is valid!";
+} else {
+    foreach ($errors as $error) {
+        echo "Error: $error\n";
+    }
+}
+
+// Get validation summary
+$summary = $validator->getValidationSummary($pricing);
+echo "Valid: " . ($summary['valid'] ? 'Yes' : 'No');
+echo "Errors: " . $summary['error_count'];
+echo "Warnings: " . $summary['warning_count'];
+```
+
+### Migration from Legacy System
+
+Migrate from the legacy pricing system to the enhanced database-first system:
+
+```bash
+# Validate current pricing before migration
+php artisan ai:migrate-pricing-system --validate-only
+
+# Perform dry run to see what would be migrated
+php artisan ai:migrate-pricing-system --dry-run
+
+# Migrate with backup
+php artisan ai:migrate-pricing-system --backup
+
+# Rollback if needed
+php artisan ai:migrate-pricing-system --rollback
+```
+
+### Advanced Pricing Features
+
+```php
+// Compare pricing across providers
+$comparisons = [
+    ['provider' => 'openai', 'model' => 'gpt-4o'],
+    ['provider' => 'gemini', 'model' => 'gemini-2.0-flash'],
+    ['provider' => 'xai', 'model' => 'grok-2-1212'],
+];
+
+$results = $pricingService->comparePricing($comparisons, 1000, 500);
+foreach ($results as $result) {
+    echo "{$result['provider']} {$result['model']}: \${$result['total_cost']}\n";
+}
+
+// Normalize pricing units for comparison
+$pricing = $pricingService->getModelPricing('openai', 'gpt-4o');
+$normalized = $pricingService->normalizePricing($pricing, PricingUnit::PER_1M_TOKENS);
+
+// Store custom pricing to database
+$customPricing = [
+    'input' => 0.005,
+    'output' => 0.015,
+    'unit' => PricingUnit::PER_1K_TOKENS,
+    'currency' => 'USD',
+    'billing_model' => BillingModel::PAY_PER_USE,
+    'effective_date' => '2024-01-01',
+];
+
+$stored = $pricingService->storePricingToDatabase('custom', 'my-model', $customPricing);
+```
+
+### Configuration
+
+Configure the Enhanced Pricing System in `config/ai.php`:
+
+```php
+'model_sync' => [
+    'pricing' => [
+        'enabled' => env('AI_PRICING_SYNC_ENABLED', true),
+        'sync_with_models' => env('AI_PRICING_SYNC_WITH_MODELS', true),
+        'store_to_database' => env('AI_PRICING_STORE_DATABASE', true),
+        'validate_pricing' => env('AI_PRICING_VALIDATE', true),
+    ],
+
+    'ai_discovery' => [
+        'enabled' => env('AI_PRICING_DISCOVERY_ENABLED', false),
+        'max_cost_per_discovery' => env('AI_PRICING_DISCOVERY_MAX_COST', 0.01),
+        'confidence_threshold' => env('AI_PRICING_DISCOVERY_CONFIDENCE', 0.8),
+        'require_confirmation' => env('AI_PRICING_DISCOVERY_CONFIRM', true),
+    ],
+
+    'validation' => [
+        'strict_mode' => env('AI_PRICING_VALIDATION_STRICT', false),
+        'max_cost_per_token' => env('AI_PRICING_MAX_COST_TOKEN', 0.001),
+        'warn_on_inconsistencies' => env('AI_PRICING_WARN_INCONSISTENT', true),
+    ],
+],
 ```
 
 ## Cost Tracking
