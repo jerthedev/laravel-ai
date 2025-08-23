@@ -6,9 +6,12 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
 use JTD\LaravelAI\Services\AIManager;
+use JTD\LaravelAI\Services\BudgetService;
 use JTD\LaravelAI\Services\ConfigurationValidator;
 use JTD\LaravelAI\Services\ConversationBuilder;
 use JTD\LaravelAI\Services\DriverManager;
+use JTD\LaravelAI\Services\MiddlewareManager;
+use JTD\LaravelAI\Services\PricingService;
 
 /**
  * Laravel AI Service Provider
@@ -36,6 +39,9 @@ class LaravelAIServiceProvider extends ServiceProvider
         'laravel-ai' => AIManager::class,
         'laravel-ai.driver' => DriverManager::class,
         'laravel-ai.config.validator' => ConfigurationValidator::class,
+        'laravel-ai.middleware' => MiddlewareManager::class,
+        'laravel-ai.budget' => BudgetService::class,
+        'laravel-ai.pricing' => PricingService::class,
     ];
 
     /**
@@ -59,6 +65,21 @@ class LaravelAIServiceProvider extends ServiceProvider
         // Register configuration validator
         $this->app->singleton('laravel-ai.config.validator', function ($app) {
             return new ConfigurationValidator;
+        });
+
+        // Register middleware manager
+        $this->app->singleton('laravel-ai.middleware', function ($app) {
+            return new MiddlewareManager;
+        });
+
+        // Register budget service
+        $this->app->singleton('laravel-ai.budget', function ($app) {
+            return new BudgetService;
+        });
+
+        // Register pricing service
+        $this->app->singleton('laravel-ai.pricing', function ($app) {
+            return new PricingService;
         });
 
         // Register conversation builder
@@ -127,11 +148,46 @@ class LaravelAIServiceProvider extends ServiceProvider
      */
     protected function registerEventListeners(): void
     {
-        // Core system events
-        Event::listen(\JTD\LaravelAI\Events\ResponseGenerated::class, \JTD\LaravelAI\Listeners\CostTrackingListener::class . '@handleResponseGenerated');
-        Event::listen(\JTD\LaravelAI\Events\CostCalculated::class, \JTD\LaravelAI\Listeners\CostTrackingListener::class);
+        // Only register listeners if events are enabled
+        if (! config('ai.events.enabled', true)) {
+            return;
+        }
 
-        // Additional event listeners will be added as we implement more features
+        // Cost tracking listeners
+        if (config('ai.events.listeners.cost_tracking.enabled', true)) {
+            Event::listen(\JTD\LaravelAI\Events\ResponseGenerated::class, \JTD\LaravelAI\Listeners\CostTrackingListener::class);
+            Event::listen(\JTD\LaravelAI\Events\CostCalculated::class, \JTD\LaravelAI\Listeners\CostTrackingListener::class . '@handleCostCalculated');
+        }
+
+        // Analytics listeners
+        if (config('ai.events.listeners.analytics.enabled', true)) {
+            Event::listen(\JTD\LaravelAI\Events\ResponseGenerated::class, \JTD\LaravelAI\Listeners\AnalyticsListener::class);
+            Event::listen(\JTD\LaravelAI\Events\CostCalculated::class, \JTD\LaravelAI\Listeners\AnalyticsListener::class . '@handleCostCalculated');
+        }
+
+        // Notification listeners
+        if (config('ai.events.listeners.notifications.enabled', true)) {
+            Event::listen(\JTD\LaravelAI\Events\BudgetThresholdReached::class, \JTD\LaravelAI\Listeners\NotificationListener::class);
+            Event::listen(\JTD\LaravelAI\Events\ResponseGenerated::class, \JTD\LaravelAI\Listeners\NotificationListener::class . '@handleResponseGenerated');
+        }
+
+        // Conversation events (existing)
+        Event::listen(\JTD\LaravelAI\Events\ConversationCreated::class, function ($event) {
+            // Log conversation creation for analytics
+            logger()->info('AI Conversation created', [
+                'conversation_id' => $event->conversation->id,
+                'user_id' => $event->conversation->user_id,
+            ]);
+        });
+
+        Event::listen(\JTD\LaravelAI\Events\MessageAdded::class, function ($event) {
+            // Log message addition for analytics
+            logger()->debug('AI Message added', [
+                'message_id' => $event->message->id,
+                'conversation_id' => $event->message->conversation_id,
+                'role' => $event->message->role,
+            ]);
+        });
     }
 
     /**
@@ -142,6 +198,7 @@ class LaravelAIServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \JTD\LaravelAI\Console\Commands\SyncModelsCommand::class,
+                \JTD\LaravelAI\Console\Commands\SyncPricingCommand::class,
                 \JTD\LaravelAI\Console\Commands\SetupE2ECommand::class,
             ]);
         }
@@ -185,6 +242,9 @@ class LaravelAIServiceProvider extends ServiceProvider
             'laravel-ai',
             'laravel-ai.driver',
             'laravel-ai.config.validator',
+            'laravel-ai.middleware',
+            'laravel-ai.budget',
+            'laravel-ai.pricing',
             ConversationBuilderInterface::class,
         ];
     }

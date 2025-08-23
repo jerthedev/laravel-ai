@@ -12,7 +12,7 @@ class ModelPricing
 {
     /**
      * xAI model pricing per 1M tokens (input/output).
-     * Prices are estimates based on market rates as of December 2024.
+     * Updated January 2025 with latest pricing from xAI API.
      */
     public static $pricing = [
         'grok-beta' => [
@@ -23,17 +23,25 @@ class ModelPricing
             'input' => 2.00,   // $2 per 1M input tokens
             'output' => 10.00, // $10 per 1M output tokens
         ],
-        'grok-2-mini' => [
-            'input' => 1.00,   // $1 per 1M input tokens
-            'output' => 5.00,  // $5 per 1M output tokens
-        ],
         'grok-2-1212' => [
-            'input' => 2.00,   // $2 per 1M input tokens
+            'input' => 2.00,   // $2 per 1M input tokens (latest pricing)
             'output' => 10.00, // $10 per 1M output tokens
         ],
         'grok-2-vision-1212' => [
-            'input' => 3.00,   // $3 per 1M input tokens (vision premium)
+            'input' => 2.00,   // $2 per 1M input tokens (updated pricing)
+            'output' => 10.00, // $10 per 1M output tokens
+        ],
+        'grok-4' => [
+            'input' => 3.00,   // $3 per 1M input tokens (flagship model)
             'output' => 15.00, // $15 per 1M output tokens
+        ],
+        'grok-4-0709' => [
+            'input' => 3.00,   // $3 per 1M input tokens
+            'output' => 15.00, // $15 per 1M output tokens
+        ],
+        'grok-2-mini' => [
+            'input' => 1.00,   // $1 per 1M input tokens
+            'output' => 5.00,  // $5 per 1M output tokens
         ],
     ];
 

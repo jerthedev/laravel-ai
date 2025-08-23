@@ -4,6 +4,7 @@ namespace JTD\LaravelAI\Services;
 
 use Closure;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
+use JTD\LaravelAI\Events\ResponseGenerated;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 
@@ -89,6 +90,11 @@ class ConversationBuilder implements ConversationBuilderInterface
         'max_attempts' => 3,
         'preserve_context' => true,
     ];
+
+    /**
+     * Middleware to apply to this conversation.
+     */
+    protected array $middleware = [];
 
     /**
      * Create a new conversation builder.
@@ -241,6 +247,38 @@ class ConversationBuilder implements ConversationBuilderInterface
     public function tools(array $tools): self
     {
         $this->options['tools'] = $tools;
+
+        return $this;
+    }
+
+    /**
+     * Apply middleware to this conversation.
+     *
+     * @param  array|string  $middleware  The middleware to apply
+     */
+    public function middleware($middleware): self
+    {
+        if (is_string($middleware)) {
+            $this->middleware[] = $middleware;
+        } elseif (is_array($middleware)) {
+            $this->middleware = array_merge($this->middleware, $middleware);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Disable middleware for this conversation.
+     *
+     * @param  array|null  $middleware  Specific middleware to disable, or null for all
+     */
+    public function withoutMiddleware(?array $middleware = null): self
+    {
+        if ($middleware === null) {
+            $this->middleware = [];
+        } else {
+            $this->middleware = array_diff($this->middleware, $middleware);
+        }
 
         return $this;
     }
@@ -607,6 +645,41 @@ class ConversationBuilder implements ConversationBuilderInterface
      */
     protected function sendWithProvider(?string $providerName): AIResponse
     {
+        // Create AIMessage for middleware processing
+        $messages = $this->getMessages();
+        $lastMessage = end($messages);
+
+        if (! $lastMessage instanceof AIMessage) {
+            throw new \InvalidArgumentException('No valid message to send');
+        }
+
+        // Set provider and model on the message
+        $lastMessage->provider = $providerName ?? $this->provider;
+        $lastMessage->model = $this->model;
+        $lastMessage->user_id = $this->getUserId();
+        $lastMessage->metadata = array_merge($lastMessage->metadata ?? [], $this->metadata);
+        $lastMessage->metadata['processing_start_time'] = microtime(true);
+
+        // Process through middleware if any are configured
+        if (! empty($this->middleware) || config('ai.middleware.enabled', false)) {
+            $middlewareManager = app('laravel-ai.middleware');
+
+            return $middlewareManager->process($lastMessage, $this->middleware);
+        }
+
+        // Fallback to direct provider call if no middleware
+        return $this->sendDirectToProvider($lastMessage, $providerName);
+    }
+
+    /**
+     * Send message directly to provider (bypassing middleware).
+     *
+     * @param  AIMessage  $message  The message to send
+     * @param  string|null  $providerName  The provider name
+     * @return AIResponse The response
+     */
+    protected function sendDirectToProvider(AIMessage $message, ?string $providerName): AIResponse
+    {
         $provider = $providerName
             ? $this->manager->driver($providerName)
             : $this->getProviderInstance();
@@ -617,9 +690,48 @@ class ConversationBuilder implements ConversationBuilderInterface
 
         $provider->setOptions($this->options);
 
-        $messages = $this->getMessages();
+        // Send message to provider
+        $response = $provider->sendMessage([$message], $this->options);
 
-        return $provider->sendMessage($messages, $this->options);
+        // Fire ResponseGenerated event for background processing (since we bypassed middleware)
+        if (config('ai.events.enabled', true)) {
+            event(new \JTD\LaravelAI\Events\ResponseGenerated(
+                message: $message,
+                response: $response,
+                context: [
+                    'middleware_bypassed' => true,
+                    'direct_provider_call' => true,
+                    'processing_start_time' => $message->metadata['processing_start_time'] ?? microtime(true),
+                ],
+                totalProcessingTime: microtime(true) - ($message->metadata['processing_start_time'] ?? microtime(true)),
+                providerMetadata: [
+                    'provider' => $response->provider ?? $providerName ?? 'unknown',
+                    'model' => $response->model ?? $this->model ?? 'unknown',
+                    'tokens_used' => $response->tokenUsage?->totalTokens ?? 0,
+                ]
+            ));
+        }
+
+        return $response;
+    }
+
+    /**
+     * Get the user ID for the conversation.
+     *
+     * @return int The user ID
+     */
+    protected function getUserId(): int
+    {
+        if (is_object($this->user) && method_exists($this->user, 'getKey')) {
+            return $this->user->getKey();
+        }
+
+        if (is_numeric($this->user)) {
+            return (int) $this->user;
+        }
+
+        // Fallback to authenticated user or 0
+        return auth()->id() ?? 0;
     }
 
     /**

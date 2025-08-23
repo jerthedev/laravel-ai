@@ -6,12 +6,14 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use JTD\LaravelAI\Events\CostCalculated;
 use JTD\LaravelAI\Events\ResponseGenerated;
+use JTD\LaravelAI\Services\PricingService;
 
 /**
- * Listener for tracking AI usage costs in the background.
+ * Cost Tracking Listener Foundation
  *
- * This listener processes cost-related events and updates cost tracking
- * records, budget monitoring, and usage analytics.
+ * Handles cost calculation and budget monitoring in the background.
+ * Processes ResponseGenerated events to calculate costs asynchronously
+ * and fires CostCalculated events for further processing.
  */
 class CostTrackingListener implements ShouldQueue
 {
@@ -28,163 +30,158 @@ class CostTrackingListener implements ShouldQueue
     public int $delay = 0;
 
     /**
-     * Handle the CostCalculated event.
+     * The number of times the job may be attempted.
      */
-    public function handle(CostCalculated $event): void
+    public int $tries = 3;
+
+    /**
+     * The number of seconds to wait before retrying the job.
+     */
+    public int $backoff = 60;
+
+    /**
+     * Create a new listener instance.
+     */
+    public function __construct(
+        protected PricingService $pricingService
+    ) {}
+
+    /**
+     * Handle the ResponseGenerated event for background cost calculation.
+     */
+    public function handle(ResponseGenerated $event): void
     {
+        $startTime = microtime(true);
+
         try {
-            // Store cost tracking record
-            $this->storeCostRecord($event);
+            // Calculate and record costs
+            $cost = $this->calculateMessageCost($event->message, $event->response);
 
-            // Update user/conversation totals
-            $this->updateCostTotals($event);
+            // Fire cost calculated event
+            event(new CostCalculated(
+                userId: $this->getUserId($event),
+                provider: $event->providerMetadata['provider'] ?? 'unknown',
+                model: $event->providerMetadata['model'] ?? 'unknown',
+                cost: $cost,
+                inputTokens: $this->getInputTokens($event->response),
+                outputTokens: $this->getOutputTokens($event->response),
+                conversationId: $event->message->conversation_id,
+                messageId: $event->message->id
+            ));
 
-            // Check budget thresholds
-            $this->checkBudgetThresholds($event);
-
-            // Update analytics
-            $this->updateCostAnalytics($event);
+            // Check budget thresholds (foundation - will be expanded in Sprint 4b)
+            $this->checkBudgetThresholds($this->getUserId($event), $cost);
         } catch (\Exception $e) {
             // Log error but don't fail the job
             logger()->error('Cost tracking failed', [
                 'event' => class_basename($event),
-                'conversation_id' => $event->conversationId,
-                'provider' => $event->provider,
+                'message_id' => $event->message->id ?? null,
                 'error' => $e->getMessage(),
             ]);
+        } finally {
+            // Track performance metrics
+            $this->trackPerformance('handle', microtime(true) - $startTime);
         }
     }
 
     /**
-     * Handle the ResponseGenerated event for cost calculation.
+     * Calculate the cost of a message and response using centralized pricing.
+     *
+     * @param  \JTD\LaravelAI\Models\AIMessage  $message  The message
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  The response
+     * @return float The calculated cost
      */
-    public function handleResponseGenerated(ResponseGenerated $event): void
+    protected function calculateMessageCost($message, $response): float
     {
+        $inputTokens = $this->getInputTokens($response);
+        $outputTokens = $this->getOutputTokens($response);
+        $provider = $message->provider ?? 'openai';
+        $model = $response->model ?? $message->model ?? 'gpt-4o-mini';
+
         try {
-            // Calculate cost if not already calculated
-            if (! $this->hasCostCalculated($event)) {
-                $this->calculateAndFireCostEvent($event);
-            }
+            $costData = $this->pricingService->calculateCost($provider, $model, $inputTokens, $outputTokens);
+
+            return $costData['total_cost'] ?? 0.0;
         } catch (\Exception $e) {
-            logger()->error('Response cost calculation failed', [
-                'event' => class_basename($event),
-                'conversation_id' => $event->conversationId,
-                'provider' => $event->provider,
-                'error' => $e->getMessage(),
+            // Fallback calculation
+            return ($inputTokens * 0.00001) + ($outputTokens * 0.00002);
+        }
+    }
+
+    /**
+     * Get user ID from the event.
+     *
+     * @param  ResponseGenerated  $event  The event
+     * @return int The user ID
+     */
+    protected function getUserId(ResponseGenerated $event): int
+    {
+        return $event->message->user_id ?? 0;
+    }
+
+    /**
+     * Get input tokens from response.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  The response
+     * @return int The input token count
+     */
+    protected function getInputTokens($response): int
+    {
+        return $response->tokenUsage?->inputTokens ?? 0;
+    }
+
+    /**
+     * Get output tokens from response.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  The response
+     * @return int The output token count
+     */
+    protected function getOutputTokens($response): int
+    {
+        return $response->tokenUsage?->outputTokens ?? 0;
+    }
+
+    /**
+     * Check budget thresholds for the user (foundation implementation).
+     *
+     * @param  int  $userId  The user ID
+     * @param  float  $cost  The cost to check
+     */
+    protected function checkBudgetThresholds(int $userId, float $cost): void
+    {
+        // Foundation implementation - will be expanded in Sprint 4b
+        // For now, just log high-cost interactions
+        if ($cost > 0.10) { // $0.10 threshold
+            logger()->warning('High cost AI interaction detected', [
+                'user_id' => $userId,
+                'cost' => $cost,
+                'threshold' => 0.10,
             ]);
         }
     }
 
     /**
-     * Store cost tracking record in database.
+     * Track listener performance metrics.
+     *
+     * @param  string  $method  The method name
+     * @param  float  $executionTime  The execution time in seconds
      */
-    protected function storeCostRecord(CostCalculated $event): void
+    protected function trackPerformance(string $method, float $executionTime): void
     {
-        // This would typically insert into ai_cost_tracking table
-        // For now, we'll log the cost information
-        logger()->info('AI Cost Tracked', [
-            'conversation_id' => $event->conversationId,
-            'user_id' => $event->userId,
-            'provider' => $event->provider,
-            'model' => $event->model,
-            'total_cost' => $event->totalCost,
-            'input_cost' => $event->inputCost,
-            'output_cost' => $event->outputCost,
-            'input_tokens' => $event->response->tokenUsage->inputTokens,
-            'output_tokens' => $event->response->tokenUsage->outputTokens,
-            'calculated_at' => $event->calculatedAt->format('Y-m-d H:i:s'),
+        // Log slow listener execution
+        if ($executionTime > 5.0) { // Log if over 5 seconds
+            logger()->warning('Slow cost tracking listener', [
+                'method' => $method,
+                'execution_time' => $executionTime,
+                'listener' => static::class,
+            ]);
+        }
+
+        // Log performance metrics for monitoring
+        logger()->debug('Cost tracking listener performance', [
+            'method' => $method,
+            'execution_time' => $executionTime,
+            'queue' => $this->queue,
         ]);
-    }
-
-    /**
-     * Update cost totals for user and conversation.
-     */
-    protected function updateCostTotals(CostCalculated $event): void
-    {
-        // Update conversation total cost
-        if ($event->conversationId) {
-            // This would typically update ai_conversations table
-            logger()->debug('Updating conversation cost total', [
-                'conversation_id' => $event->conversationId,
-                'additional_cost' => $event->totalCost,
-            ]);
-        }
-
-        // Update user total cost
-        if ($event->userId) {
-            // This would typically update user cost tracking
-            logger()->debug('Updating user cost total', [
-                'user_id' => $event->userId,
-                'additional_cost' => $event->totalCost,
-            ]);
-        }
-    }
-
-    /**
-     * Check if cost exceeds budget thresholds.
-     */
-    protected function checkBudgetThresholds(CostCalculated $event): void
-    {
-        // Check daily/monthly budget limits
-        $dailyLimit = config('ai.cost_tracking.daily_limit', 10.0);
-        $monthlyLimit = config('ai.cost_tracking.monthly_limit', 100.0);
-
-        // This would typically check against actual usage
-        if ($event->totalCost > 1.0) { // Example threshold
-            logger()->warning('High cost AI interaction', [
-                'conversation_id' => $event->conversationId,
-                'cost' => $event->totalCost,
-                'threshold' => 1.0,
-            ]);
-        }
-    }
-
-    /**
-     * Update cost analytics.
-     */
-    protected function updateCostAnalytics(CostCalculated $event): void
-    {
-        // Update analytics tables for reporting
-        logger()->debug('Updating cost analytics', [
-            'provider' => $event->provider,
-            'model' => $event->model,
-            'cost' => $event->totalCost,
-            'date' => $event->calculatedAt->format('Y-m-d'),
-        ]);
-    }
-
-    /**
-     * Check if cost has already been calculated for this response.
-     */
-    protected function hasCostCalculated(ResponseGenerated $event): bool
-    {
-        // This would typically check if a CostCalculated event was already fired
-        // For now, assume it hasn't been calculated
-        return false;
-    }
-
-    /**
-     * Calculate cost and fire CostCalculated event.
-     */
-    protected function calculateAndFireCostEvent(ResponseGenerated $event): void
-    {
-        // This would typically use a cost calculation service
-        // For now, we'll create a mock cost calculation
-        $mockCost = $event->response->tokenUsage->totalTokens * 0.00002; // Mock pricing
-
-        $costEvent = new CostCalculated(
-            $event->message,
-            $event->response,
-            $event->provider,
-            $event->model,
-            $mockCost,
-            $mockCost * 0.6, // Mock input cost
-            $mockCost * 0.4, // Mock output cost
-            ['mock' => true],
-            $event->conversationId,
-            $event->userId
-        );
-
-        event($costEvent);
     }
 }

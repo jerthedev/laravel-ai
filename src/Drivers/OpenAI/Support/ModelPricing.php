@@ -24,9 +24,10 @@ class ModelPricing
         'gpt-4-turbo-preview' => ['input' => 0.01, 'output' => 0.03],
         'gpt-4-1106-preview' => ['input' => 0.01, 'output' => 0.03],
         'gpt-4-0125-preview' => ['input' => 0.01, 'output' => 0.03],
-        'gpt-4o' => ['input' => 0.005, 'output' => 0.015],
-        'gpt-4o-2024-05-13' => ['input' => 0.005, 'output' => 0.015],
+        'gpt-4o' => ['input' => 0.0025, 'output' => 0.01], // Updated pricing
+        'gpt-4o-2024-11-20' => ['input' => 0.0025, 'output' => 0.01], // Latest model
         'gpt-4o-2024-08-06' => ['input' => 0.0025, 'output' => 0.01],
+        'gpt-4o-2024-05-13' => ['input' => 0.005, 'output' => 0.015], // Legacy pricing
         'gpt-4o-mini' => ['input' => 0.00015, 'output' => 0.0006],
         'gpt-4o-mini-2024-07-18' => ['input' => 0.00015, 'output' => 0.0006],
         'gpt-5' => ['input' => 0.01, 'output' => 0.03], // Estimated pricing

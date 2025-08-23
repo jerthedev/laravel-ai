@@ -5,6 +5,7 @@ namespace JTD\LaravelAI\Services;
 use Illuminate\Contracts\Foundation\Application;
 use JTD\LaravelAI\Contracts\AIProviderInterface;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
+use JTD\LaravelAI\Events\ResponseGenerated;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 
@@ -77,8 +78,31 @@ class AIManager
     {
         $provider = $this->driver();
         $aiMessage = AIMessage::user($message);
+        $aiMessage->user_id = auth()->id() ?? 0;
+        $aiMessage->metadata = ['processing_start_time' => microtime(true)];
 
-        return $provider->sendMessage($aiMessage, $options);
+        // Send message to provider
+        $response = $provider->sendMessage($aiMessage, $options);
+
+        // Fire ResponseGenerated event for background processing
+        if (config('ai.events.enabled', true)) {
+            event(new \JTD\LaravelAI\Events\ResponseGenerated(
+                message: $aiMessage,
+                response: $response,
+                context: [
+                    'direct_ai_manager_call' => true,
+                    'processing_start_time' => $aiMessage->metadata['processing_start_time'],
+                ],
+                totalProcessingTime: microtime(true) - $aiMessage->metadata['processing_start_time'],
+                providerMetadata: [
+                    'provider' => $response->provider ?? $provider->getName() ?? 'unknown',
+                    'model' => $response->model ?? $provider->getModel() ?? 'unknown',
+                    'tokens_used' => $response->tokenUsage?->totalTokens ?? 0,
+                ]
+            ));
+        }
+
+        return $response;
     }
 
     /**
@@ -92,8 +116,41 @@ class AIManager
     {
         $provider = $this->driver();
         $aiMessage = AIMessage::user($message);
+        $aiMessage->user_id = auth()->id() ?? 0;
+        $aiMessage->metadata = ['processing_start_time' => microtime(true)];
 
-        return $provider->sendStreamingMessage($aiMessage, $options);
+        $generator = $provider->sendStreamingMessage($aiMessage, $options);
+
+        // For streaming, we'll fire the event after the stream completes
+        $chunks = [];
+        $startTime = $aiMessage->metadata['processing_start_time'];
+
+        foreach ($generator as $chunk) {
+            $chunks[] = $chunk;
+            yield $chunk;
+        }
+
+        // Fire event after streaming completes (if events are enabled)
+        if (config('ai.events.enabled', true) && ! empty($chunks)) {
+            $finalChunk = end($chunks);
+
+            event(new \JTD\LaravelAI\Events\ResponseGenerated(
+                message: $aiMessage,
+                response: $finalChunk,
+                context: [
+                    'streaming_response' => true,
+                    'direct_ai_manager_call' => true,
+                    'total_chunks' => count($chunks),
+                    'processing_start_time' => $startTime,
+                ],
+                totalProcessingTime: microtime(true) - $startTime,
+                providerMetadata: [
+                    'provider' => $finalChunk->provider ?? $provider->getName() ?? 'unknown',
+                    'model' => $finalChunk->model ?? $provider->getModel() ?? 'unknown',
+                    'tokens_used' => $finalChunk->tokenUsage?->totalTokens ?? 0,
+                ]
+            ));
+        }
     }
 
     /**

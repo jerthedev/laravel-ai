@@ -298,6 +298,81 @@ class ModelSynced
 }
 ```
 
+### AI Function Events
+
+#### `AIFunctionCalled`
+Fired when an AI function is called for execution.
+
+```php
+<?php
+
+namespace JTD\LaravelAI\Events;
+
+class AIFunctionCalled
+{
+    use Dispatchable, SerializesModels;
+
+    public function __construct(
+        public string $functionName,
+        public array $parameters,
+        public int $userId,
+        public ?int $conversationId = null,
+        public ?int $messageId = null,
+        public array $context = []
+    ) {}
+}
+```
+
+#### `AIFunctionCompleted`
+Fired when an AI function completes successfully.
+
+```php
+<?php
+
+namespace JTD\LaravelAI\Events;
+
+class AIFunctionCompleted
+{
+    use Dispatchable, SerializesModels;
+
+    public function __construct(
+        public string $functionName,
+        public array $parameters,
+        public mixed $result,
+        public float $executionTime,
+        public int $userId,
+        public ?int $conversationId = null,
+        public ?int $messageId = null,
+        public array $context = []
+    ) {}
+}
+```
+
+#### `AIFunctionFailed`
+Fired when an AI function fails during execution.
+
+```php
+<?php
+
+namespace JTD\LaravelAI\Events;
+
+class AIFunctionFailed
+{
+    use Dispatchable, SerializesModels;
+
+    public function __construct(
+        public string $functionName,
+        public array $parameters,
+        public \Throwable $error,
+        public float $executionTime,
+        public int $userId,
+        public ?int $conversationId = null,
+        public ?int $messageId = null,
+        public array $context = []
+    ) {}
+}
+```
+
 ## Event Listeners
 
 ### Cost and Analytics Listeners
