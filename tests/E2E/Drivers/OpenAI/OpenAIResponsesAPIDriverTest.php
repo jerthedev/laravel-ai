@@ -2,12 +2,11 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Tests\E2E\E2ETestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Test OpenAI Responses API Integration through our Driver
@@ -28,7 +27,7 @@ class OpenAIResponsesAPIDriverTest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('openai')) {
+        if (! $this->hasE2ECredentials('openai')) {
             $this->markTestSkipped('OpenAI E2E credentials not available');
         }
 
@@ -92,7 +91,6 @@ class OpenAIResponsesAPIDriverTest extends E2ETestCase
             } else {
                 $this->logTestStep('⚠️  Response content differs but GPT-5 is working');
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ GPT-5 test failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -124,7 +122,6 @@ class OpenAIResponsesAPIDriverTest extends E2ETestCase
             $this->logTestStep('✅ Explicit Responses API response: "' . trim($response->content) . '"');
             $this->logTestStep('✅ Model: ' . $response->model);
             $this->logTestStep('✅ Content length: ' . strlen($response->content) . ' chars');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Explicit Responses API test failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -187,7 +184,6 @@ class OpenAIResponsesAPIDriverTest extends E2ETestCase
                 $this->logTestStep('⚠️  No function/tool calls - AI responded directly');
                 $this->logTestStep('This is acceptable AI behavior');
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Function calling test failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -223,7 +219,6 @@ class OpenAIResponsesAPIDriverTest extends E2ETestCase
             $this->logTestStep('✅ Chat API: "' . trim($chatResponse->content) . '"');
             $this->logTestStep('Model: ' . $chatResponse->model);
             $this->logTestStep('Response time: ' . round($chatResponse->responseTimeMs ?? 0) . 'ms');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Chat API failed: ' . $e->getMessage());
             throw $e;
@@ -248,7 +243,6 @@ class OpenAIResponsesAPIDriverTest extends E2ETestCase
             $this->logTestStep('  Chat API length: ' . strlen($chatResponse->content) . ' chars');
             $this->logTestStep('  Responses API length: ' . strlen($responsesResponse->content) . ' chars');
             $this->logTestStep('  Both APIs working successfully!');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Responses API failed: ' . $e->getMessage());
             throw $e;

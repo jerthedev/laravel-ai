@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('ai_conversations', function (Blueprint $table) {
             $table->id();
-            $table->string('uuid')->unique(); // Public identifier for conversations
+            $table->uuid('uuid')->unique(); // Public identifier for conversations
             $table->string('title');
             $table->text('description')->nullable();
             $table->enum('status', ['active', 'archived', 'deleted'])->default('active');

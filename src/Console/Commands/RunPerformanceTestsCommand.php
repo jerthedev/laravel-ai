@@ -3,9 +3,9 @@
 namespace JTD\LaravelAI\Console\Commands;
 
 use Illuminate\Console\Command;
-use JTD\LaravelAI\Tests\Performance\PerformanceBenchmark;
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
+use JTD\LaravelAI\Tests\Performance\PerformanceBenchmark;
 
 /**
  * Run Performance Tests Command
@@ -18,7 +18,7 @@ class RunPerformanceTestsCommand extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'ai:performance 
+    protected $signature = 'ai:performance
                             {--driver=openai : The AI driver to test}
                             {--iterations=5 : Number of iterations for each test}
                             {--output= : Output file for performance report}
@@ -40,7 +40,7 @@ class RunPerformanceTestsCommand extends Command
     public function __construct()
     {
         parent::__construct();
-        $this->benchmark = new PerformanceBenchmark();
+        $this->benchmark = new PerformanceBenchmark;
     }
 
     /**
@@ -60,16 +60,16 @@ class RunPerformanceTestsCommand extends Command
         try {
             // Initialize driver
             $driverInstance = $this->initializeDriver($driver);
-            
+
             // Run benchmarks
             $results = $this->runBenchmarks($driverInstance, $iterations);
-            
+
             // Generate report
             $report = $this->benchmark->generateReport();
-            
+
             // Display results
             $this->displayResults($report);
-            
+
             // Save report if requested
             if ($outputFile) {
                 $this->saveReport($report, $outputFile, $format);
@@ -77,11 +77,11 @@ class RunPerformanceTestsCommand extends Command
 
             $this->newLine();
             $this->info('✅ Performance benchmarks completed successfully');
-            
-            return Command::SUCCESS;
 
+            return Command::SUCCESS;
         } catch (\Exception $e) {
             $this->error("❌ Performance benchmarks failed: {$e->getMessage()}");
+
             return Command::FAILURE;
         }
     }
@@ -96,7 +96,7 @@ class RunPerformanceTestsCommand extends Command
                 if (empty(config('ai.providers.openai.api_key'))) {
                     throw new \RuntimeException('OpenAI API key not configured');
                 }
-                
+
                 return new OpenAIDriver([
                     'api_key' => config('ai.providers.openai.api_key'),
                     'timeout' => 60,
@@ -194,15 +194,15 @@ class RunPerformanceTestsCommand extends Command
         }
 
         // Display analysis
-        if (!empty($report['analysis']['performance_issues'])) {
+        if (! empty($report['analysis']['performance_issues'])) {
             $this->newLine();
             $this->warn('⚠️  PERFORMANCE ISSUES DETECTED');
             foreach ($report['analysis']['performance_issues'] as $issue) {
-                $this->warn("  • {$issue['operation']}: " . count($issue['issues']) . " issues");
+                $this->warn("  • {$issue['operation']}: " . count($issue['issues']) . ' issues');
             }
         }
 
-        if (!empty($report['analysis']['recommendations'])) {
+        if (! empty($report['analysis']['recommendations'])) {
             $this->newLine();
             $this->info('💡 RECOMMENDATIONS');
             foreach ($report['analysis']['recommendations'] as $recommendation) {
@@ -254,7 +254,7 @@ class RunPerformanceTestsCommand extends Command
     private function convertToCsv(array $report): string
     {
         $csv = "Operation,Response Time (ms),Memory Usage (MB),Success,Timestamp\n";
-        
+
         foreach ($report['benchmarks'] as $benchmark) {
             if (isset($benchmark['operation']) && isset($benchmark['response_time'])) {
                 $csv .= sprintf(
@@ -267,7 +267,7 @@ class RunPerformanceTestsCommand extends Command
                 );
             }
         }
-        
+
         return $csv;
     }
 
@@ -280,7 +280,7 @@ class RunPerformanceTestsCommand extends Command
         $html .= '<h1>Performance Benchmark Report</h1>';
         $html .= '<p>Generated: ' . $report['summary']['timestamp'] . '</p>';
         $html .= '<table border="1"><tr><th>Operation</th><th>Response Time (ms)</th><th>Memory Usage (MB)</th><th>Success</th></tr>';
-        
+
         foreach ($report['benchmarks'] as $benchmark) {
             if (isset($benchmark['operation']) && isset($benchmark['response_time'])) {
                 $html .= sprintf(
@@ -292,9 +292,9 @@ class RunPerformanceTestsCommand extends Command
                 );
             }
         }
-        
+
         $html .= '</table></body></html>';
-        
+
         return $html;
     }
 }

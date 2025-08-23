@@ -2,7 +2,6 @@
 
 namespace JTD\LaravelAI\Tests\Integration;
 
-use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\File;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
 use JTD\LaravelAI\Facades\AI;
@@ -11,6 +10,7 @@ use JTD\LaravelAI\Services\AIManager;
 use JTD\LaravelAI\Services\ConfigurationValidator;
 use JTD\LaravelAI\Services\DriverManager;
 use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Integration tests for complete package installation and setup.
@@ -33,6 +33,7 @@ class PackageInstallationTest extends TestCase
             'LaravelAIServiceProvider should be auto-discovered and loaded'
         );
     }
+
     #[Test]
     public function all_core_services_are_registered()
     {
@@ -49,6 +50,7 @@ class PackageInstallationTest extends TestCase
             $this->assertInstanceOf($expectedClass, $resolved, "Service '{$abstract}' should resolve to {$expectedClass}");
         }
     }
+
     #[Test]
     public function services_are_registered_as_singletons()
     {
@@ -62,6 +64,7 @@ class PackageInstallationTest extends TestCase
             $this->assertSame($instance1, $instance2, "Service '{$service}' should be a singleton");
         }
     }
+
     #[Test]
     public function ai_facade_is_registered_and_functional()
     {
@@ -75,6 +78,7 @@ class PackageInstallationTest extends TestCase
         // Test facade methods are accessible through the underlying manager
         $this->assertTrue(method_exists($manager, 'conversation'), 'AI facade should have conversation method');
     }
+
     #[Test]
     public function configuration_is_loaded_with_defaults()
     {
@@ -91,6 +95,7 @@ class PackageInstallationTest extends TestCase
         $this->assertIsArray($config['providers'], 'Providers should be an array');
         $this->assertArrayHasKey('mock', $config['providers'], 'Mock provider should be configured by default');
     }
+
     #[Test]
     public function configuration_can_be_published()
     {
@@ -106,6 +111,7 @@ class PackageInstallationTest extends TestCase
 
         $this->assertTrue(true, 'Service provider boots successfully with publishing setup');
     }
+
     #[Test]
     public function migrations_can_be_published()
     {
@@ -126,6 +132,7 @@ class PackageInstallationTest extends TestCase
             $this->assertTrue(true, 'Migration publishing is configured in service provider');
         }
     }
+
     #[Test]
     public function package_provides_correct_services()
     {
@@ -143,6 +150,7 @@ class PackageInstallationTest extends TestCase
             $this->assertContains($service, $providedServices, "Service '{$service}' should be provided by the service provider");
         }
     }
+
     #[Test]
     public function configuration_validation_works()
     {
@@ -171,6 +179,7 @@ class PackageInstallationTest extends TestCase
 
         $validator->validate($invalidConfig);
     }
+
     #[Test]
     public function driver_manager_has_built_in_providers()
     {
@@ -184,6 +193,7 @@ class PackageInstallationTest extends TestCase
             $this->assertArrayHasKey('description', $registry[$provider], "Provider '{$provider}' should have description");
         }
     }
+
     #[Test]
     public function ai_manager_can_create_conversation_builder()
     {
@@ -192,6 +202,7 @@ class PackageInstallationTest extends TestCase
 
         $this->assertInstanceOf(ConversationBuilderInterface::class, $builder, 'AIManager should create ConversationBuilder');
     }
+
     #[Test]
     public function facade_provides_fluent_interface()
     {
@@ -204,6 +215,7 @@ class PackageInstallationTest extends TestCase
         $this->assertEquals('mock', $builder->getProvider(), 'Provider should be set correctly');
         $this->assertEquals('mock-model', $builder->getModel(), 'Model should be set correctly');
     }
+
     #[Test]
     public function package_handles_missing_configuration_gracefully()
     {
@@ -218,6 +230,7 @@ class PackageInstallationTest extends TestCase
 
         $this->assertTrue(true, 'Package handles configuration gracefully');
     }
+
     #[Test]
     public function package_works_with_different_environments()
     {
@@ -234,6 +247,7 @@ class PackageInstallationTest extends TestCase
 
         $this->assertTrue(true, 'Package works across different environments');
     }
+
     #[Test]
     public function package_supports_laravel_auto_discovery()
     {
@@ -247,6 +261,7 @@ class PackageInstallationTest extends TestCase
         // This confirms auto-discovery is working correctly
         $this->assertTrue(true, 'Laravel auto-discovery is functional');
     }
+
     #[Test]
     public function package_installation_is_complete()
     {

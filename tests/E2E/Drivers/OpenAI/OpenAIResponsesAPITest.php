@@ -2,10 +2,9 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
-use JTD\LaravelAI\Tests\E2E\E2ETestCase;
 use OpenAI\Client;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Test the new OpenAI Responses API directly
@@ -22,7 +21,7 @@ class OpenAIResponsesAPITest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('openai')) {
+        if (! $this->hasE2ECredentials('openai')) {
             $this->markTestSkipped('OpenAI E2E credentials not available');
         }
 
@@ -63,7 +62,6 @@ class OpenAIResponsesAPITest extends E2ETestCase
                     }
                 }
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Responses API failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -87,7 +85,6 @@ class OpenAIResponsesAPITest extends E2ETestCase
                     ]);
 
                     $this->logTestStep('✅ GPT-4o with Responses API works');
-
                 } catch (\Exception $e2) {
                     $this->logTestStep('❌ GPT-4o also failed: ' . $e2->getMessage());
                     throw $e2;
@@ -147,7 +144,6 @@ class OpenAIResponsesAPITest extends E2ETestCase
                     }
                 }
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Responses API with tools failed: ' . $e->getMessage());
 

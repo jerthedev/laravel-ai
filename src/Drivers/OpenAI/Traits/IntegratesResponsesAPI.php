@@ -27,12 +27,12 @@ trait IntegratesResponsesAPI
         // Use Responses API for newer models that support it better
         $model = $options['model'] ?? $this->defaultModel;
         $responsesAPIModels = [
-            'gpt-5', 
+            'gpt-5',
             'gpt-5-2025-08-07',  // Actual GPT-5 model name
-            'gpt-4o-2024-12-17', 
-            'gpt-4o-mini-2024-12-17'
+            'gpt-4o-2024-12-17',
+            'gpt-4o-mini-2024-12-17',
         ];
-        
+
         return in_array($model, $responsesAPIModels) || str_starts_with($model, 'gpt-5');
     }
 
@@ -113,6 +113,7 @@ trait IntegratesResponsesAPI
                     ],
                 ];
             }
+
             return $tool;
         }, $tools);
     }
@@ -157,7 +158,7 @@ trait IntegratesResponsesAPI
                         case 'tool_calls':
                             // Handle tool calls in Responses API
                             if (isset($item->tool_calls)) {
-                                $toolCalls = array_map(fn($call) => (array) $call, $item->tool_calls);
+                                $toolCalls = array_map(fn ($call) => (array) $call, $item->tool_calls);
                             }
                             break;
                     }
@@ -208,7 +209,7 @@ trait IntegratesResponsesAPI
      */
     protected function hasReasoningInResponse($response): bool
     {
-        if (!isset($response->output) || !is_array($response->output)) {
+        if (! isset($response->output) || ! is_array($response->output)) {
             return false;
         }
 
@@ -226,7 +227,7 @@ trait IntegratesResponsesAPI
      */
     protected function extractReasoningFromResponse($response): ?string
     {
-        if (!isset($response->output) || !is_array($response->output)) {
+        if (! isset($response->output) || ! is_array($response->output)) {
             return null;
         }
 
@@ -247,7 +248,7 @@ trait IntegratesResponsesAPI
             }
         }
 
-        return !empty($reasoning) ? $reasoning : null;
+        return ! empty($reasoning) ? $reasoning : null;
     }
 
     /**
@@ -269,6 +270,7 @@ trait IntegratesResponsesAPI
     protected function supportsResponsesAPI(string $model): bool
     {
         $supportedModels = $this->getResponsesAPIModels();
+
         return in_array($model, $supportedModels) || str_starts_with($model, 'gpt-5');
     }
 
@@ -332,7 +334,7 @@ trait IntegratesResponsesAPI
      */
     public function getResponsesAPIRecommendations(string $model): array
     {
-        if (!$this->supportsResponsesAPI($model)) {
+        if (! $this->supportsResponsesAPI($model)) {
             return [
                 'recommended' => false,
                 'reason' => 'Model does not support Responses API',

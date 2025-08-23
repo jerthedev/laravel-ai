@@ -2,11 +2,11 @@
 
 namespace JTD\LaravelAI\Tests\Feature;
 
-use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
 use JTD\LaravelAI\Facades\AI;
 use JTD\LaravelAI\Services\AIManager;
 use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class FacadeTest extends TestCase
 {
@@ -17,6 +17,7 @@ class FacadeTest extends TestCase
 
         $this->assertInstanceOf(AIManager::class, $manager);
     }
+
     #[Test]
     public function facade_can_create_conversation_builder()
     {
@@ -24,6 +25,7 @@ class FacadeTest extends TestCase
 
         $this->assertInstanceOf(ConversationBuilderInterface::class, $builder);
     }
+
     #[Test]
     public function facade_can_get_providers()
     {
@@ -31,6 +33,7 @@ class FacadeTest extends TestCase
 
         $this->assertIsArray($providers);
     }
+
     #[Test]
     public function facade_can_get_models()
     {
@@ -38,6 +41,7 @@ class FacadeTest extends TestCase
 
         $this->assertIsArray($models);
     }
+
     #[Test]
     public function facade_can_calculate_cost()
     {
@@ -47,6 +51,7 @@ class FacadeTest extends TestCase
         $this->assertArrayHasKey('total', $cost);
         $this->assertArrayHasKey('currency', $cost);
     }
+
     #[Test]
     public function facade_can_validate_provider()
     {
@@ -54,6 +59,7 @@ class FacadeTest extends TestCase
 
         $this->assertIsBool($isValid);
     }
+
     #[Test]
     public function facade_can_get_provider_health()
     {
@@ -62,6 +68,7 @@ class FacadeTest extends TestCase
         $this->assertIsArray($health);
         $this->assertArrayHasKey('status', $health);
     }
+
     #[Test]
     public function facade_can_get_usage_stats()
     {
@@ -71,6 +78,7 @@ class FacadeTest extends TestCase
         $this->assertArrayHasKey('period', $stats);
         $this->assertArrayHasKey('total_requests', $stats);
     }
+
     #[Test]
     public function facade_can_get_analytics()
     {
@@ -80,6 +88,7 @@ class FacadeTest extends TestCase
         $this->assertArrayHasKey('filters', $analytics);
         $this->assertArrayHasKey('data', $analytics);
     }
+
     #[Test]
     public function facade_can_extend_with_custom_driver()
     {
@@ -90,6 +99,7 @@ class FacadeTest extends TestCase
         // If we reach here, extend worked without throwing an exception
         $this->assertTrue(true);
     }
+
     #[Test]
     public function facade_provides_fluent_conversation_interface()
     {
@@ -104,6 +114,7 @@ class FacadeTest extends TestCase
         $this->assertEquals('test-model', $builder->getModel());
         $this->assertCount(1, $builder->getMessages());
     }
+
     #[Test]
     public function facade_conversation_supports_method_chaining()
     {
@@ -125,6 +136,7 @@ class FacadeTest extends TestCase
         $messages = $builder->getMessages();
         $this->assertCount(2, $messages); // system prompt + user message
     }
+
     #[Test]
     public function facade_conversation_supports_conditional_logic()
     {
@@ -141,6 +153,7 @@ class FacadeTest extends TestCase
         $this->assertEquals('advanced-model', $builder->getModel());
         $this->assertEquals(0.3, $builder->getOptions()['temperature']);
     }
+
     #[Test]
     public function facade_conversation_supports_callbacks()
     {
@@ -162,6 +175,7 @@ class FacadeTest extends TestCase
         // Callbacks are registered but not executed until send() is called
         // This test just verifies the fluent interface works
     }
+
     #[Test]
     public function facade_conversation_can_be_cloned()
     {
@@ -177,6 +191,7 @@ class FacadeTest extends TestCase
         $this->assertCount(1, $original->getMessages());
         $this->assertCount(2, $cloned->getMessages());
     }
+
     #[Test]
     public function facade_conversation_can_be_reset()
     {
@@ -195,6 +210,7 @@ class FacadeTest extends TestCase
         $this->assertNull($builder->getProvider());
         $this->assertEmpty($builder->getOptions());
     }
+
     #[Test]
     public function facade_handles_method_calls_gracefully()
     {

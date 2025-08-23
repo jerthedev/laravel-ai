@@ -2,14 +2,13 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Models\TokenUsage;
 use JTD\LaravelAI\Tests\TestCase;
+use Mockery;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
-use Mockery;
 
 /**
  * OpenAI Function Calling Tests
@@ -23,6 +22,7 @@ use Mockery;
 class OpenAIFunctionCallingTest extends TestCase
 {
     private OpenAIDriver $driver;
+
     private $mockClient;
 
     protected function setUp(): void
@@ -234,7 +234,7 @@ class OpenAIFunctionCallingTest extends TestCase
         // Verify tool call structure exists (flexible for different formats)
         $this->assertTrue(
             (is_array($response->toolCalls) && count($response->toolCalls) > 0) ||
-            (is_object($response->toolCalls) && !empty((array)$response->toolCalls))
+            (is_object($response->toolCalls) && ! empty((array) $response->toolCalls))
         );
     }
 
@@ -361,6 +361,7 @@ class OpenAIFunctionCallingTest extends TestCase
             if ($name === 'get_time') {
                 return '2:30 PM';
             }
+
             return 'Function executed successfully';
         };
 
@@ -407,23 +408,23 @@ class OpenAIFunctionCallingTest extends TestCase
      */
     private function createMockFunctionCallResponse(string $name = 'get_weather', string $arguments = '{"location": "Paris"}'): object
     {
-        $response = new \stdClass();
+        $response = new \stdClass;
         $response->model = 'gpt-3.5-turbo';
 
-        $choice = new \stdClass();
+        $choice = new \stdClass;
         $choice->finishReason = 'function_call';
 
-        $message = new \stdClass();
+        $message = new \stdClass;
         $message->role = 'assistant';
         $message->content = null;
-        $message->functionCall = new \stdClass();
+        $message->functionCall = new \stdClass;
         $message->functionCall->name = $name;
         $message->functionCall->arguments = $arguments;
 
         $choice->message = $message;
         $response->choices = [$choice];
 
-        $response->usage = new \stdClass();
+        $response->usage = new \stdClass;
         $response->usage->promptTokens = 20;
         $response->usage->completionTokens = 10;
         $response->usage->totalTokens = 30;
@@ -436,20 +437,20 @@ class OpenAIFunctionCallingTest extends TestCase
      */
     private function createMockToolCallResponse(): object
     {
-        $response = new \stdClass();
+        $response = new \stdClass;
         $response->model = 'gpt-3.5-turbo';
 
-        $choice = new \stdClass();
+        $choice = new \stdClass;
         $choice->finishReason = 'tool_calls';
 
-        $message = new \stdClass();
+        $message = new \stdClass;
         $message->role = 'assistant';
         $message->content = null;
 
-        $toolCall = new \stdClass();
+        $toolCall = new \stdClass;
         $toolCall->id = 'call_123456';
         $toolCall->type = 'function';
-        $toolCall->function = new \stdClass();
+        $toolCall->function = new \stdClass;
         $toolCall->function->name = 'calculate';
         $toolCall->function->arguments = '{"expression": "2 + 2"}';
 
@@ -457,7 +458,7 @@ class OpenAIFunctionCallingTest extends TestCase
         $choice->message = $message;
         $response->choices = [$choice];
 
-        $response->usage = new \stdClass();
+        $response->usage = new \stdClass;
         $response->usage->promptTokens = 25;
         $response->usage->completionTokens = 15;
         $response->usage->totalTokens = 40;
@@ -470,20 +471,20 @@ class OpenAIFunctionCallingTest extends TestCase
      */
     private function createMockTextResponse(string $content): object
     {
-        $response = new \stdClass();
+        $response = new \stdClass;
         $response->model = 'gpt-3.5-turbo';
 
-        $choice = new \stdClass();
+        $choice = new \stdClass;
         $choice->finishReason = 'stop';
 
-        $message = new \stdClass();
+        $message = new \stdClass;
         $message->role = 'assistant';
         $message->content = $content;
 
         $choice->message = $message;
         $response->choices = [$choice];
 
-        $response->usage = new \stdClass();
+        $response->usage = new \stdClass;
         $response->usage->promptTokens = 30;
         $response->usage->completionTokens = 20;
         $response->usage->totalTokens = 50;

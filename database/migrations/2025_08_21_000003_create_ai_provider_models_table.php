@@ -33,6 +33,8 @@ return new class extends Migration
             // Model specifications
             $table->integer('max_tokens')->nullable(); // Maximum output tokens
             $table->integer('context_length')->nullable(); // Maximum context window
+            $table->integer('context_window')->nullable(); // Alias for context_length for compatibility
+            $table->boolean('is_default')->default(false); // Whether this is the default model for the provider
             $table->decimal('default_temperature', 3, 2)->nullable();
             $table->decimal('min_temperature', 3, 2)->nullable();
             $table->decimal('max_temperature', 3, 2)->nullable();

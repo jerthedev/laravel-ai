@@ -114,8 +114,8 @@ class ModelCapabilities
      */
     public static function supportsFunctionCalling(string $modelId): bool
     {
-        return str_contains($modelId, 'gpt-3.5-turbo') || 
-               str_contains($modelId, 'gpt-4') || 
+        return str_contains($modelId, 'gpt-3.5-turbo') ||
+               str_contains($modelId, 'gpt-4') ||
                str_contains($modelId, 'gpt-5');
     }
 
@@ -124,7 +124,7 @@ class ModelCapabilities
      */
     public static function supportsVision(string $modelId): bool
     {
-        return str_contains($modelId, 'gpt-4o') || 
+        return str_contains($modelId, 'gpt-4o') ||
                str_contains($modelId, 'gpt-4-turbo') ||
                str_contains($modelId, 'gpt-5');
     }
@@ -211,10 +211,10 @@ class ModelCapabilities
     {
         // Sort by model family first (GPT-4 > GPT-3.5)
         $familyOrder = ['gpt-5' => 3, 'gpt-4' => 2, 'gpt-3.5' => 1];
-        
+
         $aFamily = 1;
         $bFamily = 1;
-        
+
         foreach ($familyOrder as $family => $order) {
             if (str_contains($a['id'], $family)) {
                 $aFamily = $order;
@@ -223,19 +223,19 @@ class ModelCapabilities
                 $bFamily = $order;
             }
         }
-        
+
         if ($aFamily !== $bFamily) {
             return $bFamily <=> $aFamily; // Higher family first
         }
-        
+
         // Then by context length (larger first)
         $aContext = static::getContextLength($a['id']);
         $bContext = static::getContextLength($b['id']);
-        
+
         if ($aContext !== $bContext) {
             return $bContext <=> $aContext;
         }
-        
+
         // Finally by name
         return strcmp($a['id'], $b['id']);
     }

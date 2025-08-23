@@ -61,7 +61,6 @@ class OpenAIException extends ProviderException
      *
      * @param  array  $errorData  Error data from OpenAI API
      * @param  string|null  $requestId  Request ID
-     * @return static
      */
     public static function fromApiError(array $errorData, ?string $requestId = null): static
     {

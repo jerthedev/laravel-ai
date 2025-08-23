@@ -257,6 +257,64 @@ interface ConversationBuilderInterface
     public function trackPerformance(bool $enabled = true): self;
 
     /**
+     * Enable provider switching for the conversation.
+     *
+     * @param  bool  $enabled  Whether to enable provider switching
+     */
+    public function enableProviderSwitching(bool $enabled = true): self;
+
+    /**
+     * Configure fallback providers.
+     *
+     * @param  array  $providers  List of fallback providers
+     * @param  array  $options  Additional fallback options
+     */
+    public function fallback(array $providers, array $options = []): self;
+
+    /**
+     * Set fallback strategy.
+     *
+     * @param  string  $strategy  Fallback strategy (auto, cost_optimized, performance_optimized, capability_matched)
+     */
+    public function fallbackStrategy(string $strategy): self;
+
+    /**
+     * Set maximum fallback attempts.
+     *
+     * @param  int  $attempts  Maximum number of fallback attempts
+     */
+    public function maxFallbackAttempts(int $attempts): self;
+
+    /**
+     * Configure context preservation during provider switches.
+     *
+     * @param  bool  $preserve  Whether to preserve context during switches
+     */
+    public function preserveContext(bool $preserve = true): self;
+
+    /**
+     * Set provider priority for fallback.
+     *
+     * @param  array  $providers  Ordered list of providers by priority
+     */
+    public function providerPriority(array $providers): self;
+
+    /**
+     * Enable cost-optimized fallback.
+     */
+    public function costOptimizedFallback(): self;
+
+    /**
+     * Enable performance-optimized fallback.
+     */
+    public function performanceOptimizedFallback(): self;
+
+    /**
+     * Enable capability-matched fallback.
+     */
+    public function capabilityMatchedFallback(): self;
+
+    /**
      * Send the conversation and get a response.
      *
      *

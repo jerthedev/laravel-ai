@@ -202,4 +202,47 @@ interface AIProviderInterface
      * @return string Provider/API version
      */
     public function getVersion(): string;
+
+    /**
+     * Synchronize models from the provider API to local cache/database.
+     *
+     * Fetches the latest model information from the provider's API and updates
+     * the local cache with current models, capabilities, and pricing information.
+     *
+     * @param  bool  $forceRefresh  Force refresh even if recently synced
+     * @return array Sync result with statistics (added, updated, removed counts)
+     *
+     * @throws \JTD\LaravelAI\Exceptions\ProviderException
+     * @throws \JTD\LaravelAI\Exceptions\InvalidCredentialsException
+     */
+    public function syncModels(bool $forceRefresh = false): array;
+
+    /**
+     * Check if the provider has valid credentials configured.
+     *
+     * Performs a lightweight check to determine if the provider's credentials
+     * are properly configured and valid for API access.
+     *
+     * @return bool True if credentials are valid and provider is accessible
+     */
+    public function hasValidCredentials(): bool;
+
+    /**
+     * Get the timestamp of the last successful model synchronization.
+     *
+     * @return \Carbon\Carbon|null Last sync time or null if never synced
+     */
+    public function getLastSyncTime(): ?\Carbon\Carbon;
+
+    /**
+     * Get models that can be synchronized from this provider.
+     *
+     * Returns a preview of models available for synchronization without
+     * actually performing the sync operation. Useful for dry-run scenarios.
+     *
+     * @return array Array of syncable models with basic information
+     *
+     * @throws \JTD\LaravelAI\Exceptions\ProviderException
+     */
+    public function getSyncableModels(): array;
 }

@@ -326,6 +326,18 @@ class DriverManager
             'context_length' => 1000000,
         ]);
 
+        $this->registerProvider('xai', [
+            'description' => 'xAI Grok models for advanced reasoning and conversation',
+            'website' => 'https://x.ai',
+            'documentation' => 'https://docs.x.ai',
+            'supports_streaming' => true,
+            'supports_function_calling' => true,
+            'supports_vision' => false, // Only grok-2-vision-1212 supports vision
+            'supports_audio' => false,
+            'max_tokens' => 4096,
+            'context_length' => 131072,
+        ]);
+
         $this->registerProvider('ollama', [
             'description' => 'Ollama local AI models',
             'website' => 'https://ollama.ai',
@@ -337,6 +349,115 @@ class DriverManager
             'max_tokens' => 4096,
             'context_length' => 4096,
         ]);
+    }
+
+    /**
+     * Get providers with valid credentials for synchronization.
+     */
+    public function getProvidersWithValidCredentials(): array
+    {
+        $validProviders = [];
+        $availableProviders = $this->getAvailableProviders();
+
+        foreach ($availableProviders as $providerName) {
+            try {
+                $driver = $this->driver($providerName);
+
+                // Skip mock provider in production
+                if ($providerName === 'mock' && app()->environment('production')) {
+                    continue;
+                }
+
+                if ($driver->hasValidCredentials()) {
+                    $validProviders[] = $providerName;
+                }
+            } catch (\Exception $e) {
+                // Skip providers that can't be instantiated
+                continue;
+            }
+        }
+
+        return $validProviders;
+    }
+
+    /**
+     * Check if a provider has valid credentials.
+     */
+    public function hasValidCredentials(string $name): bool
+    {
+        try {
+            $driver = $this->driver($name);
+
+            return $driver->hasValidCredentials();
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Get syncable models from all providers with valid credentials.
+     */
+    public function getAllSyncableModels(): array
+    {
+        $allModels = [];
+        $providers = $this->getProvidersWithValidCredentials();
+
+        foreach ($providers as $providerName) {
+            try {
+                $driver = $this->driver($providerName);
+                $models = $driver->getSyncableModels();
+
+                $allModels[$providerName] = $models;
+            } catch (\Exception $e) {
+                // Skip providers that fail to get syncable models
+                continue;
+            }
+        }
+
+        return $allModels;
+    }
+
+    /**
+     * Sync models for all providers with valid credentials.
+     */
+    public function syncAllProviderModels(bool $forceRefresh = false): array
+    {
+        $results = [];
+        $providers = $this->getProvidersWithValidCredentials();
+
+        foreach ($providers as $providerName) {
+            try {
+                $driver = $this->driver($providerName);
+                $results[$providerName] = $driver->syncModels($forceRefresh);
+            } catch (\Exception $e) {
+                $results[$providerName] = [
+                    'status' => 'error',
+                    'error' => $e->getMessage(),
+                ];
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Get last sync times for all providers.
+     */
+    public function getAllLastSyncTimes(): array
+    {
+        $syncTimes = [];
+        $providers = $this->getAvailableProviders();
+
+        foreach ($providers as $providerName) {
+            try {
+                $driver = $this->driver($providerName);
+                $syncTimes[$providerName] = $driver->getLastSyncTime();
+            } catch (\Exception $e) {
+                $syncTimes[$providerName] = null;
+            }
+        }
+
+        return $syncTimes;
     }
 
     /**
@@ -352,7 +473,7 @@ class DriverManager
      */
     protected function createOpenaiDriver(array $config): AIProviderInterface
     {
-        return new \JTD\LaravelAI\Drivers\OpenAIDriver($config);
+        return new \JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver($config);
     }
 
     /**
@@ -360,8 +481,7 @@ class DriverManager
      */
     protected function createXaiDriver(array $config): AIProviderInterface
     {
-        // This will be implemented when we create the xAI provider
-        throw new \BadMethodCallException('xAI driver not yet implemented');
+        return new \JTD\LaravelAI\Drivers\XAI\XAIDriver($config);
     }
 
     /**
@@ -369,8 +489,7 @@ class DriverManager
      */
     protected function createGeminiDriver(array $config): AIProviderInterface
     {
-        // This will be implemented when we create the Gemini provider
-        throw new \BadMethodCallException('Gemini driver not yet implemented');
+        return new \JTD\LaravelAI\Drivers\Gemini\GeminiDriver($config);
     }
 
     /**

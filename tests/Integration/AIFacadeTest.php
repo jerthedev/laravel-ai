@@ -2,7 +2,6 @@
 
 namespace JTD\LaravelAI\Tests\Integration;
 
-use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
 use JTD\LaravelAI\Facades\AI;
 use JTD\LaravelAI\Models\AIMessage;
@@ -10,6 +9,7 @@ use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Providers\MockProvider;
 use JTD\LaravelAI\Services\AIManager;
 use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Integration tests for AI facade basic functionality.
@@ -30,6 +30,7 @@ class AIFacadeTest extends TestCase
 
         $this->assertInstanceOf(AIManager::class, $manager);
     }
+
     #[Test]
     public function facade_can_create_conversation_builder()
     {
@@ -37,6 +38,7 @@ class AIFacadeTest extends TestCase
 
         $this->assertInstanceOf(ConversationBuilderInterface::class, $builder);
     }
+
     #[Test]
     public function facade_can_create_named_conversation()
     {
@@ -45,6 +47,7 @@ class AIFacadeTest extends TestCase
         $this->assertInstanceOf(ConversationBuilderInterface::class, $builder);
         $this->assertEquals('Test Conversation', $builder->getTitle());
     }
+
     #[Test]
     public function facade_provides_fluent_interface()
     {
@@ -60,6 +63,7 @@ class AIFacadeTest extends TestCase
         $this->assertEquals(0.7, $builder->getTemperature());
         $this->assertEquals(1000, $builder->getMaxTokens());
     }
+
     #[Test]
     public function facade_can_send_simple_message()
     {
@@ -72,6 +76,7 @@ class AIFacadeTest extends TestCase
         $this->assertNotEmpty($response->content);
         $this->assertEquals('mock', $response->provider);
     }
+
     #[Test]
     public function facade_can_send_ai_message_object()
     {
@@ -85,6 +90,7 @@ class AIFacadeTest extends TestCase
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertNotEmpty($response->content);
     }
+
     #[Test]
     public function facade_can_send_multiple_messages()
     {
@@ -98,6 +104,7 @@ class AIFacadeTest extends TestCase
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertNotEmpty($response->content);
     }
+
     #[Test]
     public function facade_can_send_streaming_message()
     {
@@ -111,6 +118,7 @@ class AIFacadeTest extends TestCase
         $this->assertNotEmpty($chunks);
         $this->assertGreaterThan(1, count($chunks));
     }
+
     #[Test]
     public function facade_can_access_providers()
     {
@@ -119,6 +127,7 @@ class AIFacadeTest extends TestCase
         $this->assertIsArray($providers);
         $this->assertArrayHasKey('mock', $providers);
     }
+
     #[Test]
     public function facade_can_get_models_for_provider()
     {
@@ -132,6 +141,7 @@ class AIFacadeTest extends TestCase
             $this->assertArrayHasKey('name', $model);
         }
     }
+
     #[Test]
     public function facade_can_validate_provider()
     {
@@ -139,6 +149,7 @@ class AIFacadeTest extends TestCase
 
         $this->assertTrue($isValid);
     }
+
     #[Test]
     public function facade_can_get_provider_health()
     {
@@ -148,6 +159,7 @@ class AIFacadeTest extends TestCase
         $this->assertArrayHasKey('status', $health);
         $this->assertEquals('healthy', $health['status']);
     }
+
     #[Test]
     public function facade_can_get_all_provider_health()
     {
@@ -157,6 +169,7 @@ class AIFacadeTest extends TestCase
         $this->assertArrayHasKey('mock', $health);
         $this->assertEquals('healthy', $health['mock']['status']);
     }
+
     #[Test]
     public function facade_can_extend_with_custom_driver()
     {
@@ -175,6 +188,7 @@ class AIFacadeTest extends TestCase
         // The extension mechanism is in place
         $this->assertTrue(true, 'Custom driver extension mechanism is available');
     }
+
     #[Test]
     public function facade_handles_invalid_provider_gracefully()
     {
@@ -185,6 +199,7 @@ class AIFacadeTest extends TestCase
             ->message('Hello')
             ->send();
     }
+
     #[Test]
     public function facade_can_use_system_prompt()
     {
@@ -197,6 +212,7 @@ class AIFacadeTest extends TestCase
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertNotEmpty($response->content);
     }
+
     #[Test]
     public function facade_can_use_conditional_logic()
     {
@@ -214,6 +230,7 @@ class AIFacadeTest extends TestCase
         $this->assertEquals('mock-advanced', $builder->getModel());
         $this->assertEquals(0.3, $builder->getTemperature());
     }
+
     #[Test]
     public function facade_can_use_callback_handlers()
     {
@@ -236,6 +253,7 @@ class AIFacadeTest extends TestCase
         $this->assertFalse($errorCalled);
         $this->assertInstanceOf(AIResponse::class, $response);
     }
+
     #[Test]
     public function facade_can_calculate_cost()
     {
@@ -247,6 +265,7 @@ class AIFacadeTest extends TestCase
         $this->assertArrayHasKey('output_cost', $cost);
         $this->assertArrayHasKey('currency', $cost);
     }
+
     #[Test]
     public function facade_can_estimate_tokens()
     {
@@ -255,6 +274,7 @@ class AIFacadeTest extends TestCase
         $this->assertIsInt($tokens);
         $this->assertGreaterThan(0, $tokens);
     }
+
     #[Test]
     public function facade_can_get_default_driver()
     {
@@ -262,6 +282,7 @@ class AIFacadeTest extends TestCase
 
         $this->assertEquals('mock', $defaultDriver);
     }
+
     #[Test]
     public function facade_can_access_driver_directly()
     {
@@ -269,6 +290,7 @@ class AIFacadeTest extends TestCase
 
         $this->assertInstanceOf(MockProvider::class, $driver);
     }
+
     #[Test]
     public function facade_can_access_default_driver()
     {
@@ -276,6 +298,7 @@ class AIFacadeTest extends TestCase
 
         $this->assertInstanceOf(MockProvider::class, $driver);
     }
+
     #[Test]
     public function facade_maintains_singleton_behavior()
     {
@@ -284,6 +307,7 @@ class AIFacadeTest extends TestCase
 
         $this->assertSame($manager1, $manager2);
     }
+
     #[Test]
     public function facade_can_handle_complex_conversation()
     {
@@ -302,6 +326,7 @@ class AIFacadeTest extends TestCase
         $this->assertNotEmpty($response->content);
         $this->assertEquals('mock', $response->provider);
     }
+
     #[Test]
     public function facade_can_handle_batch_operations()
     {
@@ -322,6 +347,7 @@ class AIFacadeTest extends TestCase
             $this->assertNotEmpty($response->content);
         }
     }
+
     #[Test]
     public function facade_preserves_conversation_state()
     {
@@ -343,6 +369,7 @@ class AIFacadeTest extends TestCase
         $response = $builder->send();
         $this->assertInstanceOf(AIResponse::class, $response);
     }
+
     #[Test]
     public function facade_can_reset_conversation()
     {

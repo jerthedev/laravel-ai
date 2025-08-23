@@ -2,9 +2,8 @@
 
 namespace JTD\LaravelAI\Tests\Performance;
 
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
-use JTD\LaravelAI\Tests\Performance\PerformanceBenchmark;
 use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -20,7 +19,9 @@ use PHPUnit\Framework\Attributes\Test;
 class OpenAIDriverPerformanceTest extends TestCase
 {
     private OpenAIDriver $driver;
+
     private PerformanceBenchmark $benchmark;
+
     private array $performanceMetrics = [];
 
     protected function setUp(): void
@@ -30,13 +31,13 @@ class OpenAIDriverPerformanceTest extends TestCase
         // Load credentials from E2E credentials file
         $credentialsPath = __DIR__ . '/../credentials/e2e-credentials.json';
 
-        if (!file_exists($credentialsPath)) {
+        if (! file_exists($credentialsPath)) {
             $this->markTestSkipped('E2E credentials file not found for performance testing');
         }
 
         $credentials = json_decode(file_get_contents($credentialsPath), true);
 
-        if (empty($credentials['openai']['api_key']) || !$credentials['openai']['enabled']) {
+        if (empty($credentials['openai']['api_key']) || ! $credentials['openai']['enabled']) {
             $this->markTestSkipped('OpenAI credentials not configured or disabled for performance testing');
         }
 
@@ -47,7 +48,7 @@ class OpenAIDriverPerformanceTest extends TestCase
             'timeout' => 60, // Longer timeout for performance tests
         ]);
 
-        $this->benchmark = new PerformanceBenchmark();
+        $this->benchmark = new PerformanceBenchmark;
     }
 
     /**
@@ -63,7 +64,7 @@ class OpenAIDriverPerformanceTest extends TestCase
     protected function tearDown(): void
     {
         // Output performance summary
-        if (!empty($this->performanceMetrics)) {
+        if (! empty($this->performanceMetrics)) {
             $this->outputPerformanceSummary();
         }
 
@@ -87,7 +88,7 @@ class OpenAIDriverPerformanceTest extends TestCase
 
         $this->logTestStep("✅ Response time: {$metrics['response_time']}ms");
         $this->logTestStep("📊 Memory usage: {$metrics['memory_usage']}MB");
-        $this->logTestStep("🔤 Response length: " . (isset($metrics['response_length']) ? $metrics['response_length'] : 'N/A') . " chars");
+        $this->logTestStep('🔤 Response length: ' . (isset($metrics['response_length']) ? $metrics['response_length'] : 'N/A') . ' chars');
 
         // Performance assertions
         $this->assertLessThan(5000, $metrics['response_time'], 'Basic message should respond within 5 seconds');
@@ -190,7 +191,7 @@ class OpenAIDriverPerformanceTest extends TestCase
         $this->logTestStep("✅ Total time: {$totalTime}ms");
         $this->logTestStep("📊 Memory usage: {$memoryUsage}MB");
         $this->logTestStep("⚡ Throughput: {$throughput} requests/second");
-        $this->logTestStep("📈 Average per request: " . ($totalTime / $concurrentRequests) . "ms");
+        $this->logTestStep('📈 Average per request: ' . ($totalTime / $concurrentRequests) . 'ms');
 
         $this->performanceMetrics['concurrent_throughput'] = [
             'total_time' => $totalTime,
@@ -235,7 +236,7 @@ class OpenAIDriverPerformanceTest extends TestCase
                 'response_length' => strlen($response->content),
             ];
 
-            $this->logTestStep("  Iteration " . ($i + 1) . ": {$memoryDiff}MB used");
+            $this->logTestStep('  Iteration ' . ($i + 1) . ": {$memoryDiff}MB used");
 
             // Small delay to avoid rate limits
             usleep(500000); // 0.5 seconds
@@ -325,7 +326,7 @@ class OpenAIDriverPerformanceTest extends TestCase
         $responseTimes = array_column($this->performanceMetrics, 'response_time');
         $memoryUsages = array_column($this->performanceMetrics, 'memory_usage');
 
-        if (!empty($responseTimes)) {
+        if (! empty($responseTimes)) {
             $avgResponseTime = array_sum($responseTimes) / count($responseTimes);
             $maxResponseTime = max($responseTimes);
             $avgMemoryUsage = array_sum($memoryUsages) / count($memoryUsages);
@@ -459,11 +460,11 @@ class OpenAIDriverPerformanceTest extends TestCase
         foreach ($messages as $index => $messageText) {
             $message = AIMessage::user($messageText);
 
-            $metrics = $this->benchmark->measure("token_estimation_" . ($index + 1), function () use ($message) {
+            $metrics = $this->benchmark->measure('token_estimation_' . ($index + 1), function () use ($message) {
                 return $this->driver->estimateTokens($message);
             });
 
-            $this->logTestStep("  Message " . ($index + 1) . " ({$metrics['response_time']}ms): {$metrics['result_summary']['value']} tokens");
+            $this->logTestStep('  Message ' . ($index + 1) . " ({$metrics['response_time']}ms): {$metrics['result_summary']['value']} tokens");
         }
 
         // Get the last metrics for assertions

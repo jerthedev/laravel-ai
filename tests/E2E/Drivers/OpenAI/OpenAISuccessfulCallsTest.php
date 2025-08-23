@@ -2,12 +2,11 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Tests\E2E\E2ETestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * E2E Test for OpenAI Successful API Calls
@@ -27,7 +26,7 @@ class OpenAISuccessfulCallsTest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('openai')) {
+        if (! $this->hasE2ECredentials('openai')) {
             $this->markTestSkipped('OpenAI E2E credentials not available');
         }
 
@@ -84,7 +83,6 @@ class OpenAISuccessfulCallsTest extends E2ETestCase
 
             $this->assertGreaterThan(0, $response->responseTimeMs, 'Response time should be greater than 0');
             $this->logTestStep('Response time: ' . round($response->responseTimeMs) . 'ms');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ API call failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -156,7 +154,6 @@ class OpenAISuccessfulCallsTest extends E2ETestCase
                 $this->assertGreaterThan(0, $estimatedCost['input_tokens']);
                 $this->logTestStep('✅ Cost estimation logic is working (even without actual token data)');
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Cost calculation test failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -185,7 +182,6 @@ class OpenAISuccessfulCallsTest extends E2ETestCase
             if (isset($result['details']['models_available'])) {
                 $this->logTestStep('Models available: ' . $result['details']['models_available']);
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Credential validation failed: ' . $e->getMessage());
             throw $e;
@@ -219,13 +215,12 @@ class OpenAISuccessfulCallsTest extends E2ETestCase
                 $this->logTestStep('Completions working: ' . ($status['details']['completions_working'] ? 'Yes' : 'No'));
             }
 
-            if (!empty($status['issues'])) {
+            if (! empty($status['issues'])) {
                 $this->logTestStep('Issues found:');
                 foreach ($status['issues'] as $issue) {
                     $this->logTestStep('  - ' . $issue);
                 }
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Health status check failed: ' . $e->getMessage());
             throw $e;
@@ -259,7 +254,6 @@ class OpenAISuccessfulCallsTest extends E2ETestCase
                 $capabilities = implode(', ', $model['capabilities']);
                 $this->logTestStep('  - ' . $model['id'] . ' (' . $model['name'] . ') - ' . $capabilities);
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Model listing failed: ' . $e->getMessage());
             throw $e;

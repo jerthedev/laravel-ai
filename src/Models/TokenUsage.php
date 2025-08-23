@@ -20,8 +20,8 @@ namespace JTD\LaravelAI\Models;
  * - Detailed cost breakdown for analysis
  * - Provider-specific pricing model support
  *
- * @package JTD\LaravelAI\Models
  * @version 1.0.0
+ *
  * @since 1.0.0
  *
  * @example

@@ -2,7 +2,6 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
-use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
 use JTD\LaravelAI\Facades\AI;
 use JTD\LaravelAI\LaravelAIServiceProvider;
@@ -10,6 +9,7 @@ use JTD\LaravelAI\Services\AIManager;
 use JTD\LaravelAI\Services\ConfigurationValidator;
 use JTD\LaravelAI\Services\ConversationBuilder;
 use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ServiceProviderTest extends TestCase
 {
@@ -21,6 +21,7 @@ class ServiceProviderTest extends TestCase
             'LaravelAIServiceProvider should be loaded'
         );
     }
+
     #[Test]
     public function it_registers_ai_manager_as_singleton()
     {
@@ -30,6 +31,7 @@ class ServiceProviderTest extends TestCase
         $this->assertInstanceOf(AIManager::class, $manager1);
         $this->assertSame($manager1, $manager2, 'AIManager should be registered as singleton');
     }
+
     #[Test]
     public function it_registers_configuration_validator_as_singleton()
     {
@@ -39,6 +41,7 @@ class ServiceProviderTest extends TestCase
         $this->assertInstanceOf(ConfigurationValidator::class, $validator1);
         $this->assertSame($validator1, $validator2, 'ConfigurationValidator should be registered as singleton');
     }
+
     #[Test]
     public function it_binds_conversation_builder_interface()
     {
@@ -47,6 +50,7 @@ class ServiceProviderTest extends TestCase
         $this->assertInstanceOf(ConversationBuilder::class, $builder);
         $this->assertInstanceOf(ConversationBuilderInterface::class, $builder);
     }
+
     #[Test]
     public function it_resolves_ai_facade()
     {
@@ -56,6 +60,7 @@ class ServiceProviderTest extends TestCase
         $manager = AI::getFacadeRoot();
         $this->assertInstanceOf(AIManager::class, $manager);
     }
+
     #[Test]
     public function it_registers_facade_alias()
     {
@@ -66,6 +71,7 @@ class ServiceProviderTest extends TestCase
 
         $this->assertSame($originalService, $aliasedService);
     }
+
     #[Test]
     public function it_merges_configuration_from_package()
     {
@@ -76,6 +82,7 @@ class ServiceProviderTest extends TestCase
         $this->assertArrayHasKey('providers', $config);
         $this->assertArrayHasKey('cost_tracking', $config);
     }
+
     #[Test]
     public function it_loads_migrations_from_package()
     {
@@ -83,6 +90,7 @@ class ServiceProviderTest extends TestCase
         // The actual migration loading is tested in DatabaseMigrationsTest
         $this->assertTrue(true);
     }
+
     #[Test]
     public function it_provides_correct_services()
     {
@@ -99,6 +107,7 @@ class ServiceProviderTest extends TestCase
             $this->assertContains($service, $provides, "Service '{$service}' should be provided");
         }
     }
+
     #[Test]
     public function it_can_resolve_all_provided_services()
     {
@@ -110,6 +119,7 @@ class ServiceProviderTest extends TestCase
             $this->assertNotNull($resolved, "Service '{$service}' should be resolvable");
         }
     }
+
     #[Test]
     public function ai_manager_can_create_conversation_builder()
     {
@@ -118,6 +128,7 @@ class ServiceProviderTest extends TestCase
 
         $this->assertInstanceOf(ConversationBuilderInterface::class, $builder);
     }
+
     #[Test]
     public function conversation_builder_has_fluent_interface()
     {
@@ -133,24 +144,28 @@ class ServiceProviderTest extends TestCase
         $this->assertEquals('mock', $builder->getProvider());
         $this->assertEquals('test-model', $builder->getModel());
     }
+
     #[Test]
     public function it_validates_configuration_in_production()
     {
         // Skip this test in testing environment to avoid migration issues
         $this->markTestSkipped('Skipping production environment test to avoid migration conflicts');
     }
+
     #[Test]
     public function it_handles_configuration_validation_errors_gracefully()
     {
         // Skip this test in testing environment to avoid migration issues
         $this->markTestSkipped('Skipping production environment test to avoid migration conflicts');
     }
+
     #[Test]
     public function it_registers_publishing_groups_in_console()
     {
         // Skip this test to avoid console application dependency issues
         $this->markTestSkipped('Skipping console application test to avoid dependency issues');
     }
+
     #[Test]
     public function facade_provides_expected_methods()
     {
@@ -163,6 +178,7 @@ class ServiceProviderTest extends TestCase
         $this->assertStringContainsString('send', $docComment);
         $this->assertStringContainsString('stream', $docComment);
     }
+
     #[Test]
     public function it_can_extend_ai_manager_with_custom_drivers()
     {
@@ -175,6 +191,7 @@ class ServiceProviderTest extends TestCase
 
         $this->assertSame($manager, $result, 'extend() should return the manager for chaining');
     }
+
     #[Test]
     public function service_provider_boots_without_errors()
     {
@@ -186,6 +203,7 @@ class ServiceProviderTest extends TestCase
 
         $this->assertTrue(true);
     }
+
     #[Test]
     public function it_handles_missing_configuration_gracefully()
     {

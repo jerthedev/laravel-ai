@@ -71,7 +71,6 @@ class OpenAIInvalidCredentialsException extends InvalidCredentialsException
      * @param  string|null  $requestId  Request ID
      * @param  string|null  $organizationId  Organization ID
      * @param  string|null  $projectId  Project ID
-     * @return static
      */
     public static function fromApiError(
         array $errorData,
@@ -165,7 +164,7 @@ class OpenAIInvalidCredentialsException extends InvalidCredentialsException
                 break;
         }
 
-        if (!empty($suggestions)) {
+        if (! empty($suggestions)) {
             $message .= '. Suggestions: ' . implode('; ', $suggestions);
         }
 

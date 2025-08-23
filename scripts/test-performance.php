@@ -6,7 +6,6 @@
  * Analyzes PHPUnit test performance and identifies slow tests.
  * Usage: php scripts/test-performance.php [--threshold=1.0] [--format=table|json]
  */
-
 $options = getopt('', ['threshold::', 'format::', 'help']);
 
 if (isset($options['help'])) {
@@ -22,7 +21,7 @@ if (isset($options['help'])) {
     exit(0);
 }
 
-$threshold = (float)($options['threshold'] ?? 0.5);
+$threshold = (float) ($options['threshold'] ?? 0.5);
 $format = $options['format'] ?? 'table';
 
 // Run tests with JUnit output in batches to identify hanging tests
@@ -34,29 +33,30 @@ $testDirs = [
     'tests/Feature' => 'Feature Tests',
     'tests/Integration' => 'Integration Tests',
     'tests/Performance' => 'Performance Tests',
-    'tests/E2E' => 'E2E Tests'
+    'tests/E2E' => 'E2E Tests',
 ];
 
 $allTests = [];
 $failedDirs = [];
 
 foreach ($testDirs as $dir => $name) {
-    if (!is_dir($dir)) {
+    if (! is_dir($dir)) {
         echo "Skipping $name - directory not found\n";
+
         continue;
     }
 
     echo "Running $name...\n";
-    $junitFile = "junit-" . basename($dir) . ".xml";
+    $junitFile = 'junit-' . basename($dir) . '.xml';
 
     // Set a reasonable timeout for each test suite
     $command = "vendor/bin/phpunit --log-junit $junitFile $dir 2>/dev/null";
 
     // Use proc_open to have better control over the process
     $descriptorspec = [
-        0 => ["pipe", "r"],  // stdin
-        1 => ["pipe", "w"],  // stdout
-        2 => ["pipe", "w"]   // stderr
+        0 => ['pipe', 'r'],  // stdin
+        1 => ['pipe', 'w'],  // stdout
+        2 => ['pipe', 'w'],   // stderr
     ];
 
     $process = proc_open($command, $descriptorspec, $pipes);
@@ -100,7 +100,7 @@ foreach ($testDirs as $dir => $name) {
     }
 }
 
-if (!empty($failedDirs)) {
+if (! empty($failedDirs)) {
     echo "\n⚠️  The following test suites had issues:\n";
     foreach ($failedDirs as $dir) {
         echo "  - $dir\n";
@@ -115,16 +115,17 @@ if (empty($allTests)) {
 
 $tests = $allTests;
 
-function extractTests($element, &$tests) {
+function extractTests($element, &$tests)
+{
     if ($element->getName() === 'testcase') {
-        $time = (float)$element['time'];
-        $name = (string)$element['name'];
-        $class = (string)$element['class'];
+        $time = (float) $element['time'];
+        $name = (string) $element['name'];
+        $class = (string) $element['class'];
         $tests[] = [
             'class' => $class,
             'method' => $name,
             'time' => $time,
-            'full_name' => $class . '::' . $name
+            'full_name' => $class . '::' . $name,
         ];
     }
 
@@ -139,27 +140,35 @@ if (empty($tests)) {
 }
 
 // Sort by time (slowest first)
-usort($tests, function($a, $b) { return $b['time'] <=> $a['time']; });
+usort($tests, function ($a, $b) {
+    return $b['time'] <=> $a['time'];
+});
 
 // Filter slow tests
-$slowTests = array_filter($tests, function($t) use ($threshold) {
+$slowTests = array_filter($tests, function ($t) use ($threshold) {
     return $t['time'] > $threshold;
 });
 
 // Calculate statistics
 $totalTime = array_sum(array_column($tests, 'time'));
 $averageTime = $totalTime / count($tests);
-$medianTime = $tests[intval(count($tests)/2)]['time'];
+$medianTime = $tests[intval(count($tests) / 2)]['time'];
 
-$verySlowTests = array_filter($tests, function($t) { return $t['time'] > 2.0; });
-$mediumTests = array_filter($tests, function($t) { return $t['time'] > 0.5 && $t['time'] <= 2.0; });
-$fastTests = array_filter($tests, function($t) { return $t['time'] <= 0.1; });
+$verySlowTests = array_filter($tests, function ($t) {
+    return $t['time'] > 2.0;
+});
+$mediumTests = array_filter($tests, function ($t) {
+    return $t['time'] > 0.5 && $t['time'] <= 2.0;
+});
+$fastTests = array_filter($tests, function ($t) {
+    return $t['time'] <= 0.1;
+});
 
 // Group by test suite
 $suites = [];
 foreach ($tests as $test) {
     $suite = basename(str_replace('\\', '/', $test['class']));
-    if (!isset($suites[$suite])) {
+    if (! isset($suites[$suite])) {
         $suites[$suite] = ['count' => 0, 'time' => 0, 'tests' => []];
     }
     $suites[$suite]['count']++;
@@ -167,7 +176,9 @@ foreach ($tests as $test) {
     $suites[$suite]['tests'][] = $test;
 }
 
-uasort($suites, function($a, $b) { return $b['time'] <=> $a['time']; });
+uasort($suites, function ($a, $b) {
+    return $b['time'] <=> $a['time'];
+});
 
 // Output results
 switch ($format) {
@@ -181,40 +192,40 @@ switch ($format) {
                 'slow_tests_count' => count($slowTests),
                 'very_slow_tests_count' => count($verySlowTests),
             ],
-            'slow_tests' => array_map(function($test) {
+            'slow_tests' => array_map(function ($test) {
                 return [
                     'class' => basename(str_replace('\\', '/', $test['class'])),
                     'method' => $test['method'],
-                    'time' => round($test['time'], 3)
+                    'time' => round($test['time'], 3),
                 ];
             }, $slowTests),
-            'suites' => array_map(function($suite, $name) {
+            'suites' => array_map(function ($suite, $name) {
                 return [
                     'name' => $name,
                     'count' => $suite['count'],
                     'total_time' => round($suite['time'], 3),
-                    'average_time' => round($suite['time'] / $suite['count'], 3)
+                    'average_time' => round($suite['time'] / $suite['count'], 3),
                 ];
-            }, $suites, array_keys($suites))
+            }, $suites, array_keys($suites)),
         ], JSON_PRETTY_PRINT);
         break;
 
     case 'summary':
         echo "\n📊 TEST PERFORMANCE SUMMARY\n";
         echo "===========================\n\n";
-        echo "Total tests: " . count($tests) . "\n";
-        echo "Total time: " . number_format($totalTime, 3) . "s\n";
-        echo "Average time: " . number_format($averageTime, 3) . "s\n";
-        echo "Median time: " . number_format($medianTime, 3) . "s\n\n";
-        echo "🚨 Very slow tests (>2s): " . count($verySlowTests) . "\n";
-        echo "⚠️  Slow tests (>0.5s): " . count($mediumTests) . "\n";
-        echo "✅ Fast tests (<0.1s): " . count($fastTests) . "\n\n";
+        echo 'Total tests: ' . count($tests) . "\n";
+        echo 'Total time: ' . number_format($totalTime, 3) . "s\n";
+        echo 'Average time: ' . number_format($averageTime, 3) . "s\n";
+        echo 'Median time: ' . number_format($medianTime, 3) . "s\n\n";
+        echo '🚨 Very slow tests (>2s): ' . count($verySlowTests) . "\n";
+        echo '⚠️  Slow tests (>0.5s): ' . count($mediumTests) . "\n";
+        echo '✅ Fast tests (<0.1s): ' . count($fastTests) . "\n\n";
 
-        if (!empty($slowTests)) {
-            echo "🐌 TESTS REQUIRING ATTENTION (>" . $threshold . "s):\n";
+        if (! empty($slowTests)) {
+            echo '🐌 TESTS REQUIRING ATTENTION (>' . $threshold . "s):\n";
             foreach (array_slice($slowTests, 0, 10) as $test) {
                 $className = basename(str_replace('\\', '/', $test['class']));
-                echo "  " . number_format($test['time'], 3) . "s - " . $className . "::" . $test['method'] . "\n";
+                echo '  ' . number_format($test['time'], 3) . 's - ' . $className . '::' . $test['method'] . "\n";
             }
         }
         break;
@@ -223,8 +234,8 @@ switch ($format) {
         echo "\n📊 TEST PERFORMANCE ANALYSIS\n";
         echo "============================\n\n";
 
-        if (!empty($slowTests)) {
-            echo "🐌 SLOW TESTS (>" . $threshold . "s):\n";
+        if (! empty($slowTests)) {
+            echo '🐌 SLOW TESTS (>' . $threshold . "s):\n";
             echo str_pad('Time (s)', 10) . str_pad('Class', 40) . 'Method' . "\n";
             echo str_repeat('-', 100) . "\n";
 
@@ -238,24 +249,24 @@ switch ($format) {
         }
 
         echo "📈 PERFORMANCE STATISTICS:\n";
-        echo "Total tests: " . count($tests) . "\n";
-        echo "Total time: " . number_format($totalTime, 3) . "s\n";
-        echo "Average time: " . number_format($averageTime, 3) . "s\n";
-        echo "Median time: " . number_format($medianTime, 3) . "s\n\n";
+        echo 'Total tests: ' . count($tests) . "\n";
+        echo 'Total time: ' . number_format($totalTime, 3) . "s\n";
+        echo 'Average time: ' . number_format($averageTime, 3) . "s\n";
+        echo 'Median time: ' . number_format($medianTime, 3) . "s\n\n";
 
-        echo "🚨 Very slow tests (>2s): " . count($verySlowTests) . "\n";
-        echo "⚠️  Medium tests (0.5-2s): " . count($mediumTests) . "\n";
-        echo "✅ Fast tests (<0.1s): " . count($fastTests) . "\n\n";
+        echo '🚨 Very slow tests (>2s): ' . count($verySlowTests) . "\n";
+        echo '⚠️  Medium tests (0.5-2s): ' . count($mediumTests) . "\n";
+        echo '✅ Fast tests (<0.1s): ' . count($fastTests) . "\n\n";
 
         echo "📊 TEST SUITE BREAKDOWN:\n";
         foreach (array_slice($suites, 0, 10, true) as $suite => $data) {
             echo str_pad($suite, 40) .
                  str_pad($data['count'] . ' tests', 15) .
-                 number_format($data['time'], 3) . "s (avg: " .
+                 number_format($data['time'], 3) . 's (avg: ' .
                  number_format($data['time'] / $data['count'], 3) . "s)\n";
         }
 
-        if (!empty($verySlowTests)) {
+        if (! empty($verySlowTests)) {
             echo "\n🚨 RECOMMENDATIONS:\n";
             echo "- Consider optimizing tests that take >2s\n";
             echo "- Check for unnecessary delays, retries, or heavy operations\n";

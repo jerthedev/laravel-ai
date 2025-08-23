@@ -26,8 +26,8 @@ use Illuminate\Validation\ValidationException;
  * - File: File attachments and references
  * - Multimodal: Mixed content types in a single message
  *
- * @package JTD\LaravelAI\Models
  * @version 1.0.0
+ *
  * @since 1.0.0
  *
  * @example
@@ -122,6 +122,7 @@ class AIMessage
      * Maintained for backward compatibility with older OpenAI API versions.
      *
      * @var array|null Array of function call objects or null
+     *
      * @deprecated Use toolCalls instead
      */
     public ?array $functionCalls;

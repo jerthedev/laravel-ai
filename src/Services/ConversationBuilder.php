@@ -75,6 +75,19 @@ class ConversationBuilder implements ConversationBuilderInterface
         'cost_tracking' => true,
         'performance_tracking' => true,
         'debug' => false,
+        'provider_switching' => false,
+        'auto_fallback' => false,
+    ];
+
+    /**
+     * Provider fallback configuration.
+     */
+    protected array $fallbackConfig = [
+        'enabled' => false,
+        'strategy' => 'auto',
+        'providers' => [],
+        'max_attempts' => 3,
+        'preserve_context' => true,
     ];
 
     /**
@@ -417,6 +430,93 @@ class ConversationBuilder implements ConversationBuilderInterface
     }
 
     /**
+     * Enable provider switching for the conversation.
+     */
+    public function enableProviderSwitching(bool $enabled = true): self
+    {
+        $this->features['provider_switching'] = $enabled;
+
+        return $this;
+    }
+
+    /**
+     * Configure fallback providers.
+     */
+    public function fallback(array $providers, array $options = []): self
+    {
+        $this->fallbackConfig = array_merge($this->fallbackConfig, [
+            'enabled' => true,
+            'providers' => $providers,
+        ], $options);
+
+        $this->features['auto_fallback'] = true;
+
+        return $this;
+    }
+
+    /**
+     * Set fallback strategy.
+     */
+    public function fallbackStrategy(string $strategy): self
+    {
+        $this->fallbackConfig['strategy'] = $strategy;
+
+        return $this;
+    }
+
+    /**
+     * Set maximum fallback attempts.
+     */
+    public function maxFallbackAttempts(int $attempts): self
+    {
+        $this->fallbackConfig['max_attempts'] = $attempts;
+
+        return $this;
+    }
+
+    /**
+     * Configure context preservation during provider switches.
+     */
+    public function preserveContext(bool $preserve = true): self
+    {
+        $this->fallbackConfig['preserve_context'] = $preserve;
+
+        return $this;
+    }
+
+    /**
+     * Set provider priority for fallback.
+     */
+    public function providerPriority(array $providers): self
+    {
+        return $this->fallback($providers);
+    }
+
+    /**
+     * Enable cost-optimized fallback.
+     */
+    public function costOptimizedFallback(): self
+    {
+        return $this->fallbackStrategy('cost_optimized');
+    }
+
+    /**
+     * Enable performance-optimized fallback.
+     */
+    public function performanceOptimizedFallback(): self
+    {
+        return $this->fallbackStrategy('performance_optimized');
+    }
+
+    /**
+     * Enable capability-matched fallback.
+     */
+    public function capabilityMatchedFallback(): self
+    {
+        return $this->fallbackStrategy('capability_matched');
+    }
+
+    /**
      * Send the conversation and get a response.
      */
     public function send(): AIResponse
@@ -424,16 +524,7 @@ class ConversationBuilder implements ConversationBuilderInterface
         $this->executeCallback('before_send');
 
         try {
-            $provider = $this->getProviderInstance();
-
-            if ($this->model) {
-                $provider->setModel($this->model);
-            }
-
-            $provider->setOptions($this->options);
-
-            $messages = $this->getMessages();
-            $response = $provider->sendMessage($messages, $this->options);
+            $response = $this->attemptSendWithFallback();
 
             $this->executeCallback('success', $response);
             $this->executeCallback('after_receive', $response);
@@ -443,6 +534,152 @@ class ConversationBuilder implements ConversationBuilderInterface
             $this->executeCallback('error', $e);
             throw $e;
         }
+    }
+
+    /**
+     * Attempt to send with fallback support.
+     */
+    protected function attemptSendWithFallback(): AIResponse
+    {
+        // Try primary provider first
+        try {
+            return $this->sendWithProvider($this->provider);
+        } catch (\Exception $primaryException) {
+            // If fallback is not enabled, rethrow the original exception
+            if (! $this->fallbackConfig['enabled'] || ! $this->features['auto_fallback']) {
+                throw $primaryException;
+            }
+
+            // Attempt fallback providers
+            return $this->attemptFallbackProviders($primaryException);
+        }
+    }
+
+    /**
+     * Attempt fallback providers.
+     */
+    protected function attemptFallbackProviders(\Exception $originalException): AIResponse
+    {
+        $attempts = 0;
+        $maxAttempts = $this->fallbackConfig['max_attempts'];
+        $fallbackProviders = $this->getFallbackProviders();
+
+        foreach ($fallbackProviders as $fallbackProvider) {
+            if ($attempts >= $maxAttempts) {
+                break;
+            }
+
+            try {
+                $attempts++;
+
+                // Log fallback attempt
+                if ($this->features['debug']) {
+                    \Log::info('Attempting fallback provider', [
+                        'original_provider' => $this->provider,
+                        'fallback_provider' => $fallbackProvider,
+                        'attempt' => $attempts,
+                    ]);
+                }
+
+                return $this->sendWithProvider($fallbackProvider);
+            } catch (\Exception $fallbackException) {
+                if ($this->features['debug']) {
+                    \Log::warning('Fallback provider failed', [
+                        'provider' => $fallbackProvider,
+                        'error' => $fallbackException->getMessage(),
+                    ]);
+                }
+
+                continue;
+            }
+        }
+
+        // All fallback attempts failed
+        throw new \Exception(
+            'Primary provider and all fallback providers failed. Original error: ' . $originalException->getMessage(),
+            0,
+            $originalException
+        );
+    }
+
+    /**
+     * Send message with a specific provider.
+     */
+    protected function sendWithProvider(?string $providerName): AIResponse
+    {
+        $provider = $providerName
+            ? $this->manager->driver($providerName)
+            : $this->getProviderInstance();
+
+        if ($this->model) {
+            $provider->setModel($this->model);
+        }
+
+        $provider->setOptions($this->options);
+
+        $messages = $this->getMessages();
+
+        return $provider->sendMessage($messages, $this->options);
+    }
+
+    /**
+     * Get fallback providers based on strategy.
+     */
+    protected function getFallbackProviders(): array
+    {
+        if (! empty($this->fallbackConfig['providers'])) {
+            return $this->fallbackConfig['providers'];
+        }
+
+        // Auto-generate fallback providers based on strategy
+        return match ($this->fallbackConfig['strategy']) {
+            'cost_optimized' => $this->getCostOptimizedProviders(),
+            'performance_optimized' => $this->getPerformanceOptimizedProviders(),
+            'capability_matched' => $this->getCapabilityMatchedProviders(),
+            default => $this->getDefaultFallbackProviders(),
+        };
+    }
+
+    /**
+     * Get cost-optimized fallback providers.
+     */
+    protected function getCostOptimizedProviders(): array
+    {
+        // This would typically query the database for cost information
+        // For now, return a reasonable default order
+        return ['gemini', 'xai', 'openai'];
+    }
+
+    /**
+     * Get performance-optimized fallback providers.
+     */
+    protected function getPerformanceOptimizedProviders(): array
+    {
+        // This would typically query performance metrics
+        // For now, return a reasonable default order
+        return ['openai', 'xai', 'gemini'];
+    }
+
+    /**
+     * Get capability-matched fallback providers.
+     */
+    protected function getCapabilityMatchedProviders(): array
+    {
+        // This would match capabilities of the current provider
+        // For now, return all available providers
+        return ['openai', 'gemini', 'xai'];
+    }
+
+    /**
+     * Get default fallback providers.
+     */
+    protected function getDefaultFallbackProviders(): array
+    {
+        $currentProvider = $this->provider;
+        $allProviders = ['openai', 'gemini', 'xai'];
+
+        // Remove current provider from fallback list
+        return array_values(array_filter($allProviders, fn ($p) => $p !== $currentProvider));
     }
 
     /**
@@ -559,6 +796,16 @@ class ConversationBuilder implements ConversationBuilderInterface
             'cost_tracking' => true,
             'performance_tracking' => true,
             'debug' => false,
+            'provider_switching' => false,
+            'auto_fallback' => false,
+        ];
+
+        $this->fallbackConfig = [
+            'enabled' => false,
+            'strategy' => 'auto',
+            'providers' => [],
+            'max_attempts' => 3,
+            'preserve_context' => true,
         ];
 
         return $this;

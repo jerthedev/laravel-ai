@@ -2,7 +2,7 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Exceptions\OpenAI\OpenAIException;
 use JTD\LaravelAI\Exceptions\OpenAI\OpenAIInvalidCredentialsException;
 use JTD\LaravelAI\Exceptions\OpenAI\OpenAIQuotaExceededException;

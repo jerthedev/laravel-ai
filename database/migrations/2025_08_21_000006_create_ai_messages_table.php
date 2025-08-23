@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ai_messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ai_conversation_id')->constrained('ai_conversations')->onDelete('cascade');
-            $table->string('uuid')->unique(); // Public identifier for messages
+            $table->uuid('uuid')->unique(); // Public identifier for messages
             $table->integer('sequence_number'); // Order within conversation
 
             // Message Content

@@ -2,12 +2,11 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Tests\E2E\E2ETestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Comprehensive E2E Tests for OpenAI Driver
@@ -27,7 +26,7 @@ class OpenAIComprehensiveE2ETest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('openai')) {
+        if (! $this->hasE2ECredentials('openai')) {
             $this->markTestSkipped('OpenAI E2E credentials not available');
         }
 
@@ -96,12 +95,11 @@ class OpenAIComprehensiveE2ETest extends E2ETestCase
                 $this->logTestStep('Cost response keys: ' . implode(', ', $costKeys));
 
                 // Check for any cost-related key
-                $hasCostInfo = !empty($cost);
+                $hasCostInfo = ! empty($cost);
                 $this->assertTrue($hasCostInfo, 'Cost calculation should return some information');
             }
 
             $this->logTestStep('✅ Cost calculation: Method executed successfully');
-
         } catch (\Exception $e) {
             $this->logTestStep('⚠️  Cost calculation failed: ' . $e->getMessage());
             // Don't fail the entire test for cost calculation issues
@@ -229,7 +227,7 @@ class OpenAIComprehensiveE2ETest extends E2ETestCase
                     ['model' => 'gpt-3.5-turbo', 'max_tokens' => 5]
                 );
 
-                if ($response instanceof AIResponse && !empty($response->content)) {
+                if ($response instanceof AIResponse && ! empty($response->content)) {
                     $successCount++;
                 }
             } catch (\Exception $e) {
@@ -250,7 +248,7 @@ class OpenAIComprehensiveE2ETest extends E2ETestCase
         );
 
         $responseLength = strlen(trim($qualityResponse->content));
-        $hasContent = !empty($qualityResponse->content);
+        $hasContent = ! empty($qualityResponse->content);
         $testResults['response_quality'] = $hasContent && $responseLength > 10;
 
         $this->assertTrue($testResults['response_quality'], 'Response should have meaningful content');
@@ -276,7 +274,7 @@ class OpenAIComprehensiveE2ETest extends E2ETestCase
         $testResults['model_availability'] = $hasModels;
 
         $this->assertTrue($hasModels, 'Should have available models');
-        $this->logTestStep("✅ Model Availability: " . count($models) . " models");
+        $this->logTestStep('✅ Model Availability: ' . count($models) . ' models');
 
         // Summary
         $passedTests = 0;
@@ -292,9 +290,9 @@ class OpenAIComprehensiveE2ETest extends E2ETestCase
 
         $this->logTestStep("\n📊 Production Readiness Summary:");
         $this->logTestStep("  • API Reliability: {$testResults['reliability']}%");
-        $this->logTestStep("  • Response Quality: " . ($testResults['response_quality'] ? 'PASS' : 'FAIL'));
-        $this->logTestStep("  • Token Tracking: " . ($testResults['token_tracking'] ? 'PASS' : 'FAIL'));
-        $this->logTestStep("  • Model Availability: " . ($testResults['model_availability'] ? 'PASS' : 'FAIL'));
+        $this->logTestStep('  • Response Quality: ' . ($testResults['response_quality'] ? 'PASS' : 'FAIL'));
+        $this->logTestStep('  • Token Tracking: ' . ($testResults['token_tracking'] ? 'PASS' : 'FAIL'));
+        $this->logTestStep('  • Model Availability: ' . ($testResults['model_availability'] ? 'PASS' : 'FAIL'));
         $this->logTestStep("  • Overall Score: {$readinessScore}%");
 
         $this->assertGreaterThanOrEqual(75, $readinessScore, 'Production readiness score should be at least 75%');

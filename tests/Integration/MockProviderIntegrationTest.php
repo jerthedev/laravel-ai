@@ -2,13 +2,13 @@
 
 namespace JTD\LaravelAI\Tests\Integration;
 
-use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\Exceptions\RateLimitException;
 use JTD\LaravelAI\Facades\AI;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Providers\MockProvider;
 use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Integration tests for mock provider with the complete system.
@@ -36,6 +36,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertEquals('mock', $response->provider);
         $this->assertInstanceOf(\JTD\LaravelAI\Models\TokenUsage::class, $response->tokenUsage);
     }
+
     #[Test]
     public function mock_provider_works_with_conversation_builder()
     {
@@ -53,6 +54,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertNotEmpty($response->content);
         $this->assertEquals('mock', $response->provider);
     }
+
     #[Test]
     public function mock_provider_supports_streaming()
     {
@@ -76,6 +78,7 @@ class MockProviderIntegrationTest extends TestCase
         $lastChunk = end($chunks);
         $this->assertTrue($lastChunk->metadata['is_complete'] ?? false);
     }
+
     #[Test]
     public function mock_provider_handles_multiple_messages()
     {
@@ -89,6 +92,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertNotEmpty($response->content);
     }
+
     #[Test]
     public function mock_provider_uses_response_fixtures()
     {
@@ -102,6 +106,7 @@ class MockProviderIntegrationTest extends TestCase
         // The provider is still 'mock' but uses OpenAI-style responses
         $this->assertEquals('mock', $response->provider);
     }
+
     #[Test]
     public function mock_provider_simulates_different_providers()
     {
@@ -133,6 +138,7 @@ class MockProviderIntegrationTest extends TestCase
             }
         }
     }
+
     #[Test]
     public function mock_provider_handles_error_simulation()
     {
@@ -148,6 +154,7 @@ class MockProviderIntegrationTest extends TestCase
 
         $mockProvider->sendMessage(AIMessage::user('Test message'));
     }
+
     #[Test]
     public function mock_provider_integrates_with_driver_system()
     {
@@ -162,6 +169,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertNotEmpty($response->content);
     }
+
     #[Test]
     public function mock_provider_respects_configuration()
     {
@@ -176,6 +184,7 @@ class MockProviderIntegrationTest extends TestCase
         // Reset configuration
         config(['ai.providers.mock.valid_credentials' => true]);
     }
+
     #[Test]
     public function mock_provider_calculates_costs_correctly()
     {
@@ -191,6 +200,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertIsFloat($cost['total']);
         $this->assertGreaterThan(0, $cost['total']);
     }
+
     #[Test]
     public function mock_provider_estimates_tokens_correctly()
     {
@@ -203,6 +213,7 @@ class MockProviderIntegrationTest extends TestCase
         $longerTokens = AI::estimateTokens('This is a much longer message that should have more tokens', 'mock');
         $this->assertGreaterThan($tokens, $longerTokens);
     }
+
     #[Test]
     public function mock_provider_returns_available_models()
     {
@@ -219,6 +230,7 @@ class MockProviderIntegrationTest extends TestCase
             $this->assertArrayHasKey('supports_streaming', $model);
         }
     }
+
     #[Test]
     public function mock_provider_validates_correctly()
     {
@@ -226,6 +238,7 @@ class MockProviderIntegrationTest extends TestCase
 
         $this->assertTrue($isValid);
     }
+
     #[Test]
     public function mock_provider_reports_health_status()
     {
@@ -238,6 +251,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertArrayHasKey('provider', $health);
         $this->assertEquals('mock', $health['provider']);
     }
+
     #[Test]
     public function mock_provider_supports_custom_responses()
     {
@@ -253,6 +267,7 @@ class MockProviderIntegrationTest extends TestCase
 
         $this->assertEquals('The weather is sunny today!', $response->content);
     }
+
     #[Test]
     public function mock_provider_handles_response_delays()
     {
@@ -267,6 +282,7 @@ class MockProviderIntegrationTest extends TestCase
 
         $this->assertInstanceOf(AIResponse::class, $response);
     }
+
     #[Test]
     public function mock_provider_works_with_different_message_types()
     {
@@ -286,6 +302,7 @@ class MockProviderIntegrationTest extends TestCase
             $this->assertNotEmpty($response->content);
         }
     }
+
     #[Test]
     public function mock_provider_maintains_conversation_context()
     {
@@ -303,6 +320,7 @@ class MockProviderIntegrationTest extends TestCase
         $this->assertNotEmpty($response1->content);
         $this->assertNotEmpty($response2->content);
     }
+
     #[Test]
     public function mock_provider_integrates_with_event_system()
     {
@@ -332,6 +350,7 @@ class MockProviderIntegrationTest extends TestCase
         // If not implemented yet, this test still passes
         $this->assertTrue(true, 'Event system integration test completed');
     }
+
     #[Test]
     public function mock_provider_handles_batch_operations()
     {
@@ -358,6 +377,7 @@ class MockProviderIntegrationTest extends TestCase
             $this->assertEquals('mock', $response->provider);
         }
     }
+
     #[Test]
     public function mock_provider_works_with_all_configuration_options()
     {

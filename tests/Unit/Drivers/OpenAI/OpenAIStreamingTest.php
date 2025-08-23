@@ -2,14 +2,13 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Models\TokenUsage;
 use JTD\LaravelAI\Tests\TestCase;
+use Mockery;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
-use Mockery;
 
 /**
  * OpenAI Streaming Response Tests
@@ -23,6 +22,7 @@ use Mockery;
 class OpenAIStreamingTest extends TestCase
 {
     private OpenAIDriver $driver;
+
     private $mockClient;
 
     protected function setUp(): void
@@ -145,12 +145,12 @@ class OpenAIStreamingTest extends TestCase
                 'functionCall' => (object) [
                     'name' => 'get_weather',
                     'arguments' => '{"location"',
-                ]
+                ],
             ]),
             $this->createMockStreamChunk('', false, null, [
                 'functionCall' => (object) [
-                    'arguments' => ': "San Francisco"}'
-                ]
+                    'arguments' => ': "San Francisco"}',
+                ],
             ]),
             $this->createMockStreamChunk('', true, 'function_call'),
         ];
@@ -167,7 +167,7 @@ class OpenAIStreamingTest extends TestCase
                     'name' => 'get_weather',
                     'description' => 'Get weather',
                     'parameters' => ['type' => 'object', 'properties' => []],
-                ]
+                ],
             ],
         ]) as $chunk) {
             $chunks[] = $chunk;
@@ -321,13 +321,13 @@ class OpenAIStreamingTest extends TestCase
         ?array $usage = null,
         string $model = 'gpt-3.5-turbo'
     ) {
-        $chunk = new \stdClass();
+        $chunk = new \stdClass;
         $chunk->model = $model;
 
-        $choice = new \stdClass();
+        $choice = new \stdClass;
         $choice->finishReason = $isLast ? ($finishReason ?? 'stop') : null;
 
-        $choice->delta = new \stdClass();
+        $choice->delta = new \stdClass;
         $choice->delta->content = $content;
         $choice->delta->role = 'assistant';
 
@@ -340,7 +340,7 @@ class OpenAIStreamingTest extends TestCase
         $chunk->choices = [$choice];
 
         if ($usage) {
-            $chunk->usage = new \stdClass();
+            $chunk->usage = new \stdClass;
             $chunk->usage->promptTokens = $usage['prompt_tokens'] ?? 0;
             $chunk->usage->completionTokens = $usage['completion_tokens'] ?? 0;
             $chunk->usage->totalTokens = $usage['total_tokens'] ?? 0;

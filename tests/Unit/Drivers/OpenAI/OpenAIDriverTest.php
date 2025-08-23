@@ -2,22 +2,16 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
-use PHPUnit\Framework\Attributes\DataProvider;
-use Mockery;
-use OpenAI\Client as OpenAIClient;
-use OpenAI\Resources\Chat;
-use OpenAI\Resources\Models;
-use JTD\LaravelAI\Drivers\OpenAIDriver;
-use JTD\LaravelAI\Exceptions\OpenAI\OpenAIException;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Exceptions\OpenAI\OpenAIInvalidCredentialsException;
-use JTD\LaravelAI\Exceptions\OpenAI\OpenAIQuotaExceededException;
-use JTD\LaravelAI\Exceptions\OpenAI\OpenAIRateLimitException;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Models\TokenUsage;
 use JTD\LaravelAI\Tests\TestCase;
+use Mockery;
+use OpenAI\Client as OpenAIClient;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * OpenAI Driver Unit Tests
@@ -30,7 +24,9 @@ use JTD\LaravelAI\Tests\TestCase;
 class OpenAIDriverTest extends TestCase
 {
     protected OpenAIDriver $driver;
+
     protected $mockClient; // Anonymous class, can't type hint
+
     protected array $validConfig;
 
     protected function setUp(): void
@@ -51,20 +47,25 @@ class OpenAIDriverTest extends TestCase
         $this->driver = new OpenAIDriver($this->validConfig);
 
         // Create a mock client using anonymous class since OpenAI\Client is final
-        $this->mockClient = new class {
+        $this->mockClient = new class
+        {
             public $chatMock;
+
             public $modelsMock;
 
-            public function __construct() {
+            public function __construct()
+            {
                 $this->chatMock = Mockery::mock();
                 $this->modelsMock = Mockery::mock();
             }
 
-            public function chat() {
+            public function chat()
+            {
                 return $this->chatMock;
             }
 
-            public function models() {
+            public function models()
+            {
                 return $this->modelsMock;
             }
         };
@@ -137,9 +138,11 @@ class OpenAIDriverTest extends TestCase
     #[Test]
     public function it_can_set_and_get_custom_client(): void
     {
-        $customClient = new class {
-            public function chat() { return null; }
-            public function models() { return null; }
+        $customClient = new class
+        {
+            public function chat() {}
+
+            public function models() {}
         };
 
         $this->driver->setClient($customClient);

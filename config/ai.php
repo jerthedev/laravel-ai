@@ -53,10 +53,18 @@ return [
             'api_key' => env('AI_XAI_API_KEY'),
             'base_url' => env('AI_XAI_BASE_URL', 'https://api.x.ai/v1'),
             'timeout' => env('AI_XAI_TIMEOUT', 30),
+            'connect_timeout' => env('AI_XAI_CONNECT_TIMEOUT', 10),
             'retry_attempts' => env('AI_XAI_RETRY_ATTEMPTS', 3),
             'retry_delay' => env('AI_XAI_RETRY_DELAY', 1000),
-            'default_model' => env('AI_XAI_DEFAULT_MODEL', 'grok-beta'),
+            'max_retry_delay' => env('AI_XAI_MAX_RETRY_DELAY', 30000),
+            'default_model' => env('AI_XAI_DEFAULT_MODEL', 'grok-2-mini'),
             'default_temperature' => env('AI_XAI_DEFAULT_TEMPERATURE', 0.7),
+            'default_max_tokens' => env('AI_XAI_DEFAULT_MAX_TOKENS', 1000),
+            'default_top_p' => env('AI_XAI_DEFAULT_TOP_P', 1.0),
+            'default_frequency_penalty' => env('AI_XAI_DEFAULT_FREQUENCY_PENALTY', 0.0),
+            'default_presence_penalty' => env('AI_XAI_DEFAULT_PRESENCE_PENALTY', 0.0),
+            'streaming_enabled' => env('AI_XAI_STREAMING_ENABLED', true),
+            'function_calling_enabled' => env('AI_XAI_FUNCTION_CALLING_ENABLED', true),
         ],
 
         'gemini' => [
@@ -263,6 +271,167 @@ return [
                 'endpoint' => env('AI_MCP_CUSTOM_ENDPOINT'),
                 'timeout' => env('AI_MCP_CUSTOM_TIMEOUT', 30),
             ],
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Conversation Management
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for conversation persistence, templates, and management.
+    | These settings control how conversations are stored, searched, and
+    | managed within your application.
+    |
+    */
+
+    'conversations' => [
+        'enabled' => env('AI_CONVERSATIONS_ENABLED', true),
+
+        'defaults' => [
+            'auto_title' => env('AI_CONVERSATIONS_AUTO_TITLE', true),
+            'max_messages' => env('AI_CONVERSATIONS_MAX_MESSAGES', null),
+            'language' => env('AI_CONVERSATIONS_DEFAULT_LANGUAGE', 'en'),
+            'conversation_type' => env('AI_CONVERSATIONS_DEFAULT_TYPE', 'chat'),
+        ],
+
+        'persistence' => [
+            'store_messages' => env('AI_CONVERSATIONS_STORE_MESSAGES', true),
+            'store_metadata' => env('AI_CONVERSATIONS_STORE_METADATA', true),
+            'store_costs' => env('AI_CONVERSATIONS_STORE_COSTS', true),
+            'store_performance' => env('AI_CONVERSATIONS_STORE_PERFORMANCE', true),
+        ],
+
+        'search' => [
+            'enabled' => env('AI_CONVERSATIONS_SEARCH_ENABLED', true),
+            'index_content' => env('AI_CONVERSATIONS_INDEX_CONTENT', true),
+            'results_per_page' => env('AI_CONVERSATIONS_RESULTS_PER_PAGE', 15),
+            'max_search_results' => env('AI_CONVERSATIONS_MAX_SEARCH_RESULTS', 100),
+        ],
+
+        'statistics' => [
+            'enabled' => env('AI_CONVERSATIONS_STATISTICS_ENABLED', true),
+            'cache_duration' => env('AI_CONVERSATIONS_STATS_CACHE_DURATION', 60), // minutes
+            'real_time_updates' => env('AI_CONVERSATIONS_REAL_TIME_STATS', false),
+        ],
+
+        'templates' => [
+            'enabled' => env('AI_CONVERSATION_TEMPLATES_ENABLED', true),
+            'public_templates' => env('AI_CONVERSATION_TEMPLATES_PUBLIC', true),
+            'template_sharing' => env('AI_CONVERSATION_TEMPLATES_SHARING', true),
+            'max_parameters' => env('AI_CONVERSATION_TEMPLATES_MAX_PARAMS', 20),
+        ],
+
+        'context_management' => [
+            'enabled' => env('AI_CONVERSATIONS_CONTEXT_MANAGEMENT', true),
+            'default_window_size' => env('AI_CONVERSATIONS_CONTEXT_WINDOW', 10),
+            'max_window_size' => env('AI_CONVERSATIONS_MAX_CONTEXT_WINDOW', 50),
+            'smart_truncation' => env('AI_CONVERSATIONS_SMART_TRUNCATION', true),
+            'preserve_system_messages' => env('AI_CONVERSATIONS_PRESERVE_SYSTEM', true),
+
+            // Enhanced context management settings (Story 5)
+            'default_context_window' => env('AI_CONVERSATION_DEFAULT_CONTEXT_WINDOW', 4096),
+            'default_preservation_strategy' => env('AI_CONVERSATION_DEFAULT_PRESERVATION_STRATEGY', 'intelligent_truncation'),
+            'default_context_ratio' => env('AI_CONVERSATION_DEFAULT_CONTEXT_RATIO', 0.8),
+            'search_enhanced_context' => env('AI_CONVERSATION_SEARCH_ENHANCED_CONTEXT', true),
+            'context_cache_ttl' => env('AI_CONVERSATION_CONTEXT_CACHE_TTL', 300),
+            'max_search_results' => env('AI_CONVERSATION_MAX_SEARCH_RESULTS', 10),
+            'relevance_threshold' => env('AI_CONVERSATION_RELEVANCE_THRESHOLD', 0.7),
+        ],
+
+        'provider_switching' => [
+            'enabled' => env('AI_CONVERSATIONS_PROVIDER_SWITCHING', true),
+            'preserve_context' => env('AI_CONVERSATIONS_PRESERVE_CONTEXT', true),
+            'fallback_enabled' => env('AI_CONVERSATIONS_FALLBACK_ENABLED', true),
+            'track_provider_history' => env('AI_CONVERSATIONS_TRACK_PROVIDERS', true),
+        ],
+
+        'cleanup' => [
+            'auto_archive_days' => env('AI_CONVERSATIONS_AUTO_ARCHIVE_DAYS', null),
+            'auto_delete_days' => env('AI_CONVERSATIONS_AUTO_DELETE_DAYS', null),
+            'cleanup_empty_conversations' => env('AI_CONVERSATIONS_CLEANUP_EMPTY', false),
+        ],
+
+        'events' => [
+            'dispatch_events' => env('AI_CONVERSATIONS_DISPATCH_EVENTS', true),
+            'log_events' => env('AI_CONVERSATIONS_LOG_EVENTS', false),
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | AI Middleware System (TODO - Future Implementation)
+    |--------------------------------------------------------------------------
+    |
+    | TODO: This section is a placeholder for the future middleware system
+    | implementation. The middleware system will provide Laravel-familiar
+    | request interception and transformation capabilities for AI requests.
+    |
+    | PLANNED FEATURES:
+    | - Smart routing based on complexity and cost
+    | - Context injection using search-enhanced retrieval
+    | - Budget enforcement and cost controls
+    | - Pre-processing and request enhancement
+    | - Caching and performance optimization
+    |
+    | INTEGRATION WITH STORY 5:
+    | The middleware system will use the ConversationContextManager methods
+    | implemented in Story 5 for intelligent context management.
+    |
+    */
+
+    'middleware' => [
+        // TODO: Enable middleware system when implemented
+        'enabled' => env('AI_MIDDLEWARE_ENABLED', false),
+
+        // TODO: Global middleware stack (applied to all requests)
+        'global' => [
+            // 'JTD\LaravelAI\Middleware\SmartRouterMiddleware',
+            // 'JTD\LaravelAI\Middleware\ContextInjectionMiddleware',
+            // 'JTD\LaravelAI\Middleware\BudgetEnforcementMiddleware',
+        ],
+
+        // TODO: Context injection middleware settings
+        'context_injection' => [
+            'enabled' => env('AI_MIDDLEWARE_CONTEXT_INJECTION', true),
+            'auto_detect_references' => env('AI_MIDDLEWARE_AUTO_DETECT_REFERENCES', true),
+            'max_context_messages' => env('AI_MIDDLEWARE_MAX_CONTEXT_MESSAGES', 10),
+            'context_format' => env('AI_MIDDLEWARE_CONTEXT_FORMAT', 'conversational'), // 'conversational', 'summary', 'structured'
+            'inject_for_questions' => env('AI_MIDDLEWARE_INJECT_FOR_QUESTIONS', true),
+            'inject_for_references' => env('AI_MIDDLEWARE_INJECT_FOR_REFERENCES', true),
+            'cache_context' => env('AI_MIDDLEWARE_CACHE_CONTEXT', true),
+            'cache_ttl' => env('AI_MIDDLEWARE_CONTEXT_CACHE_TTL', 300),
+        ],
+
+        // TODO: Smart routing middleware settings
+        'smart_routing' => [
+            'enabled' => env('AI_MIDDLEWARE_SMART_ROUTING', true),
+            'complexity_analysis' => env('AI_MIDDLEWARE_COMPLEXITY_ANALYSIS', true),
+            'cost_optimization' => env('AI_MIDDLEWARE_COST_OPTIMIZATION', true),
+            'fallback_routing' => env('AI_MIDDLEWARE_FALLBACK_ROUTING', true),
+            'route_based_on_context' => env('AI_MIDDLEWARE_ROUTE_BY_CONTEXT', true),
+        ],
+
+        // TODO: Budget enforcement middleware settings
+        'budget_enforcement' => [
+            'enabled' => env('AI_MIDDLEWARE_BUDGET_ENFORCEMENT', false),
+            'daily_limit' => env('AI_MIDDLEWARE_DAILY_LIMIT', null),
+            'monthly_limit' => env('AI_MIDDLEWARE_MONTHLY_LIMIT', null),
+            'per_user_limits' => env('AI_MIDDLEWARE_PER_USER_LIMITS', true),
+            'cost_tracking' => env('AI_MIDDLEWARE_COST_TRACKING', true),
+            'alert_thresholds' => [
+                'warning' => env('AI_MIDDLEWARE_WARNING_THRESHOLD', 0.8),
+                'critical' => env('AI_MIDDLEWARE_CRITICAL_THRESHOLD', 0.95),
+            ],
+        ],
+
+        // TODO: Performance optimization middleware settings
+        'performance' => [
+            'caching_enabled' => env('AI_MIDDLEWARE_CACHING', true),
+            'cache_similar_requests' => env('AI_MIDDLEWARE_CACHE_SIMILAR', true),
+            'cache_ttl' => env('AI_MIDDLEWARE_CACHE_TTL', 3600),
+            'request_deduplication' => env('AI_MIDDLEWARE_DEDUPLICATION', true),
+            'response_compression' => env('AI_MIDDLEWARE_COMPRESSION', true),
         ],
     ],
 

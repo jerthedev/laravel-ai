@@ -26,8 +26,8 @@ namespace JTD\LaravelAI\Models;
  * - tool_calls: AI wants to call tools
  * - error: An error occurred
  *
- * @package JTD\LaravelAI\Models
  * @version 1.0.0
+ *
  * @since 1.0.0
  *
  * @example

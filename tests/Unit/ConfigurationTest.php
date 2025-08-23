@@ -2,10 +2,10 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
-use PHPUnit\Framework\Attributes\Test;
 use JTD\LaravelAI\Exceptions\InvalidConfigurationException;
 use JTD\LaravelAI\Services\ConfigurationValidator;
 use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ConfigurationTest extends TestCase
 {
@@ -16,6 +16,7 @@ class ConfigurationTest extends TestCase
         parent::setUp();
         $this->validator = new ConfigurationValidator;
     }
+
     #[Test]
     public function it_loads_default_configuration()
     {
@@ -31,11 +32,13 @@ class ConfigurationTest extends TestCase
         $this->assertArrayHasKey('logging', $config);
         $this->assertArrayHasKey('mcp', $config);
     }
+
     #[Test]
     public function it_has_correct_default_provider()
     {
         $this->assertEquals('mock', config('ai.default'));
     }
+
     #[Test]
     public function it_has_required_providers_configured()
     {
@@ -48,6 +51,7 @@ class ConfigurationTest extends TestCase
         $this->assertArrayHasKey('ollama', $providers);
         $this->assertArrayHasKey('mock', $providers);
     }
+
     #[Test]
     public function it_validates_valid_configuration()
     {
@@ -55,6 +59,7 @@ class ConfigurationTest extends TestCase
 
         $this->assertTrue($this->validator->validate($config));
     }
+
     #[Test]
     public function it_throws_exception_for_missing_default_provider()
     {
@@ -66,6 +71,7 @@ class ConfigurationTest extends TestCase
 
         $this->validator->validate($config);
     }
+
     #[Test]
     public function it_throws_exception_for_empty_providers()
     {
@@ -77,6 +83,7 @@ class ConfigurationTest extends TestCase
 
         $this->validator->validate($config);
     }
+
     #[Test]
     public function it_throws_exception_for_invalid_default_provider()
     {
@@ -88,6 +95,7 @@ class ConfigurationTest extends TestCase
 
         $this->validator->validate($config);
     }
+
     #[Test]
     public function it_validates_openai_provider_configuration()
     {
@@ -106,6 +114,7 @@ class ConfigurationTest extends TestCase
 
         $this->assertTrue($this->validator->validate($config));
     }
+
     #[Test]
     public function it_throws_exception_for_invalid_openai_api_key()
     {
@@ -125,6 +134,7 @@ class ConfigurationTest extends TestCase
 
         $this->validator->validate($config);
     }
+
     #[Test]
     public function it_validates_gemini_provider_configuration()
     {
@@ -144,6 +154,7 @@ class ConfigurationTest extends TestCase
 
         $this->assertTrue($this->validator->validate($config));
     }
+
     #[Test]
     public function it_validates_ollama_provider_configuration()
     {
@@ -161,6 +172,7 @@ class ConfigurationTest extends TestCase
 
         $this->assertTrue($this->validator->validate($config));
     }
+
     #[Test]
     public function it_throws_exception_for_unknown_driver()
     {
@@ -178,6 +190,7 @@ class ConfigurationTest extends TestCase
 
         $this->validator->validate($config);
     }
+
     #[Test]
     public function it_validates_cost_tracking_configuration()
     {
@@ -195,6 +208,7 @@ class ConfigurationTest extends TestCase
 
         $this->assertTrue($this->validator->validate($config));
     }
+
     #[Test]
     public function it_throws_exception_for_invalid_currency()
     {
@@ -211,6 +225,7 @@ class ConfigurationTest extends TestCase
 
         $this->validator->validate($config);
     }
+
     #[Test]
     public function it_validates_model_sync_configuration()
     {
@@ -228,6 +243,7 @@ class ConfigurationTest extends TestCase
 
         $this->assertTrue($this->validator->validate($config));
     }
+
     #[Test]
     public function it_throws_exception_for_invalid_sync_frequency()
     {
@@ -244,6 +260,7 @@ class ConfigurationTest extends TestCase
 
         $this->validator->validate($config);
     }
+
     #[Test]
     public function it_validates_cache_configuration()
     {
@@ -264,6 +281,7 @@ class ConfigurationTest extends TestCase
 
         $this->assertTrue($this->validator->validate($config));
     }
+
     #[Test]
     public function it_validates_logging_configuration()
     {
@@ -283,6 +301,7 @@ class ConfigurationTest extends TestCase
 
         $this->assertTrue($this->validator->validate($config));
     }
+
     #[Test]
     public function it_throws_exception_for_invalid_log_level()
     {
@@ -299,6 +318,7 @@ class ConfigurationTest extends TestCase
 
         $this->validator->validate($config);
     }
+
     #[Test]
     public function it_validates_mcp_configuration()
     {
@@ -319,6 +339,7 @@ class ConfigurationTest extends TestCase
 
         $this->assertTrue($this->validator->validate($config));
     }
+
     #[Test]
     public function it_can_access_nested_configuration_values()
     {
@@ -334,6 +355,7 @@ class ConfigurationTest extends TestCase
         $this->assertEquals('redis', config('ai.cache.store'));
         $this->assertEquals('ai:', config('ai.cache.prefix'));
     }
+
     #[Test]
     public function it_has_proper_environment_variable_defaults()
     {

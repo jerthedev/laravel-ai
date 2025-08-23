@@ -34,11 +34,11 @@ trait HandlesFunctionCalling
      */
     protected function validateAndFormatFunction(array $function): array
     {
-        if (!isset($function['name'])) {
+        if (! isset($function['name'])) {
             throw new \InvalidArgumentException('Function must have a name');
         }
 
-        if (!isset($function['description'])) {
+        if (! isset($function['description'])) {
             throw new \InvalidArgumentException('Function must have a description');
         }
 
@@ -59,12 +59,12 @@ trait HandlesFunctionCalling
      */
     protected function validateAndFormatTool(array $tool): array
     {
-        if (!isset($tool['type'])) {
+        if (! isset($tool['type'])) {
             throw new \InvalidArgumentException('Tool must have a type');
         }
 
         if ($tool['type'] === 'function') {
-            if (!isset($tool['function'])) {
+            if (! isset($tool['function'])) {
                 throw new \InvalidArgumentException('Function tool must have a function definition');
             }
 
@@ -82,7 +82,7 @@ trait HandlesFunctionCalling
      */
     protected function validateFunctionParameters(array $parameters): array
     {
-        if (!isset($parameters['type'])) {
+        if (! isset($parameters['type'])) {
             throw new \InvalidArgumentException('Function parameters must have a type');
         }
 
@@ -98,7 +98,7 @@ trait HandlesFunctionCalling
      */
     protected function hasFunctionCalls(AIResponse $response): bool
     {
-        return !empty($response->functionCalls) || !empty($response->toolCalls);
+        return ! empty($response->functionCalls) || ! empty($response->toolCalls);
     }
 
     /**
@@ -193,7 +193,7 @@ trait HandlesFunctionCalling
      */
     public function executeFunctionCalls(array $functionCalls, ?callable $executor = null): array
     {
-        if (!$executor) {
+        if (! $executor) {
             throw new \InvalidArgumentException('Function executor callback is required');
         }
 
@@ -289,22 +289,22 @@ trait HandlesFunctionCalling
     {
         $errors = [];
 
-        if (!isset($function['name'])) {
+        if (! isset($function['name'])) {
             $errors[] = 'Function name is required';
-        } elseif (!is_string($function['name']) || empty($function['name'])) {
+        } elseif (! is_string($function['name']) || empty($function['name'])) {
             $errors[] = 'Function name must be a non-empty string';
-        } elseif (!preg_match('/^[a-zA-Z0-9_-]+$/', $function['name'])) {
+        } elseif (! preg_match('/^[a-zA-Z0-9_-]+$/', $function['name'])) {
             $errors[] = 'Function name can only contain letters, numbers, underscores, and hyphens';
         }
 
-        if (!isset($function['description'])) {
+        if (! isset($function['description'])) {
             $errors[] = 'Function description is required';
-        } elseif (!is_string($function['description']) || empty($function['description'])) {
+        } elseif (! is_string($function['description']) || empty($function['description'])) {
             $errors[] = 'Function description must be a non-empty string';
         }
 
         if (isset($function['parameters'])) {
-            if (!is_array($function['parameters'])) {
+            if (! is_array($function['parameters'])) {
                 $errors[] = 'Function parameters must be an array';
             } else {
                 $paramErrors = $this->validateParametersSchema($function['parameters']);
@@ -322,17 +322,17 @@ trait HandlesFunctionCalling
     {
         $errors = [];
 
-        if (!isset($parameters['type'])) {
+        if (! isset($parameters['type'])) {
             $errors[] = 'Parameters must have a type';
         } elseif ($parameters['type'] !== 'object') {
             $errors[] = 'Parameters type must be "object"';
         }
 
-        if (isset($parameters['properties']) && !is_array($parameters['properties'])) {
+        if (isset($parameters['properties']) && ! is_array($parameters['properties'])) {
             $errors[] = 'Parameters properties must be an array';
         }
 
-        if (isset($parameters['required']) && !is_array($parameters['required'])) {
+        if (isset($parameters['required']) && ! is_array($parameters['required'])) {
             $errors[] = 'Parameters required must be an array';
         }
 

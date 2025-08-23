@@ -140,6 +140,7 @@ class ModelPricing
     public static function hasPricing(string $modelId): bool
     {
         $normalizedModel = static::normalizeModelName($modelId);
+
         return isset(static::$pricing[$normalizedModel]);
     }
 }

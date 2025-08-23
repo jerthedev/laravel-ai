@@ -3,7 +3,6 @@
 namespace JTD\LaravelAI\Drivers\OpenAI\Traits;
 
 use JTD\LaravelAI\Drivers\OpenAI\Support\ModelPricing;
-use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Models\TokenUsage;
 
@@ -71,7 +70,7 @@ trait CalculatesCosts
     /**
      * Estimate cost for a conversation.
      */
-    public function estimateConversationCost(array $messages, string $modelId = null): array
+    public function estimateConversationCost(array $messages, ?string $modelId = null): array
     {
         $model = $modelId ?? $this->getCurrentModel();
         $totalTokens = 0;
@@ -94,7 +93,7 @@ trait CalculatesCosts
     /**
      * Get cost breakdown for multiple requests.
      */
-    public function calculateBatchCost(array $requests, string $modelId = null): array
+    public function calculateBatchCost(array $requests, ?string $modelId = null): array
     {
         $model = $modelId ?? $this->getCurrentModel();
         $totalInputTokens = 0;
@@ -194,7 +193,7 @@ trait CalculatesCosts
     /**
      * Estimate monthly cost based on usage patterns.
      */
-    public function estimateMonthlyCost(array $usagePattern, string $modelId = null): array
+    public function estimateMonthlyCost(array $usagePattern, ?string $modelId = null): array
     {
         $model = $modelId ?? $this->getCurrentModel();
         $pricing = ModelPricing::getModelPricing($model);
@@ -231,7 +230,7 @@ trait CalculatesCosts
     /**
      * Get cost optimization recommendations.
      */
-    public function getCostOptimizationRecommendations($message, string $currentModel = null): array
+    public function getCostOptimizationRecommendations($message, ?string $currentModel = null): array
     {
         $current = $currentModel ?? $this->getCurrentModel();
         $availableModels = ['gpt-3.5-turbo', 'gpt-4', 'gpt-4-turbo', 'gpt-4o', 'gpt-4o-mini'];

@@ -2,9 +2,9 @@
 
 namespace JTD\LaravelAI\Tests\Integration;
 
-use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\Schema;
 use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Integration tests for database migrations.
@@ -20,6 +20,7 @@ class DatabaseMigrationTest extends TestCase
         // Ensure we start with a clean database
         $this->artisan('migrate:fresh');
     }
+
     #[Test]
     public function all_ai_tables_are_created_by_migrations()
     {
@@ -44,6 +45,7 @@ class DatabaseMigrationTest extends TestCase
             );
         }
     }
+
     #[Test]
     public function ai_providers_table_has_correct_structure()
     {
@@ -68,6 +70,7 @@ class DatabaseMigrationTest extends TestCase
         // Basic structure test passed
         $this->assertTrue(true, 'ai_providers table has correct basic structure');
     }
+
     #[Test]
     public function ai_accounts_table_has_correct_structure()
     {
@@ -90,6 +93,7 @@ class DatabaseMigrationTest extends TestCase
         // Basic structure test passed
         $this->assertTrue(true, 'ai_accounts table has correct basic structure');
     }
+
     #[Test]
     public function ai_provider_models_table_has_correct_structure()
     {
@@ -105,6 +109,7 @@ class DatabaseMigrationTest extends TestCase
         $this->assertTrue(Schema::hasColumn('ai_provider_models', 'created_at'));
         $this->assertTrue(Schema::hasColumn('ai_provider_models', 'updated_at'));
     }
+
     #[Test]
     public function ai_provider_model_costs_table_has_correct_structure()
     {
@@ -122,6 +127,7 @@ class DatabaseMigrationTest extends TestCase
         $this->assertTrue(Schema::hasColumn('ai_provider_model_costs', 'created_at'));
         $this->assertTrue(Schema::hasColumn('ai_provider_model_costs', 'updated_at'));
     }
+
     #[Test]
     public function ai_conversations_table_has_correct_structure()
     {
@@ -142,6 +148,7 @@ class DatabaseMigrationTest extends TestCase
         $this->assertTrue(Schema::hasColumn('ai_conversations', 'created_at'));
         $this->assertTrue(Schema::hasColumn('ai_conversations', 'updated_at'));
     }
+
     #[Test]
     public function ai_messages_table_has_correct_structure()
     {
@@ -157,6 +164,7 @@ class DatabaseMigrationTest extends TestCase
         $this->assertTrue(Schema::hasColumn('ai_messages', 'created_at'));
         $this->assertTrue(Schema::hasColumn('ai_messages', 'updated_at'));
     }
+
     #[Test]
     public function ai_usage_analytics_table_has_correct_structure()
     {
@@ -172,6 +180,7 @@ class DatabaseMigrationTest extends TestCase
         $this->assertTrue(Schema::hasColumn('ai_usage_analytics', 'created_at'));
         $this->assertTrue(Schema::hasColumn('ai_usage_analytics', 'updated_at'));
     }
+
     #[Test]
     public function migrations_can_be_rolled_back()
     {
@@ -189,6 +198,7 @@ class DatabaseMigrationTest extends TestCase
         // Note: The exact behavior depends on migration structure
         $this->assertTrue(true, 'Migration rollback completed without errors');
     }
+
     #[Test]
     public function migrations_can_be_run_multiple_times()
     {
@@ -205,6 +215,7 @@ class DatabaseMigrationTest extends TestCase
         // Tables should be the same
         $this->assertEquals($tablesAfterFirst, $tablesAfterSecond, 'Migrations should be idempotent');
     }
+
     #[Test]
     public function foreign_key_constraints_are_properly_set()
     {

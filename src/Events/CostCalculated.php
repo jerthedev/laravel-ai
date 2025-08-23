@@ -113,6 +113,7 @@ class CostCalculated
     public function getInputCostPerToken(): float
     {
         $inputTokens = $this->response->tokenUsage->inputTokens;
+
         return $inputTokens > 0 ? $this->inputCost / $inputTokens : 0;
     }
 
@@ -122,6 +123,7 @@ class CostCalculated
     public function getOutputCostPerToken(): float
     {
         $outputTokens = $this->response->tokenUsage->outputTokens;
+
         return $outputTokens > 0 ? $this->outputCost / $outputTokens : 0;
     }
 

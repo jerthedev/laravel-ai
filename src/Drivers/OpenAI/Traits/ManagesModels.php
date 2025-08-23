@@ -24,12 +24,13 @@ trait ManagesModels
      */
     public function getAvailableModels(bool $forceRefresh = false): array
     {
-        if (!$forceRefresh && $this->cachedModels !== null) {
+        if (! $forceRefresh && $this->cachedModels !== null) {
             return $this->cachedModels;
         }
 
         try {
             $this->cachedModels = $this->doGetAvailableModels();
+
             return $this->cachedModels;
         } catch (\Exception $e) {
             $this->handleApiError($e);
@@ -111,6 +112,7 @@ trait ManagesModels
     public function setModel(string $modelId): self
     {
         $this->config['default_model'] = $modelId;
+
         return $this;
     }
 
@@ -128,6 +130,7 @@ trait ManagesModels
     public function supportsFeature(string $feature): bool
     {
         $capabilities = $this->getCapabilities();
+
         return $capabilities[$feature] ?? false;
     }
 
@@ -145,6 +148,7 @@ trait ManagesModels
             foreach ($input as $message) {
                 $totalTokens += $this->estimateMessageTokens($message);
             }
+
             return $totalTokens;
         }
 
@@ -193,6 +197,7 @@ trait ManagesModels
     protected function estimateResponseTokens($input, string $modelId): int
     {
         $inputTokens = $this->estimateTokens($input, $modelId);
+
         return $this->estimateResponseTokensFromCount($inputTokens, $modelId);
     }
 
@@ -285,6 +290,7 @@ trait ManagesModels
     public function setOptions(array $options): self
     {
         $this->config = array_merge($this->config, $options);
+
         return $this;
     }
 
@@ -310,5 +316,192 @@ trait ManagesModels
     public function refreshModelsCache(): array
     {
         return $this->getAvailableModels(true);
+    }
+
+    /**
+     * Synchronize models from the provider API to local cache/database.
+     */
+    public function syncModels(bool $forceRefresh = false): array
+    {
+        try {
+            \Log::info('Starting OpenAI models synchronization', [
+                'provider' => $this->getName(),
+                'force_refresh' => $forceRefresh,
+            ]);
+
+            // Check if we need to refresh
+            if (! $forceRefresh && ! $this->shouldRefreshModels()) {
+                \Log::info('OpenAI models cache is still valid, skipping sync');
+
+                return [
+                    'status' => 'skipped',
+                    'reason' => 'cache_valid',
+                    'last_sync' => $this->getLastSyncTime(),
+                ];
+            }
+
+            // Fetch models from OpenAI API
+            $models = $this->getAvailableModels(true);
+
+            // Store in cache with 24-hour expiration
+            $cacheKey = $this->getModelsCacheKey();
+            \Cache::put($cacheKey, $models, now()->addHours(24));
+
+            // Store last sync timestamp
+            \Cache::put($cacheKey . ':last_sync', now(), now()->addDays(7));
+
+            // Store model statistics
+            $stats = $this->storeModelStatistics($models);
+
+            \Log::info('OpenAI models synchronization completed', [
+                'provider' => $this->getName(),
+                'models_count' => count($models),
+                'cached_until' => now()->addHours(24)->toISOString(),
+                'stats' => $stats,
+            ]);
+
+            return [
+                'status' => 'success',
+                'models_synced' => count($models),
+                'statistics' => $stats,
+                'cached_until' => now()->addHours(24),
+                'last_sync' => now(),
+            ];
+        } catch (\Exception $e) {
+            \Log::error('OpenAI models synchronization failed', [
+                'provider' => $this->getName(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            // Store failure information in cache for monitoring
+            \Cache::put(
+                $this->getModelsCacheKey() . ':last_failure',
+                [
+                    'error' => $e->getMessage(),
+                    'failed_at' => now()->toISOString(),
+                ],
+                now()->addHours(24)
+            );
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Check if the provider has valid credentials configured.
+     */
+    public function hasValidCredentials(): bool
+    {
+        try {
+            $result = $this->validateCredentials();
+
+            return $result['status'] === 'valid';
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Get the timestamp of the last successful model synchronization.
+     */
+    public function getLastSyncTime(): ?\Carbon\Carbon
+    {
+        $cacheKey = $this->getModelsCacheKey() . ':last_sync';
+
+        return \Cache::get($cacheKey);
+    }
+
+    /**
+     * Get models that can be synchronized from this provider.
+     */
+    public function getSyncableModels(): array
+    {
+        try {
+            // This is a lightweight preview - just get the model list without full details
+            $response = $this->executeWithRetry(function () {
+                return $this->client->models()->list();
+            });
+
+            $models = [];
+            foreach ($response->data as $model) {
+                if (ModelCapabilities::isChatModel($model->id)) {
+                    $models[] = [
+                        'id' => $model->id,
+                        'name' => ModelCapabilities::getDisplayName($model->id),
+                        'owned_by' => $model->ownedBy ?? 'openai',
+                        'created' => $model->created ?? null,
+                    ];
+                }
+            }
+
+            return $models;
+        } catch (\Exception $e) {
+            $this->handleApiError($e);
+        }
+    }
+
+    /**
+     * Determine if we should refresh the models cache.
+     */
+    protected function shouldRefreshModels(): bool
+    {
+        $cacheKey = $this->getModelsCacheKey();
+        $lastSync = \Cache::get($cacheKey . ':last_sync');
+
+        // Refresh if no last sync time or if it's been more than 12 hours
+        return ! $lastSync || $lastSync->diffInHours(now()) >= 12;
+    }
+
+    /**
+     * Get the cache key for models.
+     */
+    protected function getModelsCacheKey(): string
+    {
+        return 'laravel-ai:openai:models';
+    }
+
+    /**
+     * Store model statistics for monitoring.
+     */
+    protected function storeModelStatistics(array $models): array
+    {
+        $stats = [
+            'total_models' => count($models),
+            'gpt_3_5_models' => 0,
+            'gpt_4_models' => 0,
+            'gpt_4o_models' => 0,
+            'function_calling_models' => 0,
+            'vision_models' => 0,
+            'updated_at' => now()->toISOString(),
+        ];
+
+        foreach ($models as $model) {
+            $modelId = $model['id'];
+            $capabilities = $model['capabilities'] ?? [];
+
+            // Count model types
+            if (str_contains($modelId, 'gpt-3.5')) {
+                $stats['gpt_3_5_models']++;
+            } elseif (str_contains($modelId, 'gpt-4o')) {
+                $stats['gpt_4o_models']++;
+            } elseif (str_contains($modelId, 'gpt-4')) {
+                $stats['gpt_4_models']++;
+            }
+
+            // Count capabilities
+            if (in_array('function_calling', $capabilities)) {
+                $stats['function_calling_models']++;
+            }
+
+            if (in_array('vision', $capabilities)) {
+                $stats['vision_models']++;
+            }
+        }
+
+        // Store statistics
+        \Cache::put($this->getModelsCacheKey() . ':stats', $stats, now()->addDays(7));
+
+        return $stats;
     }
 }

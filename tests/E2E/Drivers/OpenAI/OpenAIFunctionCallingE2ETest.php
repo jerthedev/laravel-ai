@@ -2,7 +2,7 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Tests\TestCase;
@@ -21,6 +21,7 @@ use PHPUnit\Framework\Attributes\Test;
 class OpenAIFunctionCallingE2ETest extends TestCase
 {
     private OpenAIDriver $driver;
+
     private array $credentials;
 
     protected function setUp(): void
@@ -29,14 +30,14 @@ class OpenAIFunctionCallingE2ETest extends TestCase
 
         // Load credentials from E2E credentials file
         $credentialsPath = __DIR__ . '/../credentials/e2e-credentials.json';
-        
-        if (!file_exists($credentialsPath)) {
+
+        if (! file_exists($credentialsPath)) {
             $this->markTestSkipped('E2E credentials file not found for function calling tests');
         }
 
         $this->credentials = json_decode(file_get_contents($credentialsPath), true);
-        
-        if (empty($this->credentials['openai']['api_key']) || !$this->credentials['openai']['enabled']) {
+
+        if (empty($this->credentials['openai']['api_key']) || ! $this->credentials['openai']['enabled']) {
             $this->markTestSkipped('OpenAI credentials not configured or disabled for function calling E2E tests');
         }
 
@@ -76,7 +77,7 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ];
 
         $message = AIMessage::user('What is the weather like in Tokyo, Japan?');
-        
+
         $startTime = microtime(true);
         $response = $this->driver->sendMessage($message, [
             'model' => 'gpt-3.5-turbo',
@@ -86,26 +87,26 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ]);
         $responseTime = (microtime(true) - $startTime) * 1000;
 
-        $this->logTestStep("✅ Response time: {time}ms", ['time' => round($responseTime)]);
-        $this->logTestStep("🔧 Finish reason: {reason}", ['reason' => $response->finishReason]);
+        $this->logTestStep('✅ Response time: {time}ms', ['time' => round($responseTime)]);
+        $this->logTestStep('🔧 Finish reason: {reason}', ['reason' => $response->finishReason]);
 
         // Assertions
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertLessThan(10000, $responseTime, 'Should complete within 10 seconds');
-        
+
         if ($response->finishReason === 'function_call') {
             $this->assertNotNull($response->functionCalls, 'Should have function calls');
             $this->assertEquals('get_weather', $response->functionCalls['name']);
-            
+
             // Parse arguments
             $arguments = json_decode($response->functionCalls['arguments'], true);
             $this->assertArrayHasKey('location', $arguments);
             $this->assertStringContainsIgnoringCase($arguments['location'], 'tokyo');
-            
-            $this->logTestStep("✅ Function called: {name}", ['name' => $response->functionCalls['name']]);
-            $this->logTestStep("📍 Location: {location}", ['location' => $arguments['location']]);
+
+            $this->logTestStep('✅ Function called: {name}', ['name' => $response->functionCalls['name']]);
+            $this->logTestStep('📍 Location: {location}', ['location' => $arguments['location']]);
         } else {
-            $this->logTestStep("ℹ️  Model chose not to call function, responded directly");
+            $this->logTestStep('ℹ️  Model chose not to call function, responded directly');
             $this->assertNotEmpty($response->content, 'Should have content if no function call');
         }
     }
@@ -133,7 +134,7 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ];
 
         $message = AIMessage::user('Calculate 15 * 7 + 23');
-        
+
         $startTime = microtime(true);
         $response = $this->driver->sendMessage($message, [
             'model' => 'gpt-3.5-turbo',
@@ -143,25 +144,25 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ]);
         $responseTime = (microtime(true) - $startTime) * 1000;
 
-        $this->logTestStep("✅ Response time: {time}ms", ['time' => round($responseTime)]);
-        $this->logTestStep("🔧 Finish reason: {reason}", ['reason' => $response->finishReason]);
+        $this->logTestStep('✅ Response time: {time}ms', ['time' => round($responseTime)]);
+        $this->logTestStep('🔧 Finish reason: {reason}', ['reason' => $response->finishReason]);
 
         // Assertions
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertLessThan(10000, $responseTime, 'Should complete within 10 seconds');
-        
+
         if ($response->finishReason === 'function_call') {
             $this->assertNotNull($response->functionCalls, 'Should have function calls');
             $this->assertEquals('calculate', $response->functionCalls['name']);
-            
+
             // Parse arguments
             $arguments = json_decode($response->functionCalls['arguments'], true);
             $this->assertArrayHasKey('expression', $arguments);
-            
-            $this->logTestStep("✅ Function called: {name}", ['name' => $response->functionCalls['name']]);
-            $this->logTestStep("🧮 Expression: {expr}", ['expr' => $arguments['expression']]);
+
+            $this->logTestStep('✅ Function called: {name}', ['name' => $response->functionCalls['name']]);
+            $this->logTestStep('🧮 Expression: {expr}', ['expr' => $arguments['expression']]);
         } else {
-            $this->logTestStep("ℹ️  Model chose not to call function, responded directly");
+            $this->logTestStep('ℹ️  Model chose not to call function, responded directly');
             $this->assertNotEmpty($response->content, 'Should have content if no function call');
         }
     }
@@ -193,7 +194,7 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ];
 
         $message = AIMessage::user('Tell me an interesting science fact');
-        
+
         $startTime = microtime(true);
         $response = $this->driver->sendMessage($message, [
             'model' => 'gpt-3.5-turbo',
@@ -203,26 +204,26 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ]);
         $responseTime = (microtime(true) - $startTime) * 1000;
 
-        $this->logTestStep("✅ Response time: {time}ms", ['time' => round($responseTime)]);
-        $this->logTestStep("🔧 Finish reason: {reason}", ['reason' => $response->finishReason]);
+        $this->logTestStep('✅ Response time: {time}ms', ['time' => round($responseTime)]);
+        $this->logTestStep('🔧 Finish reason: {reason}', ['reason' => $response->finishReason]);
 
         // Assertions
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertLessThan(10000, $responseTime, 'Should complete within 10 seconds');
-        
+
         if ($response->finishReason === 'tool_calls') {
             $this->assertNotNull($response->toolCalls, 'Should have tool calls');
             $this->assertEquals('get_random_fact', $response->toolCalls[0]['function']['name']);
-            
+
             // Parse arguments
             $arguments = json_decode($response->toolCalls[0]['function']['arguments'], true);
             $this->assertArrayHasKey('category', $arguments);
             $this->assertEquals('science', $arguments['category']);
-            
-            $this->logTestStep("✅ Tool called: {name}", ['name' => $response->toolCalls[0]['function']['name']]);
-            $this->logTestStep("📚 Category: {cat}", ['cat' => $arguments['category']]);
+
+            $this->logTestStep('✅ Tool called: {name}', ['name' => $response->toolCalls[0]['function']['name']]);
+            $this->logTestStep('📚 Category: {cat}', ['cat' => $arguments['category']]);
         } else {
-            $this->logTestStep("ℹ️  Model chose not to call tool, responded directly");
+            $this->logTestStep('ℹ️  Model chose not to call tool, responded directly');
             $this->assertNotEmpty($response->content, 'Should have content if no tool call');
         }
     }
@@ -270,7 +271,7 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ];
 
         $message = AIMessage::user('What time is it in New York?');
-        
+
         $startTime = microtime(true);
         $response = $this->driver->sendMessage($message, [
             'model' => 'gpt-3.5-turbo',
@@ -280,25 +281,25 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ]);
         $responseTime = (microtime(true) - $startTime) * 1000;
 
-        $this->logTestStep("✅ Response time: {time}ms", ['time' => round($responseTime)]);
-        $this->logTestStep("🔧 Finish reason: {reason}", ['reason' => $response->finishReason]);
+        $this->logTestStep('✅ Response time: {time}ms', ['time' => round($responseTime)]);
+        $this->logTestStep('🔧 Finish reason: {reason}', ['reason' => $response->finishReason]);
 
         // Assertions
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertLessThan(10000, $responseTime, 'Should complete within 10 seconds');
-        
+
         if ($response->finishReason === 'function_call') {
             $this->assertNotNull($response->functionCalls, 'Should have function calls');
             $this->assertEquals('get_time', $response->functionCalls['name']);
-            
+
             // Parse arguments
             $arguments = json_decode($response->functionCalls['arguments'], true);
             $this->assertArrayHasKey('timezone', $arguments);
-            
-            $this->logTestStep("✅ Correct function selected: {name}", ['name' => $response->functionCalls['name']]);
-            $this->logTestStep("🌍 Timezone: {tz}", ['tz' => $arguments['timezone']]);
+
+            $this->logTestStep('✅ Correct function selected: {name}', ['name' => $response->functionCalls['name']]);
+            $this->logTestStep('🌍 Timezone: {tz}', ['tz' => $arguments['timezone']]);
         } else {
-            $this->logTestStep("ℹ️  Model chose not to call function, responded directly");
+            $this->logTestStep('ℹ️  Model chose not to call function, responded directly');
         }
     }
 
@@ -329,7 +330,7 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ];
 
         $message = AIMessage::user('Find all users with the name John');
-        
+
         $startTime = microtime(true);
         $response = $this->driver->sendMessage($message, [
             'model' => 'gpt-3.5-turbo',
@@ -339,8 +340,8 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ]);
         $responseTime = (microtime(true) - $startTime) * 1000;
 
-        $this->logTestStep("✅ Response time: {time}ms", ['time' => round($responseTime)]);
-        $this->logTestStep("🔧 Finish reason: {reason}", ['reason' => $response->finishReason]);
+        $this->logTestStep('✅ Response time: {time}ms', ['time' => round($responseTime)]);
+        $this->logTestStep('🔧 Finish reason: {reason}', ['reason' => $response->finishReason]);
 
         // Assertions
         $this->assertInstanceOf(AIResponse::class, $response);
@@ -348,14 +349,14 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         $this->assertEquals('function_call', $response->finishReason, 'Should be forced to call function');
         $this->assertNotNull($response->functionCalls, 'Should have function calls');
         $this->assertEquals('search_database', $response->functionCalls['name']);
-        
+
         // Parse arguments
         $arguments = json_decode($response->functionCalls['arguments'], true);
         $this->assertArrayHasKey('query', $arguments);
         $this->assertStringContainsIgnoringCase($arguments['query'], 'john');
-        
-        $this->logTestStep("✅ Forced function called: {name}", ['name' => $response->functionCalls['name']]);
-        $this->logTestStep("🔍 Query: {query}", ['query' => $arguments['query']]);
+
+        $this->logTestStep('✅ Forced function called: {name}', ['name' => $response->functionCalls['name']]);
+        $this->logTestStep('🔍 Query: {query}', ['query' => $arguments['query']]);
     }
 
     #[Test]
@@ -372,18 +373,17 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         ];
 
         $message = AIMessage::user('Test message');
-        
+
         try {
             $response = $this->driver->sendMessage($message, [
                 'model' => 'gpt-3.5-turbo',
                 'functions' => $invalidFunctions,
                 'function_call' => 'auto',
             ]);
-            
+
             $this->fail('Should have thrown an exception for invalid function definition');
-            
         } catch (\Exception $e) {
-            $this->logTestStep("✅ Error handled: " . $e->getMessage());
+            $this->logTestStep('✅ Error handled: ' . $e->getMessage());
             $this->assertStringContainsIgnoringCase($e->getMessage(), 'name');
         }
     }
@@ -397,7 +397,7 @@ class OpenAIFunctionCallingE2ETest extends TestCase
         foreach ($context as $key => $value) {
             $formattedMessage = str_replace("{{$key}}", $value, $formattedMessage);
         }
-        
+
         if (defined('STDOUT')) {
             fwrite(STDOUT, $formattedMessage . "\n");
         }

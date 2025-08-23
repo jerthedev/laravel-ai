@@ -2,12 +2,11 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Tests\E2E\E2ETestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Advanced E2E Integration Tests for OpenAI Driver
@@ -27,7 +26,7 @@ class OpenAIAdvancedIntegrationTest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('openai')) {
+        if (! $this->hasE2ECredentials('openai')) {
             $this->markTestSkipped('OpenAI E2E credentials not available');
         }
 
@@ -68,7 +67,6 @@ class OpenAIAdvancedIntegrationTest extends E2ETestCase
                 $this->assertGreaterThan(0, $response->tokenUsage->totalTokens);
 
                 $this->logTestStep("✅ {$model}: \"{$response->content}\" ({$response->tokenUsage->totalTokens} tokens)");
-
             } catch (\Exception $e) {
                 $this->logTestStep("❌ {$model} failed: " . $e->getMessage());
                 throw $e;
@@ -141,7 +139,6 @@ class OpenAIAdvancedIntegrationTest extends E2ETestCase
                 $this->assertLessThanOrEqual($params['max_tokens'] + 5, $response->tokenUsage->outputTokens); // Allow small margin
 
                 $this->logTestStep("✅ {$name}: \"{$response->content}\" ({$response->tokenUsage->outputTokens} output tokens)");
-
             } catch (\Exception $e) {
                 $this->logTestStep("❌ {$name} failed: " . $e->getMessage());
                 throw $e;
@@ -180,7 +177,6 @@ class OpenAIAdvancedIntegrationTest extends E2ETestCase
             } else {
                 $this->logTestStep('⚠️  System message partially followed (AI behavior can vary)');
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ System message test failed: ' . $e->getMessage());
             throw $e;
@@ -207,7 +203,6 @@ class OpenAIAdvancedIntegrationTest extends E2ETestCase
                 $this->assertInstanceOf(AIResponse::class, $response);
                 $this->logTestStep('✅ Empty message handled gracefully');
             }
-
         } catch (\Exception $e) {
             // This is acceptable - empty messages might be rejected
             $this->logTestStep('⚠️  Empty message rejected (acceptable): ' . $e->getMessage());
@@ -225,7 +220,6 @@ class OpenAIAdvancedIntegrationTest extends E2ETestCase
                 $this->assertInstanceOf(AIResponse::class, $response);
                 $this->logTestStep('✅ Long message handled successfully');
             }
-
         } catch (\Exception $e) {
             // This is acceptable - very long messages might exceed context limits
             $this->logTestStep('⚠️  Long message rejected (acceptable): ' . $e->getMessage());
@@ -242,7 +236,6 @@ class OpenAIAdvancedIntegrationTest extends E2ETestCase
             $this->assertInstanceOf(AIResponse::class, $response);
             $this->assertLessThanOrEqual(3, $response->tokenUsage->outputTokens); // Very small response
             $this->logTestStep('✅ Minimal token limit handled: "' . $response->content . '"');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Minimal token limit failed: ' . $e->getMessage());
             throw $e;

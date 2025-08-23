@@ -2,15 +2,15 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
-use JTD\LaravelAI\Drivers\OpenAIDriver;
-use JTD\LaravelAI\Models\AIMessage;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Exceptions\OpenAI\OpenAIException;
-use JTD\LaravelAI\Exceptions\OpenAI\OpenAIRateLimitException;
 use JTD\LaravelAI\Exceptions\OpenAI\OpenAIInvalidCredentialsException;
+use JTD\LaravelAI\Exceptions\OpenAI\OpenAIRateLimitException;
+use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Tests\TestCase;
+use Mockery;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
-use Mockery;
 
 /**
  * OpenAI Streaming Error Handling Tests
@@ -25,6 +25,7 @@ use Mockery;
 class OpenAIStreamingErrorTest extends TestCase
 {
     private OpenAIDriver $driver;
+
     private $mockClient;
 
     protected function setUp(): void
@@ -55,7 +56,7 @@ class OpenAIStreamingErrorTest extends TestCase
         $this->expectExceptionMessage('Network connection failed');
 
         $message = AIMessage::user('Test message');
-        
+
         foreach ($this->driver->sendStreamingMessage($message, [
             'model' => 'gpt-3.5-turbo',
         ]) as $chunk) {
@@ -79,7 +80,7 @@ class OpenAIStreamingErrorTest extends TestCase
         $this->expectException(OpenAIInvalidCredentialsException::class);
 
         $message = AIMessage::user('Test message');
-        
+
         foreach ($this->driver->sendStreamingMessage($message, [
             'model' => 'gpt-3.5-turbo',
         ]) as $chunk) {
@@ -103,7 +104,7 @@ class OpenAIStreamingErrorTest extends TestCase
         $this->expectException(OpenAIRateLimitException::class);
 
         $message = AIMessage::user('Test message');
-        
+
         foreach ($this->driver->sendStreamingMessage($message, [
             'model' => 'gpt-3.5-turbo',
         ]) as $chunk) {
@@ -137,7 +138,7 @@ class OpenAIStreamingErrorTest extends TestCase
 
         $message = AIMessage::user('Test message');
         $processedChunks = 0;
-        
+
         foreach ($this->driver->sendStreamingMessage($message, [
             'model' => 'gpt-3.5-turbo',
         ]) as $chunk) {
@@ -168,7 +169,7 @@ class OpenAIStreamingErrorTest extends TestCase
 
         $message = AIMessage::user('Test message');
         $chunkCount = 0;
-        
+
         foreach ($this->driver->sendStreamingMessage($message, [
             'model' => 'gpt-3.5-turbo',
         ]) as $chunk) {
@@ -205,7 +206,7 @@ class OpenAIStreamingErrorTest extends TestCase
         $this->expectExceptionMessage('Stream interrupted');
 
         $message = AIMessage::user('Test message');
-        
+
         foreach ($this->driver->sendStreamingMessage($message, [
             'model' => 'gpt-3.5-turbo',
         ]) as $chunk) {
@@ -229,7 +230,7 @@ class OpenAIStreamingErrorTest extends TestCase
         $this->expectExceptionMessage('Request timeout');
 
         $message = AIMessage::user('Test message');
-        
+
         foreach ($this->driver->sendStreamingMessage($message, [
             'model' => 'gpt-3.5-turbo',
         ]) as $chunk) {
@@ -254,7 +255,7 @@ class OpenAIStreamingErrorTest extends TestCase
         $this->expectExceptionMessage('The model `invalid-model` does not exist');
 
         $message = AIMessage::user('Test message');
-        
+
         foreach ($this->driver->sendStreamingMessage($message, [
             'model' => 'invalid-model',
         ]) as $chunk) {
@@ -286,7 +287,7 @@ class OpenAIStreamingErrorTest extends TestCase
 
         $message = AIMessage::user('Test message');
         $chunks = [];
-        
+
         foreach ($this->driver->sendStreamingMessage($message, [
             'model' => 'gpt-3.5-turbo',
         ]) as $chunk) {
@@ -321,7 +322,7 @@ class OpenAIStreamingErrorTest extends TestCase
 
         $message = AIMessage::user('Test message');
         $processedChunks = 0;
-        
+
         foreach ($this->driver->sendStreamingMessage($message, [
             'model' => 'gpt-3.5-turbo',
         ]) as $chunk) {
@@ -338,25 +339,25 @@ class OpenAIStreamingErrorTest extends TestCase
      */
     private function createMalformedChunk(string $type)
     {
-        $chunk = new \stdClass();
-        
+        $chunk = new \stdClass;
+
         switch ($type) {
             case 'missing_choices':
                 $chunk->model = 'gpt-3.5-turbo';
                 // Missing choices property
                 break;
-                
+
             case 'missing_delta':
                 $chunk->model = 'gpt-3.5-turbo';
-                $chunk->choices = [new \stdClass()];
+                $chunk->choices = [new \stdClass];
                 // Missing delta in choice
                 break;
-                
+
             case 'invalid_structure':
                 $chunk->invalid = 'structure';
                 break;
         }
-        
+
         return $chunk;
     }
 
@@ -365,18 +366,18 @@ class OpenAIStreamingErrorTest extends TestCase
      */
     private function createValidChunk(string $content, bool $isLast = false, ?string $finishReason = null)
     {
-        $chunk = new \stdClass();
+        $chunk = new \stdClass;
         $chunk->model = 'gpt-3.5-turbo';
-        
-        $choice = new \stdClass();
+
+        $choice = new \stdClass;
         $choice->finishReason = $isLast ? ($finishReason ?? 'stop') : null;
-        
-        $choice->delta = new \stdClass();
+
+        $choice->delta = new \stdClass;
         $choice->delta->content = $content;
         $choice->delta->role = 'assistant';
-        
+
         $chunk->choices = [$choice];
-        
+
         return $chunk;
     }
 
@@ -385,21 +386,21 @@ class OpenAIStreamingErrorTest extends TestCase
      */
     private function createChunkWithInvalidJson()
     {
-        $chunk = new \stdClass();
+        $chunk = new \stdClass;
         $chunk->model = 'gpt-3.5-turbo';
-        
-        $choice = new \stdClass();
+
+        $choice = new \stdClass;
         $choice->finishReason = null;
-        
-        $choice->delta = new \stdClass();
+
+        $choice->delta = new \stdClass;
         $choice->delta->content = '';
         $choice->delta->role = 'assistant';
-        $choice->delta->functionCall = new \stdClass();
+        $choice->delta->functionCall = new \stdClass;
         $choice->delta->functionCall->name = 'test_function';
         $choice->delta->functionCall->arguments = '{"invalid": json}'; // Invalid JSON
-        
+
         $chunk->choices = [$choice];
-        
+
         return $chunk;
     }
 }

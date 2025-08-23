@@ -37,7 +37,7 @@ $provider = $manager->provider('openai');
 Production-ready OpenAI API integration with comprehensive features.
 
 ```php
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 
 $driver = new OpenAIDriver([
     'api_key' => 'sk-your-api-key',

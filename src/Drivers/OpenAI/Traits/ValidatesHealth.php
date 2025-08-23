@@ -41,14 +41,12 @@ trait ValidatesHealth
                 'organization' => $this->config['organization'] ?? null,
                 'project' => $this->config['project'] ?? null,
             ];
-
         } catch (OpenAIInvalidCredentialsException $e) {
             $result['errors'][] = 'Invalid credentials: ' . $e->getMessage();
             $result['details'] = [
                 'api_accessible' => false,
                 'credentials_valid' => false,
             ];
-
         } catch (\Exception $e) {
             $result['errors'][] = 'API error: ' . $e->getMessage();
             $result['details'] = [
@@ -95,6 +93,7 @@ trait ValidatesHealth
                     'models_response_time_ms' => $responseTime,
                     'api_accessible' => true,
                 ];
+
                 return $status;
             }
 
@@ -120,7 +119,6 @@ trait ValidatesHealth
                     'completions_working' => true,
                     'test_model' => 'gpt-3.5-turbo',
                 ];
-
             } catch (OpenAIQuotaExceededException $e) {
                 // Quota exceeded means API is healthy but no balance
                 $status['status'] = 'degraded';
@@ -132,7 +130,6 @@ trait ValidatesHealth
                     'quota_exceeded' => true,
                 ];
                 $status['issues'][] = 'Insufficient quota for completions';
-
             } catch (\Exception $e) {
                 // Models work but completions don't
                 $status['status'] = 'degraded';
@@ -145,7 +142,6 @@ trait ValidatesHealth
                 ];
                 $status['issues'][] = 'Completions endpoint not accessible: ' . $e->getMessage();
             }
-
         } catch (OpenAIInvalidCredentialsException $e) {
             $status['status'] = 'unhealthy';
             $status['details'] = [
@@ -154,7 +150,6 @@ trait ValidatesHealth
                 'error' => $e->getMessage(),
             ];
             $status['issues'][] = 'Invalid credentials';
-
         } catch (\Exception $e) {
             $status['status'] = 'unhealthy';
             $status['details'] = [
@@ -190,7 +185,7 @@ trait ValidatesHealth
     public function testConnectivity(): array
     {
         $startTime = microtime(true);
-        
+
         try {
             $response = $this->executeWithRetry(function () {
                 return $this->client->models()->list();
@@ -201,7 +196,6 @@ trait ValidatesHealth
                 'response_time_ms' => (microtime(true) - $startTime) * 1000,
                 'models_count' => count($response->data ?? []),
             ];
-
         } catch (\Exception $e) {
             return [
                 'connected' => false,
@@ -227,7 +221,7 @@ trait ValidatesHealth
         }
 
         // Validate API key format
-        if (!str_starts_with($this->config['api_key'], 'sk-')) {
+        if (! str_starts_with($this->config['api_key'], 'sk-')) {
             throw new OpenAIInvalidCredentialsException(
                 'Invalid OpenAI API key format. API key should start with "sk-"',
                 null,
@@ -270,11 +264,11 @@ trait ValidatesHealth
     protected function getConfigurationDiagnostics(): array
     {
         return [
-            'api_key_configured' => !empty($this->config['api_key']),
-            'api_key_format_valid' => !empty($this->config['api_key']) && str_starts_with($this->config['api_key'], 'sk-'),
-            'organization_configured' => !empty($this->config['organization']),
-            'project_configured' => !empty($this->config['project']),
-            'base_url_configured' => !empty($this->config['base_url']),
+            'api_key_configured' => ! empty($this->config['api_key']),
+            'api_key_format_valid' => ! empty($this->config['api_key']) && str_starts_with($this->config['api_key'], 'sk-'),
+            'organization_configured' => ! empty($this->config['organization']),
+            'project_configured' => ! empty($this->config['project']),
+            'base_url_configured' => ! empty($this->config['base_url']),
             'timeout' => $this->config['timeout'] ?? 30,
             'retry_attempts' => $this->config['retry_attempts'] ?? 3,
             'default_model' => $this->config['default_model'] ?? $this->defaultModel,
@@ -298,7 +292,7 @@ trait ValidatesHealth
         $issues = [];
 
         foreach ($checks as $checkName => $result) {
-            if (!$result['passed']) {
+            if (! $result['passed']) {
                 $overallHealth = 'unhealthy';
                 $issues[] = "{$checkName}: {$result['message']}";
             }
@@ -319,6 +313,7 @@ trait ValidatesHealth
     {
         try {
             $this->validateConfiguration();
+
             return ['passed' => true, 'message' => 'Configuration is valid'];
         } catch (\Exception $e) {
             return ['passed' => false, 'message' => $e->getMessage()];
@@ -331,6 +326,7 @@ trait ValidatesHealth
     protected function checkConnectivity(): array
     {
         $result = $this->testConnectivity();
+
         return [
             'passed' => $result['connected'],
             'message' => $result['connected'] ? 'API is reachable' : $result['error'],
@@ -344,6 +340,7 @@ trait ValidatesHealth
     protected function checkAuthentication(): array
     {
         $result = $this->validateCredentials();
+
         return [
             'passed' => $result['valid'],
             'message' => $result['valid'] ? 'Credentials are valid' : implode(', ', $result['errors']),
@@ -357,6 +354,7 @@ trait ValidatesHealth
     {
         try {
             $models = $this->getAvailableModels();
+
             return [
                 'passed' => count($models) > 0,
                 'message' => count($models) > 0 ? count($models) . ' models available' : 'No models accessible',
@@ -382,7 +380,6 @@ trait ValidatesHealth
             }, ['retry_attempts' => 1]);
 
             return ['passed' => true, 'message' => 'Completions endpoint accessible'];
-
         } catch (OpenAIQuotaExceededException $e) {
             return ['passed' => false, 'message' => 'Quota exceeded: ' . $e->getMessage()];
         } catch (\Exception $e) {

@@ -69,7 +69,7 @@ abstract class E2ETestCase extends TestCase
             $timeSinceLastCall = microtime(true) - self::$lastApiCall;
             if ($timeSinceLastCall < $this->minDelayBetweenCalls) {
                 $sleepTime = $this->minDelayBetweenCalls - $timeSinceLastCall;
-                usleep((int)($sleepTime * 1000000));
+                usleep((int) ($sleepTime * 1000000));
             }
         }
         self::$lastApiCall = microtime(true);
@@ -78,7 +78,7 @@ abstract class E2ETestCase extends TestCase
     /**
      * Configure provider with E2E credentials.
      *
-     * @param string $provider Provider name
+     * @param  string  $provider  Provider name
      */
     protected function configureProviderWithE2ECredentials(string $provider): void
     {
@@ -149,8 +149,8 @@ abstract class E2ETestCase extends TestCase
     /**
      * Assert that a response contains expected AI-generated content patterns.
      *
-     * @param string $content Response content to check
-     * @param array $patterns Expected patterns or keywords
+     * @param  string  $content  Response content to check
+     * @param  array  $patterns  Expected patterns or keywords
      */
     protected function assertContainsAIContent(string $content, array $patterns = []): void
     {
@@ -169,9 +169,9 @@ abstract class E2ETestCase extends TestCase
     /**
      * Assert that token usage is reasonable for the given input.
      *
-     * @param int $totalTokens Total tokens used
-     * @param int $minExpected Minimum expected tokens
-     * @param int $maxExpected Maximum expected tokens
+     * @param  int  $totalTokens  Total tokens used
+     * @param  int  $minExpected  Minimum expected tokens
+     * @param  int  $maxExpected  Maximum expected tokens
      */
     protected function assertReasonableTokenUsage(int $totalTokens, int $minExpected = 1, int $maxExpected = 10000): void
     {

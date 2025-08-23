@@ -18,13 +18,13 @@ trait HasE2ECredentials
     /**
      * Skip test if E2E credentials are not available for the specified provider.
      *
-     * @param string $provider Provider name (openai, gemini, xai, ollama)
+     * @param  string  $provider  Provider name (openai, gemini, xai, ollama)
      */
     protected function skipIfNoE2ECredentials(string $provider): void
     {
         $credentials = $this->getE2ECredentials();
 
-        if (!$credentials || !isset($credentials[$provider]) || !($credentials[$provider]['enabled'] ?? false)) {
+        if (! $credentials || ! isset($credentials[$provider]) || ! ($credentials[$provider]['enabled'] ?? false)) {
             $this->markTestSkipped("E2E credentials not available for {$provider}. Set up credentials in tests/credentials/e2e-credentials.json");
         }
     }
@@ -39,7 +39,7 @@ trait HasE2ECredentials
         if (self::$e2eCredentials === null) {
             $credentialsPath = __DIR__ . '/../credentials/e2e-credentials.json';
 
-            if (!file_exists($credentialsPath)) {
+            if (! file_exists($credentialsPath)) {
                 return null;
             }
 
@@ -61,24 +61,26 @@ trait HasE2ECredentials
     /**
      * Get credentials for a specific provider.
      *
-     * @param string $provider Provider name
+     * @param  string  $provider  Provider name
      * @return array Provider credentials
      */
     protected function getProviderCredentials(string $provider): array
     {
         $credentials = $this->getE2ECredentials();
+
         return $credentials[$provider] ?? [];
     }
 
     /**
      * Check if E2E credentials are available for a provider.
      *
-     * @param string $provider Provider name
+     * @param  string  $provider  Provider name
      * @return bool True if credentials are available and enabled
      */
     protected function hasE2ECredentials(string $provider): bool
     {
         $credentials = $this->getE2ECredentials();
+
         return $credentials && isset($credentials[$provider]) && ($credentials[$provider]['enabled'] ?? false);
     }
 
@@ -102,23 +104,24 @@ trait HasE2ECredentials
         $errors = [];
         $credentials = $this->getE2ECredentials();
 
-        if (!$credentials) {
+        if (! $credentials) {
             $errors[] = 'Credentials file not found or invalid JSON';
+
             return ['valid' => false, 'errors' => $errors];
         }
 
         // Check required structure
         $requiredProviders = ['openai', 'gemini', 'xai', 'ollama'];
         foreach ($requiredProviders as $provider) {
-            if (!isset($credentials[$provider])) {
+            if (! isset($credentials[$provider])) {
                 $errors[] = "Missing provider configuration: {$provider}";
-            } elseif (!isset($credentials[$provider]['enabled'])) {
+            } elseif (! isset($credentials[$provider]['enabled'])) {
                 $errors[] = "Missing 'enabled' field for provider: {$provider}";
             }
         }
 
         // Check metadata
-        if (!isset($credentials['metadata'])) {
+        if (! isset($credentials['metadata'])) {
             $errors[] = 'Missing metadata section';
         }
 

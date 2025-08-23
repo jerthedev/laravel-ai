@@ -2,13 +2,12 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
-use JTD\LaravelAI\Drivers\OpenAIDriver;
-use JTD\LaravelAI\Exceptions\OpenAI\OpenAIQuotaExceededException;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Exceptions\OpenAI\OpenAIInvalidCredentialsException;
+use JTD\LaravelAI\Exceptions\OpenAI\OpenAIQuotaExceededException;
 use JTD\LaravelAI\Models\AIMessage;
-use JTD\LaravelAI\Tests\E2E\E2ETestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * E2E Test for OpenAI Quota Error Handling
@@ -28,7 +27,7 @@ class OpenAIQuotaErrorTest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('openai')) {
+        if (! $this->hasE2ECredentials('openai')) {
             $this->markTestSkipped('OpenAI E2E credentials not available');
         }
 
@@ -62,7 +61,6 @@ class OpenAIQuotaErrorTest extends E2ETestCase
 
             // If we get here, the account has balance - that's unexpected for this test
             $this->fail('Expected quota exceeded exception, but API call succeeded. Account may have balance.');
-
         } catch (OpenAIQuotaExceededException $e) {
             // This is what we expect with $0 balance
             $this->logTestStep('✅ Caught expected OpenAIQuotaExceededException');
@@ -92,13 +90,11 @@ class OpenAIQuotaErrorTest extends E2ETestCase
                 }
                 $this->assertNotEmpty($suggestions, 'Should provide resolution suggestions');
             }
-
         } catch (OpenAIInvalidCredentialsException $e) {
             // This might happen if credentials are invalid
             $this->logTestStep('❌ Caught OpenAIInvalidCredentialsException instead');
             $this->logTestStep('Error: ' . $e->getMessage());
             $this->fail('Credentials appear to be invalid. Please check the credentials file.');
-
         } catch (\Exception $e) {
             // Any other exception is unexpected
             $this->logTestStep('❌ Caught unexpected exception: ' . get_class($e));
@@ -127,7 +123,6 @@ class OpenAIQuotaErrorTest extends E2ETestCase
             foreach (array_slice($models, 0, 5) as $model) {
                 $this->logTestStep('  - ' . $model['id'] . ' (' . $model['name'] . ')');
             }
-
         } catch (OpenAIQuotaExceededException $e) {
             // Some endpoints might be restricted with $0 balance
             $this->logTestStep('⚠️  Model list also restricted due to quota');
@@ -135,7 +130,6 @@ class OpenAIQuotaErrorTest extends E2ETestCase
 
             // This is acceptable - some accounts restrict all API access with $0 balance
             $this->assertTrue(true, 'Model list restriction is acceptable with $0 balance');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Unexpected error getting models: ' . $e->getMessage());
             throw $e;
@@ -154,7 +148,6 @@ class OpenAIQuotaErrorTest extends E2ETestCase
         try {
             $this->driver->sendMessage($message, ['model' => 'gpt-4']);
             $this->fail('Expected an exception due to $0 balance');
-
         } catch (OpenAIQuotaExceededException $e) {
             $originalMessage = $e->getMessage();
             $this->logTestStep('Original Error Message: ' . $originalMessage);
@@ -172,7 +165,6 @@ class OpenAIQuotaErrorTest extends E2ETestCase
             $this->assertTrue($hasHelpfulInfo, 'Error message should contain billing/quota related terms');
 
             $this->logTestStep('✅ Error message contains helpful billing/quota information');
-
         } catch (\Exception $e) {
             $this->logTestStep('Caught different exception: ' . get_class($e));
             $this->logTestStep('Message: ' . $e->getMessage());

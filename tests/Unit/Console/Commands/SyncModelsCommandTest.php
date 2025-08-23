@@ -1,0 +1,269 @@
+<?php
+
+namespace JTD\LaravelAI\Tests\Unit\Console\Commands;
+
+use Illuminate\Support\Facades\Artisan;
+use JTD\LaravelAI\Console\Commands\SyncModelsCommand;
+use JTD\LaravelAI\Contracts\AIProviderInterface;
+use JTD\LaravelAI\Services\DriverManager;
+use JTD\LaravelAI\Tests\TestCase;
+use Mockery;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
+
+/**
+ * Unit tests for SyncModelsCommand
+ */
+#[Group('unit')]
+#[Group('console')]
+#[Group('sync')]
+class SyncModelsCommandTest extends TestCase
+{
+    protected DriverManager $driverManager;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->driverManager = Mockery::mock(DriverManager::class);
+        $this->app->instance(DriverManager::class, $this->driverManager);
+    }
+
+    #[Test]
+    public function it_syncs_all_providers_successfully(): void
+    {
+        $mockDriver = Mockery::mock(AIProviderInterface::class);
+        $mockDriver->shouldReceive('hasValidCredentials')->andReturn(true);
+        $mockDriver->shouldReceive('syncModels')
+            ->with(false)
+            ->andReturn([
+                'status' => 'success',
+                'models_synced' => 15,
+                'statistics' => ['total_models' => 15],
+            ]);
+
+        $this->driverManager->shouldReceive('getAvailableProviders')
+            ->andReturn(['openai', 'gemini']);
+        $this->driverManager->shouldReceive('driver')
+            ->with('openai')
+            ->andReturn($mockDriver);
+        $this->driverManager->shouldReceive('driver')
+            ->with('gemini')
+            ->andReturn($mockDriver);
+
+        $exitCode = Artisan::call('ai:sync-models');
+
+        $this->assertEquals(0, $exitCode);
+        $output = Artisan::output();
+        $this->assertStringContainsString('Syncing models from AI providers', $output);
+        $this->assertStringContainsString('Sync completed successfully', $output);
+    }
+
+    #[Test]
+    public function it_syncs_specific_provider_only(): void
+    {
+        $mockDriver = Mockery::mock(AIProviderInterface::class);
+        $mockDriver->shouldReceive('hasValidCredentials')->andReturn(true);
+        $mockDriver->shouldReceive('syncModels')
+            ->with(false)
+            ->andReturn([
+                'status' => 'success',
+                'models_synced' => 15,
+            ]);
+
+        $this->driverManager->shouldReceive('driver')
+            ->with('openai')
+            ->andReturn($mockDriver);
+
+        $exitCode = Artisan::call('ai:sync-models', ['--provider' => 'openai']);
+
+        $this->assertEquals(0, $exitCode);
+        $output = Artisan::output();
+        $this->assertStringContainsString('openai:', $output);
+    }
+
+    #[Test]
+    public function it_forces_refresh_when_flag_is_set(): void
+    {
+        $mockDriver = Mockery::mock(AIProviderInterface::class);
+        $mockDriver->shouldReceive('hasValidCredentials')->andReturn(true);
+        $mockDriver->shouldReceive('syncModels')
+            ->with(true) // Force refresh should be true
+            ->andReturn([
+                'status' => 'success',
+                'models_synced' => 15,
+            ]);
+
+        $this->driverManager->shouldReceive('getAvailableProviders')
+            ->andReturn(['openai']);
+        $this->driverManager->shouldReceive('driver')
+            ->with('openai')
+            ->andReturn($mockDriver);
+
+        $exitCode = Artisan::call('ai:sync-models', ['--force' => true]);
+
+        $this->assertEquals(0, $exitCode);
+    }
+
+    #[Test]
+    public function it_performs_dry_run_without_syncing(): void
+    {
+        $mockDriver = Mockery::mock(AIProviderInterface::class);
+        $mockDriver->shouldReceive('hasValidCredentials')->andReturn(true);
+        $mockDriver->shouldReceive('getSyncableModels')
+            ->andReturn([
+                ['id' => 'gpt-4', 'name' => 'GPT-4'],
+                ['id' => 'gpt-3.5-turbo', 'name' => 'GPT-3.5 Turbo'],
+            ]);
+        $mockDriver->shouldReceive('getLastSyncTime')
+            ->andReturn(now()->subHours(2));
+
+        // Should NOT call syncModels in dry run
+        $mockDriver->shouldNotReceive('syncModels');
+
+        $this->driverManager->shouldReceive('getAvailableProviders')
+            ->andReturn(['openai']);
+        $this->driverManager->shouldReceive('driver')
+            ->with('openai')
+            ->andReturn($mockDriver);
+
+        $exitCode = Artisan::call('ai:sync-models', ['--dry-run' => true]);
+
+        $this->assertEquals(0, $exitCode);
+        $output = Artisan::output();
+        $this->assertStringContainsString('DRY RUN', $output);
+        $this->assertStringContainsString('Would sync: 2 models', $output);
+    }
+
+    #[Test]
+    public function it_shows_verbose_output_when_requested(): void
+    {
+        $mockDriver = Mockery::mock(AIProviderInterface::class);
+        $mockDriver->shouldReceive('hasValidCredentials')->andReturn(true);
+        $mockDriver->shouldReceive('syncModels')
+            ->andReturn([
+                'status' => 'success',
+                'models_synced' => 15,
+                'statistics' => [
+                    'total_models' => 15,
+                    'gpt_4_models' => 5,
+                    'function_calling_models' => 10,
+                ],
+            ]);
+
+        $this->driverManager->shouldReceive('getAvailableProviders')
+            ->andReturn(['openai']);
+        $this->driverManager->shouldReceive('driver')
+            ->with('openai')
+            ->andReturn($mockDriver);
+
+        $exitCode = Artisan::call('ai:sync-models', ['-v' => true]);
+
+        $this->assertEquals(0, $exitCode);
+        $output = Artisan::output();
+        $this->assertStringContainsString('Statistics updated', $output);
+        $this->assertStringContainsString('Total: 15', $output);
+        $this->assertStringContainsString('GPT-4: 5', $output);
+    }
+
+    #[Test]
+    public function it_handles_provider_errors_gracefully(): void
+    {
+        $mockDriver = Mockery::mock(AIProviderInterface::class);
+        $mockDriver->shouldReceive('hasValidCredentials')->andReturn(true);
+        $mockDriver->shouldReceive('syncModels')
+            ->andThrow(new \Exception('API Error'));
+
+        $this->driverManager->shouldReceive('getAvailableProviders')
+            ->andReturn(['openai']);
+        $this->driverManager->shouldReceive('driver')
+            ->with('openai')
+            ->andReturn($mockDriver);
+
+        $exitCode = Artisan::call('ai:sync-models');
+
+        $this->assertEquals(1, $exitCode); // Should return failure
+        $output = Artisan::output();
+        $this->assertStringContainsString('Failed to sync openai', $output);
+        $this->assertStringContainsString('API Error', $output);
+    }
+
+    #[Test]
+    public function it_skips_providers_without_valid_credentials(): void
+    {
+        $validDriver = Mockery::mock(AIProviderInterface::class);
+        $validDriver->shouldReceive('hasValidCredentials')->andReturn(true);
+        $validDriver->shouldReceive('syncModels')->andReturn([
+            'status' => 'success',
+            'models_synced' => 10,
+        ]);
+
+        $invalidDriver = Mockery::mock(AIProviderInterface::class);
+        $invalidDriver->shouldReceive('hasValidCredentials')->andReturn(false);
+        $invalidDriver->shouldNotReceive('syncModels');
+
+        $this->driverManager->shouldReceive('getAvailableProviders')
+            ->andReturn(['openai', 'invalid-provider']);
+        $this->driverManager->shouldReceive('driver')
+            ->with('openai')
+            ->andReturn($validDriver);
+        $this->driverManager->shouldReceive('driver')
+            ->with('invalid-provider')
+            ->andReturn($invalidDriver);
+
+        $exitCode = Artisan::call('ai:sync-models');
+
+        $this->assertEquals(0, $exitCode);
+        $output = Artisan::output();
+        $this->assertStringContainsString('openai:', $output);
+        $this->assertStringNotContainsString('invalid-provider:', $output);
+    }
+
+    #[Test]
+    public function it_skips_mock_provider_in_production(): void
+    {
+        // Set environment to production
+        $this->app['env'] = 'production';
+
+        $mockDriver = Mockery::mock(AIProviderInterface::class);
+        $mockDriver->shouldReceive('hasValidCredentials')->andReturn(true);
+        $mockDriver->shouldNotReceive('syncModels');
+
+        $this->driverManager->shouldReceive('getAvailableProviders')
+            ->andReturn(['mock']);
+        $this->driverManager->shouldReceive('driver')
+            ->with('mock')
+            ->andReturn($mockDriver);
+
+        $exitCode = Artisan::call('ai:sync-models');
+
+        $this->assertEquals(1, $exitCode); // No valid providers
+        $output = Artisan::output();
+        $this->assertStringContainsString('No providers available', $output);
+    }
+
+    #[Test]
+    public function it_handles_skipped_sync_status(): void
+    {
+        $mockDriver = Mockery::mock(AIProviderInterface::class);
+        $mockDriver->shouldReceive('hasValidCredentials')->andReturn(true);
+        $mockDriver->shouldReceive('syncModels')
+            ->andReturn([
+                'status' => 'skipped',
+                'reason' => 'cache_valid',
+                'last_sync' => now()->subHours(1),
+            ]);
+
+        $this->driverManager->shouldReceive('getAvailableProviders')
+            ->andReturn(['openai']);
+        $this->driverManager->shouldReceive('driver')
+            ->with('openai')
+            ->andReturn($mockDriver);
+
+        $exitCode = Artisan::call('ai:sync-models');
+
+        $this->assertEquals(0, $exitCode);
+        $output = Artisan::output();
+        $this->assertStringContainsString('Skipped (cache_valid)', $output);
+    }
+}

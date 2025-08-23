@@ -45,7 +45,7 @@ trait HandlesErrors
                 }
 
                 // Check if error is retryable
-                if (!ErrorMapper::isRetryableError($e)) {
+                if (! ErrorMapper::isRetryableError($e)) {
                     break;
                 }
 
@@ -53,7 +53,7 @@ trait HandlesErrors
                 $delay = $this->calculateRetryDelay($attempt, $baseDelay, $maxDelay, $e);
 
                 // Wait before retrying (skip in test environment)
-                if (!$this->isTestEnvironment()) {
+                if (! $this->isTestEnvironment()) {
                     usleep($delay * 1000); // Convert to microseconds
                 }
 
@@ -73,6 +73,7 @@ trait HandlesErrors
         // For rate limit errors, use the delay from headers if available
         if (ErrorMapper::isRateLimitError($exception)) {
             $rateLimitDelay = ErrorMapper::extractRateLimitDelay($exception);
+
             return min($rateLimitDelay, $maxDelay);
         }
 
@@ -278,6 +279,7 @@ trait HandlesErrors
     {
         // Increase timeout for subsequent attempts
         $baseTimeout = $this->config['timeout'] ?? 30;
+
         return min($baseTimeout * $attempt, 120); // Max 2 minutes
     }
 }

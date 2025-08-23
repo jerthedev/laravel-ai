@@ -2,7 +2,7 @@
 
 namespace JTD\LaravelAI\Providers;
 
-use JTD\LaravelAI\Drivers\AbstractAIProvider;
+use JTD\LaravelAI\Drivers\Contracts\AbstractAIProvider;
 use JTD\LaravelAI\Exceptions\InvalidCredentialsException;
 use JTD\LaravelAI\Exceptions\ProviderException;
 use JTD\LaravelAI\Exceptions\RateLimitException;
@@ -671,5 +671,58 @@ class MockProvider extends AbstractAIProvider
         );
 
         return $this;
+    }
+
+    /**
+     * Synchronize models from the provider API to local cache/database.
+     */
+    public function syncModels(bool $forceRefresh = false): array
+    {
+        $models = $this->doGetAvailableModels();
+
+        return [
+            'status' => 'success',
+            'models_synced' => count($models),
+            'statistics' => [
+                'total_models' => count($models),
+                'mock_models' => count($models),
+                'updated_at' => now()->toISOString(),
+            ],
+            'cached_until' => now()->addHours(24),
+            'last_sync' => now(),
+        ];
+    }
+
+    /**
+     * Check if the provider has valid credentials configured.
+     */
+    public function hasValidCredentials(): bool
+    {
+        return $this->config['valid_credentials'] ?? true;
+    }
+
+    /**
+     * Get the timestamp of the last successful model synchronization.
+     */
+    public function getLastSyncTime(): ?\Carbon\Carbon
+    {
+        return $this->config['last_sync_time'] ?? now()->subHours(1);
+    }
+
+    /**
+     * Get models that can be synchronized from this provider.
+     */
+    public function getSyncableModels(): array
+    {
+        $models = $this->doGetAvailableModels();
+
+        return array_map(function ($model) {
+            return [
+                'id' => $model['id'],
+                'name' => $model['name'],
+                'owned_by' => 'mock',
+                'created' => time(),
+            ];
+        }, $models);
     }
 }

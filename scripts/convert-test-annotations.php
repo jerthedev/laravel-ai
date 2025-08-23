@@ -6,20 +6,20 @@
  * This script converts all @test annotations to #[Test] attributes
  * and adds the necessary use statement for PHPUnit 12 compatibility.
  */
-
 $testDir = __DIR__ . '/../tests';
 
-function convertTestFile($filePath) {
+function convertTestFile($filePath)
+{
     $content = file_get_contents($filePath);
     $originalContent = $content;
 
     // Check if file contains @test annotations
-    if (!preg_match('/\/\*\*\s*@test\s*\*\//', $content)) {
+    if (! preg_match('/\/\*\*\s*@test\s*\*\//', $content)) {
         return false; // No changes needed
     }
 
     // Add use statement if not present
-    if (!preg_match('/use PHPUnit\\Framework\\Attributes\\Test;/', $content)) {
+    if (! preg_match('/use PHPUnit\\Framework\\Attributes\\Test;/', $content)) {
         // Find the last use statement or namespace declaration
         if (preg_match('/^(namespace [^;]+;)\s*$/m', $content, $matches, PREG_OFFSET_CAPTURE)) {
             $insertPos = $matches[0][1] + strlen($matches[0][0]);
@@ -44,13 +44,15 @@ function convertTestFile($filePath) {
 
     if ($content !== $originalContent) {
         file_put_contents($filePath, $content);
+
         return true;
     }
 
     return false;
 }
 
-function scanDirectory($dir) {
+function scanDirectory($dir)
+{
     $files = [];
     $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS)

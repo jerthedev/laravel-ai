@@ -65,20 +65,19 @@ class OpenAIRateLimitException extends RateLimitException
      *
      * @param  array  $headers  HTTP headers from OpenAI response
      * @param  string|null  $requestId  Request ID
-     * @return static
      */
     public static function fromHeaders(array $headers, ?string $requestId = null): static
     {
-        $rateLimit = isset($headers['x-ratelimit-limit-requests']) 
-            ? (int) $headers['x-ratelimit-limit-requests'] 
+        $rateLimit = isset($headers['x-ratelimit-limit-requests'])
+            ? (int) $headers['x-ratelimit-limit-requests']
             : null;
 
-        $remaining = isset($headers['x-ratelimit-remaining-requests']) 
-            ? (int) $headers['x-ratelimit-remaining-requests'] 
+        $remaining = isset($headers['x-ratelimit-remaining-requests'])
+            ? (int) $headers['x-ratelimit-remaining-requests']
             : null;
 
-        $resetTime = isset($headers['x-ratelimit-reset-requests']) 
-            ? static::parseResetTime($headers['x-ratelimit-reset-requests']) 
+        $resetTime = isset($headers['x-ratelimit-reset-requests'])
+            ? static::parseResetTime($headers['x-ratelimit-reset-requests'])
             : null;
 
         $rateLimitType = static::determineRateLimitType($headers);
@@ -183,10 +182,10 @@ class OpenAIRateLimitException extends RateLimitException
     public function getRetryDelay(): int
     {
         $baseDelay = $this->getWaitTime() ?? 60;
-        
+
         // Add jitter (±25%)
         $jitter = (int) ($baseDelay * 0.25 * (mt_rand() / mt_getrandmax() - 0.5));
-        
+
         return max(1, $baseDelay + $jitter);
     }
 }

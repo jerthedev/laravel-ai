@@ -2,12 +2,11 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Tests\E2E\E2ETestCase;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * E2E Tests for OpenAI Function Calling
@@ -27,7 +26,7 @@ class OpenAIFunctionCallingTest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('openai')) {
+        if (! $this->hasE2ECredentials('openai')) {
             $this->markTestSkipped('OpenAI E2E credentials not available');
         }
 
@@ -107,7 +106,6 @@ class OpenAIFunctionCallingTest extends E2ETestCase
                     $this->logTestStep('Tool: ' . $toolCall['function']['name']);
                     $this->logTestStep('Arguments: ' . $toolCall['function']['arguments']);
                 }
-
             } else {
                 $this->logTestStep('⚠️  New API: AI chose to respond directly');
 
@@ -147,7 +145,6 @@ class OpenAIFunctionCallingTest extends E2ETestCase
                     $this->logTestStep('⚠️  Both APIs chose to respond directly - this may be normal behavior');
                 }
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Function calling test failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -216,12 +213,10 @@ class OpenAIFunctionCallingTest extends E2ETestCase
                 $this->logTestStep('Function: ' . $toolCall['function']['name']);
                 $this->logTestStep('Arguments: ' . $toolCall['function']['arguments']);
                 $this->logTestStep('✅ Tool call parameters are correct');
-
             } else {
                 $this->logTestStep('⚠️  AI chose to respond directly: ' . $response->content);
                 // This is acceptable - AI might calculate directly
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Tools format test failed: ' . $e->getMessage());
             throw $e;
@@ -291,12 +286,10 @@ class OpenAIFunctionCallingTest extends E2ETestCase
                 $this->assertNotEmpty($response2->content);
                 $this->logTestStep('Final response: ' . $response2->content);
                 $this->logTestStep('✅ Function result conversation completed');
-
             } else {
                 $this->logTestStep('⚠️  AI responded directly without function call');
                 $this->logTestStep('Response: ' . $response1->content);
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Function result conversation failed: ' . $e->getMessage());
             throw $e;
@@ -328,7 +321,6 @@ class OpenAIFunctionCallingTest extends E2ETestCase
             ]);
 
             $this->logTestStep('⚠️  Invalid function was accepted (validation may be lenient)');
-
         } catch (\Exception $e) {
             $this->logTestStep('✅ Invalid function definition properly rejected');
             $this->logTestStep('Error: ' . $e->getMessage());
@@ -358,7 +350,6 @@ class OpenAIFunctionCallingTest extends E2ETestCase
 
             $this->assertInstanceOf(AIResponse::class, $response);
             $this->logTestStep('✅ Valid function definition accepted');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Valid function definition rejected: ' . $e->getMessage());
             throw $e;

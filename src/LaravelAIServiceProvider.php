@@ -141,7 +141,7 @@ class LaravelAIServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
-                \JTD\LaravelAI\Console\Commands\SyncOpenAIModelsCommand::class,
+                \JTD\LaravelAI\Console\Commands\SyncModelsCommand::class,
                 \JTD\LaravelAI\Console\Commands\SetupE2ECommand::class,
             ]);
         }

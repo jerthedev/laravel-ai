@@ -77,7 +77,7 @@ trait HandlesApiCommunication
     {
         $message = $response->choices[0]->message ?? null;
 
-        if (!$message) {
+        if (! $message) {
             throw new \RuntimeException('Invalid response format from OpenAI API');
         }
 
@@ -94,7 +94,7 @@ trait HandlesApiCommunication
 
         // Extract function calls if present
         $functionCalls = isset($message->functionCall) ? (array) $message->functionCall : null;
-        $toolCalls = isset($message->toolCalls) ? array_map(fn($call) => (array) $call, $message->toolCalls) : null;
+        $toolCalls = isset($message->toolCalls) ? array_map(fn ($call) => (array) $call, $message->toolCalls) : null;
 
         return new AIResponse(
             $content,
@@ -203,7 +203,7 @@ trait HandlesApiCommunication
         // Add optional parameters
         $optionalParams = [
             'temperature', 'max_tokens', 'top_p', 'frequency_penalty',
-            'presence_penalty', 'stop', 'stream', 'logit_bias', 'user'
+            'presence_penalty', 'stop', 'stream', 'logit_bias', 'user',
         ];
 
         foreach ($optionalParams as $param) {

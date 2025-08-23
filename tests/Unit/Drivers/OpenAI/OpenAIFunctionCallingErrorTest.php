@@ -2,12 +2,12 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
-use JTD\LaravelAI\Drivers\OpenAIDriver;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Tests\TestCase;
+use Mockery;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
-use Mockery;
 
 /**
  * OpenAI Function Calling Error Tests
@@ -22,6 +22,7 @@ use Mockery;
 class OpenAIFunctionCallingErrorTest extends TestCase
 {
     private OpenAIDriver $driver;
+
     private $mockClient;
 
     protected function setUp(): void
@@ -60,7 +61,7 @@ class OpenAIFunctionCallingErrorTest extends TestCase
 
         foreach ($testCases as $testCase) {
             $errors = $this->driver->validateFunctionDefinition($testCase['function']);
-            $this->assertNotEmpty($errors, "Should have errors for invalid function");
+            $this->assertNotEmpty($errors, 'Should have errors for invalid function');
             $this->assertStringContainsString($testCase['expectedError'], implode(', ', $errors));
         }
     }
@@ -85,7 +86,7 @@ class OpenAIFunctionCallingErrorTest extends TestCase
 
         foreach ($testCases as $testCase) {
             $errors = $this->driver->validateFunctionDefinition($testCase['function']);
-            $this->assertNotEmpty($errors, "Should have errors for invalid function");
+            $this->assertNotEmpty($errors, 'Should have errors for invalid function');
             $this->assertStringContainsString($testCase['expectedError'], implode(', ', $errors));
         }
     }
@@ -136,7 +137,7 @@ class OpenAIFunctionCallingErrorTest extends TestCase
 
         foreach ($testCases as $testCase) {
             $errors = $this->driver->validateFunctionDefinition($testCase['function']);
-            $this->assertNotEmpty($errors, "Should have errors for invalid function");
+            $this->assertNotEmpty($errors, 'Should have errors for invalid function');
             $this->assertStringContainsString($testCase['expectedError'], implode(', ', $errors));
         }
     }
@@ -273,7 +274,7 @@ class OpenAIFunctionCallingErrorTest extends TestCase
         $this->assertEquals('{"key":"value"}', $result);
 
         // Test object result
-        $obj = new \stdClass();
+        $obj = new \stdClass;
         $obj->prop = 'value';
         $result = $method->invoke($this->driver, $obj);
         $this->assertEquals('{"prop":"value"}', $result);
@@ -322,22 +323,22 @@ class OpenAIFunctionCallingErrorTest extends TestCase
     public function it_handles_malformed_function_call_responses(): void
     {
         // Mock response with malformed function call
-        $mockResponse = new \stdClass();
+        $mockResponse = new \stdClass;
         $mockResponse->model = 'gpt-3.5-turbo';
-        
-        $choice = new \stdClass();
+
+        $choice = new \stdClass;
         $choice->finishReason = 'function_call';
-        
-        $message = new \stdClass();
+
+        $message = new \stdClass;
         $message->role = 'assistant';
         $message->content = null;
-        $message->functionCall = new \stdClass();
+        $message->functionCall = new \stdClass;
         // Missing name and arguments
-        
+
         $choice->message = $message;
         $mockResponse->choices = [$choice];
-        
-        $mockResponse->usage = new \stdClass();
+
+        $mockResponse->usage = new \stdClass;
         $mockResponse->usage->promptTokens = 10;
         $mockResponse->usage->completionTokens = 5;
         $mockResponse->usage->totalTokens = 15;
@@ -383,42 +384,42 @@ class OpenAIFunctionCallingErrorTest extends TestCase
         ];
 
         // Mock function call response
-        $mockFunctionResponse = new \stdClass();
+        $mockFunctionResponse = new \stdClass;
         $mockFunctionResponse->model = 'gpt-3.5-turbo';
-        
-        $choice = new \stdClass();
+
+        $choice = new \stdClass;
         $choice->finishReason = 'function_call';
-        
-        $message = new \stdClass();
+
+        $message = new \stdClass;
         $message->role = 'assistant';
         $message->content = null;
-        $message->functionCall = new \stdClass();
+        $message->functionCall = new \stdClass;
         $message->functionCall->name = 'failing_function';
         $message->functionCall->arguments = '{}';
-        
+
         $choice->message = $message;
         $mockFunctionResponse->choices = [$choice];
-        
-        $mockFunctionResponse->usage = new \stdClass();
+
+        $mockFunctionResponse->usage = new \stdClass;
         $mockFunctionResponse->usage->promptTokens = 10;
         $mockFunctionResponse->usage->completionTokens = 5;
         $mockFunctionResponse->usage->totalTokens = 15;
 
         // Mock final response after function error
-        $mockFinalResponse = new \stdClass();
+        $mockFinalResponse = new \stdClass;
         $mockFinalResponse->model = 'gpt-3.5-turbo';
-        
-        $finalChoice = new \stdClass();
+
+        $finalChoice = new \stdClass;
         $finalChoice->finishReason = 'stop';
-        
-        $finalMessage = new \stdClass();
+
+        $finalMessage = new \stdClass;
         $finalMessage->role = 'assistant';
         $finalMessage->content = 'I encountered an error executing the function.';
-        
+
         $finalChoice->message = $finalMessage;
         $mockFinalResponse->choices = [$finalChoice];
-        
-        $mockFinalResponse->usage = new \stdClass();
+
+        $mockFinalResponse->usage = new \stdClass;
         $mockFinalResponse->usage->promptTokens = 20;
         $mockFinalResponse->usage->completionTokens = 10;
         $mockFinalResponse->usage->totalTokens = 30;

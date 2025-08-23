@@ -2,9 +2,9 @@
 
 namespace JTD\LaravelAI\Tests\Feature;
 
-use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\File;
 use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class ConfigurationPublishingTest extends TestCase
 {
@@ -31,6 +31,7 @@ class ConfigurationPublishingTest extends TestCase
             File::delete($configPath);
         }
     }
+
     #[Test]
     public function it_can_publish_all_assets()
     {
@@ -54,6 +55,7 @@ class ConfigurationPublishingTest extends TestCase
             File::delete($configPath);
         }
     }
+
     #[Test]
     public function published_config_has_correct_structure()
     {
@@ -94,6 +96,7 @@ class ConfigurationPublishingTest extends TestCase
             File::delete($configPath);
         }
     }
+
     #[Test]
     public function published_config_contains_environment_variables()
     {
@@ -125,6 +128,7 @@ class ConfigurationPublishingTest extends TestCase
             File::delete($configPath);
         }
     }
+
     #[Test]
     public function it_can_list_publishable_assets()
     {
@@ -134,6 +138,7 @@ class ConfigurationPublishingTest extends TestCase
 
         $this->assertEquals(0, $output);
     }
+
     #[Test]
     public function service_provider_merges_config_correctly()
     {
@@ -148,6 +153,7 @@ class ConfigurationPublishingTest extends TestCase
         $this->assertIsArray($config['cost_tracking']);
         $this->assertIsArray($config['model_sync']);
     }
+
     #[Test]
     public function config_can_be_overridden_by_published_file()
     {

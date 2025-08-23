@@ -40,7 +40,7 @@ class SetupE2ECommand extends Command
         $credentialsPath = base_path('tests/credentials/e2e-credentials.json');
         $credentialsDir = dirname($credentialsPath);
 
-        if (!File::exists($credentialsDir)) {
+        if (! File::exists($credentialsDir)) {
             File::makeDirectory($credentialsDir, 0755, true);
             $this->info('✅ Created credentials directory: ' . $credentialsDir);
         }
@@ -48,11 +48,12 @@ class SetupE2ECommand extends Command
         $existingCredentials = [];
         if (File::exists($credentialsPath)) {
             $existingCredentials = json_decode(File::get($credentialsPath), true) ?? [];
-            
-            if (!$this->option('force')) {
+
+            if (! $this->option('force')) {
                 $this->warn('⚠️  Credentials file already exists.');
-                if (!$this->confirm('Do you want to update the existing credentials?')) {
+                if (! $this->confirm('Do you want to update the existing credentials?')) {
                     $this->info('Setup cancelled.');
+
                     return self::SUCCESS;
                 }
             }
@@ -86,18 +87,18 @@ class SetupE2ECommand extends Command
     protected function chooseProviders(): array
     {
         $availableProviders = ['openai', 'anthropic', 'mock'];
-        
+
         $this->info('Available providers:');
         foreach ($availableProviders as $index => $provider) {
             $this->line('  ' . ($index + 1) . '. ' . ucfirst($provider));
         }
 
         $choices = $this->ask('Which providers would you like to set up? (comma-separated numbers or names)', '1');
-        
+
         $selected = [];
         foreach (explode(',', $choices) as $choice) {
             $choice = trim($choice);
-            
+
             if (is_numeric($choice)) {
                 $index = (int) $choice - 1;
                 if (isset($availableProviders[$index])) {
@@ -139,10 +140,11 @@ class SetupE2ECommand extends Command
     protected function setupOpenAI(array &$credentials): void
     {
         $this->line('OpenAI requires an API key from https://platform.openai.com/api-keys');
-        
+
         $apiKey = $this->secret('Enter your OpenAI API key');
-        if (!$apiKey || !str_starts_with($apiKey, 'sk-')) {
+        if (! $apiKey || ! str_starts_with($apiKey, 'sk-')) {
             $this->error('Invalid OpenAI API key format. Keys should start with "sk-"');
+
             return;
         }
 
@@ -167,10 +169,11 @@ class SetupE2ECommand extends Command
     protected function setupAnthropic(array &$credentials): void
     {
         $this->line('Anthropic requires an API key from https://console.anthropic.com/');
-        
+
         $apiKey = $this->secret('Enter your Anthropic API key');
-        if (!$apiKey) {
+        if (! $apiKey) {
             $this->error('API key is required for Anthropic');
+
             return;
         }
 
@@ -204,32 +207,31 @@ class SetupE2ECommand extends Command
     protected function validateCredentials(array $credentials): void
     {
         $this->info('🔍 Validating credentials...');
-        
+
         $driverManager = app(DriverManager::class);
-        
+
         foreach ($credentials as $provider => $config) {
-            if (!($config['enabled'] ?? false)) {
+            if (! ($config['enabled'] ?? false)) {
                 continue;
             }
 
             $this->line("Validating {$provider}...");
-            
+
             try {
                 $driver = $driverManager->driver($provider);
                 $result = $driver->validateCredentials();
-                
+
                 if ($result['valid']) {
                     $this->info("  ✅ {$provider} credentials are valid");
                     if (isset($result['details']['models_available'])) {
-                        $this->line("     Models available: " . $result['details']['models_available']);
+                        $this->line('     Models available: ' . $result['details']['models_available']);
                     }
                 } else {
                     $this->error("  ❌ {$provider} credentials are invalid");
                     if ($result['error']) {
-                        $this->line("     Error: " . $result['error']);
+                        $this->line('     Error: ' . $result['error']);
                     }
                 }
-                
             } catch (\Exception $e) {
                 $this->error("  ❌ {$provider} validation failed: " . $e->getMessage());
             }
@@ -249,7 +251,7 @@ class SetupE2ECommand extends Command
         $this->line('• Regularly rotate your API keys');
         $this->line('• Monitor your API usage and billing');
         $this->newLine();
-        
+
         $this->info('🧪 You can now run E2E tests with: php artisan test --group=e2e');
     }
 }

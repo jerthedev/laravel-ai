@@ -300,11 +300,7 @@ protected function handleApiError(\Exception $e): void
 
 namespace Tests\Unit\Drivers;
 
-use Tests\TestCase;
-use JTD\LaravelAI\Drivers\OpenAIDriver;
-use JTD\LaravelAI\Models\AIMessage;
-use OpenAI\Client;
-use OpenAI\Resources\Chat;
+use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;use JTD\LaravelAI\Models\AIMessage;use OpenAI\Client;use OpenAI\Resources\Chat;use Tests\TestCase;
 
 class OpenAIDriverTest extends TestCase
 {

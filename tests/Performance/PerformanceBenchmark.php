@@ -11,6 +11,7 @@ namespace JTD\LaravelAI\Tests\Performance;
 class PerformanceBenchmark
 {
     private array $benchmarks = [];
+
     private array $thresholds = [];
 
     public function __construct()
@@ -115,7 +116,7 @@ class PerformanceBenchmark
         // Calculate statistics
         $responseTimes = array_column($results, 'response_time');
         $memoryUsages = array_column($results, 'memory_usage');
-        $successCount = count(array_filter($results, fn($r) => $r['success']));
+        $successCount = count(array_filter($results, fn ($r) => $r['success']));
 
         $summary = [
             'operation' => $operation,
@@ -164,7 +165,7 @@ class PerformanceBenchmark
 
         $responseTimes = array_column($results, 'response_time');
         $memoryUsages = array_column($results, 'memory_usage');
-        $successCount = count(array_filter($results, fn($r) => $r['success']));
+        $successCount = count(array_filter($results, fn ($r) => $r['success']));
 
         $summary = [
             'operation' => $operation,
@@ -193,7 +194,7 @@ class PerformanceBenchmark
         $operation = $metrics['operation'];
         $issues = [];
 
-        if (!isset($this->thresholds[$operation])) {
+        if (! isset($this->thresholds[$operation])) {
             return ['passed' => true, 'issues' => []];
         }
 
@@ -247,7 +248,7 @@ class PerformanceBenchmark
         foreach ($this->benchmarks as $benchmark) {
             if (isset($benchmark['operation'])) {
                 $thresholdCheck = $this->checkThresholds($benchmark);
-                if (!$thresholdCheck['passed']) {
+                if (! $thresholdCheck['passed']) {
                     $analysis['performance_issues'][] = [
                         'operation' => $benchmark['operation'],
                         'issues' => $thresholdCheck['issues'],
@@ -257,7 +258,7 @@ class PerformanceBenchmark
         }
 
         // Generate recommendations based on issues
-        if (!empty($analysis['performance_issues'])) {
+        if (! empty($analysis['performance_issues'])) {
             $analysis['recommendations'][] = 'Consider optimizing operations that exceed performance thresholds';
             $analysis['recommendations'][] = 'Review memory usage patterns for potential memory leaks';
             $analysis['recommendations'][] = 'Consider implementing caching for frequently accessed data';
@@ -277,15 +278,15 @@ class PerformanceBenchmark
 
         if (is_object($result)) {
             $summary = ['type' => get_class($result)];
-            
+
             if (method_exists($result, 'content')) {
                 $summary['content_length'] = strlen($result->content ?? '');
             }
-            
+
             if (property_exists($result, 'model')) {
                 $summary['model'] = $result->model ?? null;
             }
-            
+
             return $summary;
         }
 
@@ -310,11 +311,11 @@ class PerformanceBenchmark
     {
         sort($values);
         $count = count($values);
-        
+
         if ($count % 2 === 0) {
             return ($values[$count / 2 - 1] + $values[$count / 2]) / 2;
         }
-        
+
         return $values[intval($count / 2)];
     }
 

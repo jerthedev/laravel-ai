@@ -44,7 +44,6 @@ class CostTrackingListener implements ShouldQueue
 
             // Update analytics
             $this->updateCostAnalytics($event);
-
         } catch (\Exception $e) {
             // Log error but don't fail the job
             logger()->error('Cost tracking failed', [
@@ -63,10 +62,9 @@ class CostTrackingListener implements ShouldQueue
     {
         try {
             // Calculate cost if not already calculated
-            if (!$this->hasCostCalculated($event)) {
+            if (! $this->hasCostCalculated($event)) {
                 $this->calculateAndFireCostEvent($event);
             }
-
         } catch (\Exception $e) {
             logger()->error('Response cost calculation failed', [
                 'event' => class_basename($event),

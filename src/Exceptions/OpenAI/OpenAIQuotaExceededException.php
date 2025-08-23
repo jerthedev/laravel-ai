@@ -76,7 +76,6 @@ class OpenAIQuotaExceededException extends OpenAIException
      * @param  array  $errorData  Error data from OpenAI API
      * @param  string|null  $requestId  Request ID
      * @param  string|null  $organizationId  Organization ID
-     * @return static
      */
     public static function fromApiError(
         array $errorData,
@@ -84,7 +83,7 @@ class OpenAIQuotaExceededException extends OpenAIException
         ?string $organizationId = null
     ): static {
         $message = $errorData['message'] ?? 'OpenAI quota exceeded';
-        
+
         // Extract quota information from error message if available
         $quotaInfo = static::parseQuotaInfo($message);
 

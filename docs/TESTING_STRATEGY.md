@@ -82,12 +82,7 @@ tests/
 
 namespace Tests\Unit\Drivers;
 
-use Tests\TestCase;
-use JTD\LaravelAI\Drivers\OpenAIDriver;
-use JTD\LaravelAI\Models\AIMessage;
-use JTD\LaravelAI\Models\TokenUsage;
-use Illuminate\Http\Client\Factory;
-use Illuminate\Http\Client\Response;
+use Illuminate\Http\Client\Factory;use Illuminate\Http\Client\Response;use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;use JTD\LaravelAI\Models\AIMessage;use JTD\LaravelAI\Models\TokenUsage;use Tests\TestCase;
 
 class OpenAIDriverTest extends TestCase
 {

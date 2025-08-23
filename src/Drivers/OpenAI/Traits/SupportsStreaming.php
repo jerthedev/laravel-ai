@@ -129,7 +129,6 @@ trait SupportsStreaming
 
             // Yield final response
             yield $finalResponse;
-
         } catch (\Exception $e) {
             $this->handleApiError($e);
         }
@@ -140,14 +139,14 @@ trait SupportsStreaming
      */
     protected function parseStreamChunk($chunk, int $chunkIndex, float $startTime, array $options): ?AIResponse
     {
-        if (!isset($chunk->choices) || empty($chunk->choices)) {
+        if (! isset($chunk->choices) || empty($chunk->choices)) {
             return null;
         }
 
         $choice = $chunk->choices[0];
         $delta = $choice->delta ?? null;
 
-        if (!$delta) {
+        if (! $delta) {
             return null;
         }
 
@@ -177,7 +176,7 @@ trait SupportsStreaming
         }
 
         if (isset($delta->toolCalls)) {
-            $toolCalls = array_map(fn($call) => (array) $call, $delta->toolCalls);
+            $toolCalls = array_map(fn ($call) => (array) $call, $delta->toolCalls);
         }
 
         return new AIResponse(
@@ -193,7 +192,7 @@ trait SupportsStreaming
             [
                 'chunk_index' => $chunkIndex,
                 'is_streaming' => true,
-                'is_final' => !empty($finishReason),
+                'is_final' => ! empty($finishReason),
             ]
         );
     }

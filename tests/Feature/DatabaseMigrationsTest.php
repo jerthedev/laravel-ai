@@ -2,10 +2,10 @@
 
 namespace JTD\LaravelAI\Tests\Feature;
 
-use PHPUnit\Framework\Attributes\Test;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class DatabaseMigrationsTest extends TestCase
 {
@@ -24,6 +24,7 @@ class DatabaseMigrationsTest extends TestCase
         $this->assertDatabaseTableExists('ai_messages');
         $this->assertDatabaseTableExists('ai_usage_analytics');
     }
+
     #[Test]
     public function ai_providers_table_has_correct_structure()
     {
@@ -37,6 +38,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
+
     #[Test]
     public function ai_accounts_table_has_correct_structure()
     {
@@ -53,6 +55,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
+
     #[Test]
     public function ai_provider_models_table_has_correct_structure()
     {
@@ -73,6 +76,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
+
     #[Test]
     public function ai_provider_model_costs_table_has_correct_structure()
     {
@@ -86,6 +90,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
+
     #[Test]
     public function ai_conversations_table_has_correct_structure()
     {
@@ -103,6 +108,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
+
     #[Test]
     public function ai_messages_table_has_correct_structure()
     {
@@ -123,6 +129,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
+
     #[Test]
     public function ai_usage_analytics_table_has_correct_structure()
     {
@@ -152,6 +159,7 @@ class DatabaseMigrationsTest extends TestCase
             'created_at', 'updated_at',
         ]);
     }
+
     #[Test]
     public function it_can_rollback_all_migrations()
     {
@@ -179,6 +187,7 @@ class DatabaseMigrationsTest extends TestCase
         $this->assertFalse(Schema::hasTable('ai_accounts'));
         $this->assertFalse(Schema::hasTable('ai_providers'));
     }
+
     #[Test]
     public function it_can_rollback_and_re_migrate()
     {
@@ -200,6 +209,7 @@ class DatabaseMigrationsTest extends TestCase
         $this->assertDatabaseTableExists('ai_messages');
         $this->assertDatabaseTableExists('ai_usage_analytics');
     }
+
     #[Test]
     public function foreign_key_constraints_are_properly_set()
     {
@@ -231,6 +241,7 @@ class DatabaseMigrationsTest extends TestCase
             'name' => 'Test Account',
         ]);
     }
+
     #[Test]
     public function unique_constraints_are_enforced()
     {
@@ -254,6 +265,7 @@ class DatabaseMigrationsTest extends TestCase
             'updated_at' => now(),
         ]);
     }
+
     #[Test]
     public function indexes_are_created_properly()
     {
