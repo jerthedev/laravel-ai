@@ -189,24 +189,8 @@ class MiddlewareManager
         // Get the AI manager to send the message to the provider
         $aiManager = app('laravel-ai');
 
-        // Send message to AI provider using the send method with message content
-        $response = $aiManager->send($message->content);
-
-        // Fire ResponseGenerated event for background processing
-        event(new \JTD\LaravelAI\Events\ResponseGenerated(
-            message: $message,
-            response: $response,
-            context: [
-                'middleware_applied' => $this->getAppliedMiddleware($message),
-                'processing_start_time' => $message->metadata['processing_start_time'] ?? microtime(true),
-            ],
-            totalProcessingTime: microtime(true) - ($message->metadata['processing_start_time'] ?? microtime(true)),
-            providerMetadata: [
-                'provider' => $response->provider ?? 'unknown',
-                'model' => $response->model ?? 'unknown',
-                'tokens_used' => $response->tokenUsage?->totalTokens ?? 0,
-            ]
-        ));
+        // Send message to AI provider using unified sendMessage() API (events will be fired at provider level)
+        $response = $aiManager->sendMessage($message);
 
         return $response;
     }

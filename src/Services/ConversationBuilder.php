@@ -690,27 +690,8 @@ class ConversationBuilder implements ConversationBuilderInterface
 
         $provider->setOptions($this->options);
 
-        // Send message to provider
+        // Send message to provider (events will be fired at provider level)
         $response = $provider->sendMessage([$message], $this->options);
-
-        // Fire ResponseGenerated event for background processing (since we bypassed middleware)
-        if (config('ai.events.enabled', true)) {
-            event(new \JTD\LaravelAI\Events\ResponseGenerated(
-                message: $message,
-                response: $response,
-                context: [
-                    'middleware_bypassed' => true,
-                    'direct_provider_call' => true,
-                    'processing_start_time' => $message->metadata['processing_start_time'] ?? microtime(true),
-                ],
-                totalProcessingTime: microtime(true) - ($message->metadata['processing_start_time'] ?? microtime(true)),
-                providerMetadata: [
-                    'provider' => $response->provider ?? $providerName ?? 'unknown',
-                    'model' => $response->model ?? $this->model ?? 'unknown',
-                    'tokens_used' => $response->tokenUsage?->totalTokens ?? 0,
-                ]
-            ));
-        }
 
         return $response;
     }

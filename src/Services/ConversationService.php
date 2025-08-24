@@ -187,29 +187,8 @@ class ConversationService
             // Get conversation context
             $messages = $this->getConversationMessages($conversation);
 
-            // Send to AI provider
-            $startTime = microtime(true);
+            // Send to AI provider (events will be fired at provider level)
             $response = $provider->sendMessage($messages, $options);
-            $responseTime = (microtime(true) - $startTime) * 1000;
-
-            // Fire ResponseGenerated event for background processing
-            if (config('ai.events.enabled', true)) {
-                event(new \JTD\LaravelAI\Events\ResponseGenerated(
-                    message: $message,
-                    response: $response,
-                    context: [
-                        'conversation_service_call' => true,
-                        'conversation_id' => $conversation->id,
-                        'processing_start_time' => $startTime,
-                    ],
-                    totalProcessingTime: $responseTime / 1000, // Convert to seconds
-                    providerMetadata: [
-                        'provider' => $response->provider ?? $provider->getName() ?? 'unknown',
-                        'model' => $response->model ?? 'unknown',
-                        'tokens_used' => $response->tokenUsage?->totalTokens ?? 0,
-                    ]
-                ));
-            }
 
             // Add AI response message
             $assistantMessage = AIMessage::assistant($response->content);

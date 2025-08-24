@@ -152,7 +152,7 @@ class SyncModelsCommand extends Command
                 $result = $this->syncProvider($providerName, $syncOptions);
                 $results[$providerName] = $result;
 
-                if ($result['status'] === 'success') {
+                if ($result['status'] === 'success' || $result['status'] === 'dry_run') {
                     $totalSynced += $result['models_synced'] ?? 0;
                     $totalProviders++;
                 }

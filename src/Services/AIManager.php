@@ -45,6 +45,16 @@ class AIManager
     }
 
     /**
+     * Get a specific provider instance.
+     * This method supports the DB facade pattern: AI::provider('openai')->sendMessage()
+     * Similar to DB::connection('mysql')->table()
+     */
+    public function provider(string $name): AIProviderInterface
+    {
+        return $this->driver($name);
+    }
+
+    /**
      * Get the default driver name.
      */
     public function getDefaultDriver(): string
@@ -69,89 +79,63 @@ class AIManager
     }
 
     /**
-     * Send a quick message using the default provider.
+     * Send a message using the default provider.
+     * This is the primary method following the DB facade pattern (like DB::table()).
      *
-     * @param  string  $message  Message content
+     * @param  AIMessage  $message  The message to send
      * @param  array  $options  Request options
      */
-    public function send(string $message, array $options = []): AIResponse
+    public function sendMessage(AIMessage $message, array $options = []): AIResponse
     {
-        $provider = $this->driver();
-        $aiMessage = AIMessage::user($message);
-        $aiMessage->user_id = auth()->id() ?? 0;
-        $aiMessage->metadata = ['processing_start_time' => microtime(true)];
+        $provider = $this->driver(); // Uses AI_DEFAULT_PROVIDER config
 
-        // Send message to provider
-        $response = $provider->sendMessage($aiMessage, $options);
-
-        // Fire ResponseGenerated event for background processing
-        if (config('ai.events.enabled', true)) {
-            event(new \JTD\LaravelAI\Events\ResponseGenerated(
-                message: $aiMessage,
-                response: $response,
-                context: [
-                    'direct_ai_manager_call' => true,
-                    'processing_start_time' => $aiMessage->metadata['processing_start_time'],
-                ],
-                totalProcessingTime: microtime(true) - $aiMessage->metadata['processing_start_time'],
-                providerMetadata: [
-                    'provider' => $response->provider ?? $provider->getName() ?? 'unknown',
-                    'model' => $response->model ?? $provider->getModel() ?? 'unknown',
-                    'tokens_used' => $response->tokenUsage?->totalTokens ?? 0,
-                ]
-            ));
+        // Ensure user_id is set if not already provided
+        if (!isset($message->user_id)) {
+            $message->user_id = auth()->id() ?? 0;
         }
 
-        return $response;
+        // Add processing metadata if not already set
+        if (!isset($message->metadata['processing_start_time'])) {
+            $message->metadata = array_merge($message->metadata ?? [], [
+                'processing_start_time' => microtime(true)
+            ]);
+        }
+
+        // Send message to provider (events will be fired at provider level)
+        return $provider->sendMessage($message, $options);
     }
+
+
 
     /**
      * Send a streaming message using the default provider.
+     * This is the primary streaming method following the DB facade pattern.
      *
-     * @param  string  $message  Message content
+     * @param  AIMessage  $message  The message to send
      * @param  array  $options  Request options
      * @return \Generator<AIResponse>
      */
-    public function stream(string $message, array $options = []): \Generator
+    public function sendStreamingMessage(AIMessage $message, array $options = []): \Generator
     {
-        $provider = $this->driver();
-        $aiMessage = AIMessage::user($message);
-        $aiMessage->user_id = auth()->id() ?? 0;
-        $aiMessage->metadata = ['processing_start_time' => microtime(true)];
+        $provider = $this->driver(); // Uses AI_DEFAULT_PROVIDER config
 
-        $generator = $provider->sendStreamingMessage($aiMessage, $options);
-
-        // For streaming, we'll fire the event after the stream completes
-        $chunks = [];
-        $startTime = $aiMessage->metadata['processing_start_time'];
-
-        foreach ($generator as $chunk) {
-            $chunks[] = $chunk;
-            yield $chunk;
+        // Ensure user_id is set if not already provided
+        if (!isset($message->user_id)) {
+            $message->user_id = auth()->id() ?? 0;
         }
 
-        // Fire event after streaming completes (if events are enabled)
-        if (config('ai.events.enabled', true) && ! empty($chunks)) {
-            $finalChunk = end($chunks);
-
-            event(new \JTD\LaravelAI\Events\ResponseGenerated(
-                message: $aiMessage,
-                response: $finalChunk,
-                context: [
-                    'streaming_response' => true,
-                    'direct_ai_manager_call' => true,
-                    'total_chunks' => count($chunks),
-                    'processing_start_time' => $startTime,
-                ],
-                totalProcessingTime: microtime(true) - $startTime,
-                providerMetadata: [
-                    'provider' => $finalChunk->provider ?? $provider->getName() ?? 'unknown',
-                    'model' => $finalChunk->model ?? $provider->getModel() ?? 'unknown',
-                    'tokens_used' => $finalChunk->tokenUsage?->totalTokens ?? 0,
-                ]
-            ));
+        // Add processing metadata if not already set
+        if (!isset($message->metadata['processing_start_time'])) {
+            $message->metadata = array_merge($message->metadata ?? [], [
+                'processing_start_time' => microtime(true)
+            ]);
         }
+
+        // Stream from provider (events will be fired at provider level)
+        yield from $provider->sendStreamingMessage($message, $options);
     }
+
+
 
     /**
      * Get all configured providers.

@@ -29,7 +29,7 @@ class MCPErrorHandlingTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->mcpManager = app(MCPManager::class);
         $this->setupErrorTestConfiguration();
     }
@@ -48,9 +48,9 @@ class MCPErrorHandlingTest extends TestCase
         ]);
 
         $startTime = microtime(true);
-        
-        $result = $this->mcpManager->executeTool('failing_server', ['test' => 'parameter']);
-        
+
+        $result = $this->mcpManager->executeTool('failing_server', 'test_tool', ['test' => 'parameter']);
+
         $executionTime = (microtime(true) - $startTime) * 1000;
 
         // Verify graceful failure
@@ -61,7 +61,7 @@ class MCPErrorHandlingTest extends TestCase
         $this->assertEquals('connection_failed', $result['error_type']);
 
         // Verify fast failure (should not wait for full timeout)
-        $this->assertLessThan(2000, $executionTime, 
+        $this->assertLessThan(2000, $executionTime,
             "Connection failure should fail fast, took {$executionTime}ms");
 
         // Verify error is logged
@@ -88,9 +88,9 @@ class MCPErrorHandlingTest extends TestCase
         ]);
 
         $startTime = microtime(true);
-        
-        $result = $this->mcpManager->executeTool('slow_server', ['test' => 'timeout']);
-        
+
+        $result = $this->mcpManager->executeTool('slow_server', 'test_tool', ['test' => 'timeout']);
+
         $executionTime = (microtime(true) - $startTime) * 1000;
 
         // Verify timeout handling
@@ -108,7 +108,7 @@ class MCPErrorHandlingTest extends TestCase
     public function it_implements_retry_mechanism_for_transient_failures(): void
     {
         $attemptCount = 0;
-        
+
         // Mock server that fails twice then succeeds
         Process::fake([
             'flaky-server' => function () use (&$attemptCount) {
@@ -131,9 +131,9 @@ class MCPErrorHandlingTest extends TestCase
         ]);
 
         $startTime = microtime(true);
-        
-        $result = $this->mcpManager->executeTool('flaky_server', ['test' => 'retry']);
-        
+
+        $result = $this->mcpManager->executeTool('flaky_server', 'test_tool', ['test' => 'retry']);
+
         $executionTime = (microtime(true) - $startTime) * 1000;
 
         // Verify successful retry
@@ -169,7 +169,7 @@ class MCPErrorHandlingTest extends TestCase
             'working-search-server' => Process::result('{"success": true, "result": "fallback_success"}', '', 0),
         ]);
 
-        $result = $this->mcpManager->executeTool('primary_search', ['query' => 'test']);
+        $result = $this->mcpManager->executeTool('primary_search', 'search_tool', ['query' => 'test']);
 
         // Verify fallback was used
         $this->assertIsArray($result);
@@ -194,11 +194,11 @@ class MCPErrorHandlingTest extends TestCase
             )]);
         }
 
-        $result = $this->mcpManager->executeTool('test_server', ['test' => $scenario]);
+        $result = $this->mcpManager->executeTool('test_server', 'test_tool', ['test' => $scenario]);
 
         $this->assertIsArray($result);
         $this->assertEquals($expectedResult['success'], $result['success']);
-        
+
         if (!$expectedResult['success']) {
             $this->assertArrayHasKey('error', $result);
             $this->assertArrayHasKey('error_type', $result);
@@ -230,9 +230,9 @@ class MCPErrorHandlingTest extends TestCase
         $results = [];
         for ($i = 0; $i < 5; $i++) {
             $startTime = microtime(true);
-            $result = $this->mcpManager->executeTool('circuit_test', ['attempt' => $i]);
+            $result = $this->mcpManager->executeTool('circuit_test', 'test_tool', ['attempt' => $i]);
             $executionTime = (microtime(true) - $startTime) * 1000;
-            
+
             $results[] = [
                 'result' => $result,
                 'execution_time' => $executionTime,
@@ -250,7 +250,7 @@ class MCPErrorHandlingTest extends TestCase
         for ($i = 3; $i < 5; $i++) {
             $this->assertFalse($results[$i]['result']['success']);
             $this->assertEquals('circuit_breaker_open', $results[$i]['result']['error_type']);
-            $this->assertLessThan(50, $results[$i]['execution_time'], 
+            $this->assertLessThan(50, $results[$i]['execution_time'],
                 "Circuit breaker should fail fast, attempt {$i} took {$results[$i]['execution_time']}ms");
         }
     }
@@ -279,7 +279,7 @@ class MCPErrorHandlingTest extends TestCase
                 'malformed-response-server' => Process::result($response, '', 0),
             ]);
 
-            $result = $this->mcpManager->executeTool('malformed_server', ['test' => $type]);
+            $result = $this->mcpManager->executeTool('malformed_server', 'test_tool', ['test' => $type]);
 
             $this->assertIsArray($result);
             $this->assertFalse($result['success']);
@@ -303,21 +303,21 @@ class MCPErrorHandlingTest extends TestCase
             'context-error-server' => Process::result('', 'Detailed error message', 1),
         ]);
 
-        $result = $this->mcpManager->executeTool('context_server', [
+        $result = $this->mcpManager->executeTool('context_server', 'test_tool', [
             'complex_param' => 'test_value',
             'nested' => ['data' => 'structure'],
         ]);
 
         $this->assertIsArray($result);
         $this->assertFalse($result['success']);
-        
+
         // Verify detailed error context
         $this->assertArrayHasKey('error_context', $result);
         $this->assertArrayHasKey('server_name', $result['error_context']);
         $this->assertArrayHasKey('command', $result['error_context']);
         $this->assertArrayHasKey('parameters', $result['error_context']);
         $this->assertArrayHasKey('timestamp', $result['error_context']);
-        
+
         $this->assertEquals('context_server', $result['error_context']['server_name']);
         $this->assertEquals('context-error-server', $result['error_context']['command']);
     }
@@ -347,7 +347,7 @@ class MCPErrorHandlingTest extends TestCase
         $promises = [];
         for ($i = 0; $i < 5; $i++) {
             $promises[] = function () use ($i) {
-                return $this->mcpManager->executeTool('resource_server', ['request' => $i]);
+                return $this->mcpManager->executeTool('resource_server', 'test_tool', ['request' => $i]);
             };
         }
 
@@ -357,7 +357,7 @@ class MCPErrorHandlingTest extends TestCase
 
         // Some requests should succeed, others should be rate limited
         $successCount = count(array_filter($results, fn($r) => $r['success']));
-        $rateLimitedCount = count(array_filter($results, fn($r) => 
+        $rateLimitedCount = count(array_filter($results, fn($r) =>
             !$r['success'] && $r['error_type'] === 'rate_limited'
         ));
 

@@ -91,6 +91,104 @@ class CostTrackingListener implements ShouldQueue
     }
 
     /**
+     * Handle the CostCalculated event for budget monitoring and analytics.
+     * This method processes costs that have already been calculated at the provider level.
+     */
+    public function handleCostCalculated(CostCalculated $event): void
+    {
+        $startTime = microtime(true);
+
+        try {
+            // Store the cost record for historical tracking
+            $this->storeCostCalculatedRecord($event);
+
+            // Check budget thresholds
+            $this->checkBudgetThresholds($event);
+
+            // Update user spending analytics
+            $this->updateSpendingAnalytics($event);
+
+        } catch (\Exception $e) {
+            $this->handleCostCalculatedError($e, $event);
+        } finally {
+            $this->trackCostCalculatedPerformance('handleCostCalculated', microtime(true) - $startTime, $event);
+        }
+    }
+
+    /**
+     * Store cost record from CostCalculated event.
+     */
+    protected function storeCostCalculatedRecord(CostCalculated $event): void
+    {
+        DB::table('ai_cost_tracking')->insert([
+            'user_id' => $event->userId,
+            'provider' => $event->provider,
+            'model' => $event->model,
+            'cost' => $event->cost,
+            'input_tokens' => $event->inputTokens,
+            'output_tokens' => $event->outputTokens,
+            'conversation_id' => $event->conversationId,
+            'message_id' => $event->messageId,
+            'calculated_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    /**
+     * Check budget thresholds from CostCalculated event.
+     */
+    protected function checkBudgetThresholds(CostCalculated $event): void
+    {
+        // Get user's current spending
+        $currentSpending = $this->getCurrentUserSpending($event->userId);
+        $newTotal = $currentSpending + $event->cost;
+
+        // Check daily budget
+        $dailyBudget = $this->getUserDailyBudget($event->userId);
+        if ($dailyBudget && $newTotal > $dailyBudget) {
+            $this->fireBudgetThresholdEvent($event->userId, 'daily', $newTotal, $dailyBudget);
+        }
+
+        // Check monthly budget
+        $monthlyBudget = $this->getUserMonthlyBudget($event->userId);
+        if ($monthlyBudget && $newTotal > $monthlyBudget) {
+            $this->fireBudgetThresholdEvent($event->userId, 'monthly', $newTotal, $monthlyBudget);
+        }
+    }
+
+    /**
+     * Update spending analytics from CostCalculated event.
+     */
+    protected function updateSpendingAnalytics(CostCalculated $event): void
+    {
+        // Update cached spending totals
+        $cacheKey = "user_spending_{$event->userId}_" . now()->format('Y-m-d');
+        $currentSpending = Cache::get($cacheKey, 0);
+        Cache::put($cacheKey, $currentSpending + $event->cost, now()->addDays(1));
+
+        // Update monthly totals
+        $monthlyCacheKey = "user_spending_{$event->userId}_" . now()->format('Y-m');
+        $monthlySpending = Cache::get($monthlyCacheKey, 0);
+        Cache::put($monthlyCacheKey, $monthlySpending + $event->cost, now()->addMonth());
+    }
+
+    /**
+     * Handle errors in CostCalculated event processing.
+     */
+    protected function handleCostCalculatedError(\Exception $e, CostCalculated $event): void
+    {
+        logger()->error('CostCalculated event processing failed', [
+            'user_id' => $event->userId,
+            'provider' => $event->provider,
+            'model' => $event->model,
+            'cost' => $event->cost,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+    }
+
+    /**
      * Calculate the cost of a message and response using enhanced centralized pricing.
      *
      * @param  \JTD\LaravelAI\Models\AIMessage  $message  The message
@@ -611,5 +709,87 @@ class CostTrackingListener implements ShouldQueue
                 ->where('created_at', '>=', now()->subDays(30))
                 ->avg('total_cost') ?? 0.0;
         });
+    }
+
+    /**
+     * Get current user spending for today.
+     */
+    protected function getCurrentUserSpending(int $userId): float
+    {
+        $cacheKey = "user_spending_{$userId}_" . now()->format('Y-m-d');
+        return Cache::get($cacheKey, 0);
+    }
+
+    /**
+     * Get user's daily budget limit.
+     */
+    protected function getUserDailyBudget(int $userId): ?float
+    {
+        return Cache::remember("daily_budget_{$userId}", 3600, function () use ($userId) {
+            return DB::table('ai_user_budgets')
+                ->where('user_id', $userId)
+                ->where('budget_type', 'daily')
+                ->value('limit_amount');
+        });
+    }
+
+    /**
+     * Get user's monthly budget limit.
+     */
+    protected function getUserMonthlyBudget(int $userId): ?float
+    {
+        return Cache::remember("monthly_budget_{$userId}", 3600, function () use ($userId) {
+            return DB::table('ai_user_budgets')
+                ->where('user_id', $userId)
+                ->where('budget_type', 'monthly')
+                ->value('limit_amount');
+        });
+    }
+
+    /**
+     * Fire budget threshold reached event.
+     */
+    protected function fireBudgetThresholdEvent(int $userId, string $budgetType, float $currentSpending, float $budgetLimit): void
+    {
+        $percentage = ($currentSpending / $budgetLimit) * 100;
+        $severity = $percentage >= 100 ? 'critical' : ($percentage >= 90 ? 'high' : 'medium');
+
+        event(new \JTD\LaravelAI\Events\BudgetThresholdReached(
+            userId: $userId,
+            budgetType: $budgetType,
+            currentSpending: $currentSpending,
+            budgetLimit: $budgetLimit,
+            percentage: $percentage,
+            severity: $severity
+        ));
+    }
+
+    /**
+     * Track performance for CostCalculated event processing.
+     */
+    protected function trackCostCalculatedPerformance(string $operation, float $duration, CostCalculated $event): void
+    {
+        $durationMs = $duration * 1000;
+
+        $performanceData = [
+            'operation' => $operation,
+            'duration_ms' => round($durationMs, 2),
+            'provider' => $event->provider,
+            'model' => $event->model,
+            'user_id' => $event->userId,
+            'cost' => $event->cost,
+        ];
+
+        // Log slow operations
+        if ($durationMs > 100) {
+            logger()->warning('Slow CostCalculated processing', $performanceData);
+        }
+
+        // Cache performance metrics
+        Cache::put(
+            "cost_calculated_performance_{$event->userId}",
+            $performanceData,
+            now()->addMinutes(5)
+        );
     }
 }

@@ -44,11 +44,19 @@ trait CalculatesCosts
      */
     protected function calculateActualCost(TokenUsage $tokenUsage, string $modelId): array
     {
-        return ModelPricing::calculateCost(
-            $tokenUsage->inputTokens,
-            $tokenUsage->outputTokens,
-            $modelId
-        );
+        $modelPricing = new ModelPricing();
+        $cost = $modelPricing->calculateCost($modelId, [
+            'input_tokens' => $tokenUsage->inputTokens,
+            'output_tokens' => $tokenUsage->outputTokens,
+            'total_tokens' => $tokenUsage->totalTokens,
+        ]);
+
+        return [
+            'total' => $cost,
+            'input_cost' => 0, // ModelPricing doesn't break down costs
+            'output_cost' => 0,
+            'currency' => 'USD',
+        ];
     }
 
     /**

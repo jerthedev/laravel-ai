@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Artisan;
 use JTD\LaravelAI\Console\Commands\SyncModelsCommand;
 use JTD\LaravelAI\Contracts\AIProviderInterface;
 use JTD\LaravelAI\Services\DriverManager;
+use JTD\LaravelAI\Services\IntelligentPricingDiscovery;
+use JTD\LaravelAI\Services\PricingService;
+use JTD\LaravelAI\Services\PricingValidator;
 use JTD\LaravelAI\Tests\TestCase;
 use Mockery;
 use PHPUnit\Framework\Attributes\Group;
@@ -20,13 +23,23 @@ use PHPUnit\Framework\Attributes\Test;
 class SyncModelsCommandTest extends TestCase
 {
     protected DriverManager $driverManager;
+    protected PricingService $pricingService;
+    protected PricingValidator $pricingValidator;
+    protected IntelligentPricingDiscovery $intelligentPricingDiscovery;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->driverManager = Mockery::mock(DriverManager::class);
+        $this->pricingService = Mockery::mock(PricingService::class);
+        $this->pricingValidator = Mockery::mock(PricingValidator::class);
+        $this->intelligentPricingDiscovery = Mockery::mock(IntelligentPricingDiscovery::class);
+
         $this->app->instance(DriverManager::class, $this->driverManager);
+        $this->app->instance(PricingService::class, $this->pricingService);
+        $this->app->instance(PricingValidator::class, $this->pricingValidator);
+        $this->app->instance(IntelligentPricingDiscovery::class, $this->intelligentPricingDiscovery);
     }
 
     #[Test]
@@ -114,6 +127,7 @@ class SyncModelsCommandTest extends TestCase
             ->andReturn([
                 ['id' => 'gpt-4', 'name' => 'GPT-4'],
                 ['id' => 'gpt-3.5-turbo', 'name' => 'GPT-3.5 Turbo'],
+                ['id' => 'gpt-4-turbo', 'name' => 'GPT-4 Turbo'],
             ]);
         $mockDriver->shouldReceive('getLastSyncTime')
             ->andReturn(now()->subHours(2));
@@ -132,7 +146,7 @@ class SyncModelsCommandTest extends TestCase
         $this->assertEquals(0, $exitCode);
         $output = Artisan::output();
         $this->assertStringContainsString('DRY RUN', $output);
-        $this->assertStringContainsString('Would sync: 2 models', $output);
+        $this->assertStringContainsString('Would sync: 3 models', $output);
     }
 
     #[Test]

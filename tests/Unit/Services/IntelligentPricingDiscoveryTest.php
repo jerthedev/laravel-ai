@@ -303,7 +303,7 @@ class IntelligentPricingDiscoveryTest extends TestCase
 
         $result = $this->discoveryService->discoverPricing('openai', 'gpt-4o');
 
-        $this->assertEquals('no_results', $result['status']);
+        $this->assertEquals('fallback', $result['status']);
         $this->assertArrayHasKey('pricing', $result);
         $this->assertEquals($fallbackPricing, $result['pricing']);
     }

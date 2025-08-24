@@ -90,6 +90,21 @@ abstract class AbstractAIProvider implements AIProviderInterface
         return $this->executeWithRetry(function () use ($messages, $mergedOptions) {
             $this->checkRateLimit();
 
+            // Get the primary message for event firing
+            $primaryMessage = $messages[0] ?? null;
+
+            // Fire MessageSent event before API call
+            if ($primaryMessage && config('ai.events.enabled', true)) {
+                event(new \JTD\LaravelAI\Events\MessageSent(
+                    message: $primaryMessage,
+                    provider: $this->getName(),
+                    model: $mergedOptions['model'] ?? $this->getCurrentModel() ?? 'unknown',
+                    options: $mergedOptions,
+                    conversationId: $primaryMessage->conversation_id ?? null,
+                    userId: $primaryMessage->user_id ?? null
+                ));
+            }
+
             $startTime = microtime(true);
             $response = $this->doSendMessage($messages, $mergedOptions);
             $responseTime = (microtime(true) - $startTime) * 1000;
@@ -97,6 +112,42 @@ abstract class AbstractAIProvider implements AIProviderInterface
             $response->responseTimeMs = $responseTime;
 
             $this->logRequest($messages, $response, $mergedOptions);
+
+            // Fire ResponseGenerated event after API call
+            if ($primaryMessage && config('ai.events.enabled', true)) {
+                event(new \JTD\LaravelAI\Events\ResponseGenerated(
+                    message: $primaryMessage,
+                    response: $response,
+                    context: [
+                        'provider_level_event' => true,
+                        'processing_start_time' => $startTime,
+                    ],
+                    totalProcessingTime: $responseTime / 1000, // Convert to seconds
+                    providerMetadata: [
+                        'provider' => $response->provider ?? $this->getName() ?? 'unknown',
+                        'model' => $response->model ?? $this->getCurrentModel() ?? 'unknown',
+                        'tokens_used' => $response->tokenUsage?->totalTokens ?? 0,
+                    ]
+                ));
+            }
+
+            // Fire CostCalculated event if we have token usage
+            if ($primaryMessage && $response->tokenUsage && config('ai.events.enabled', true)) {
+                // Calculate cost using the actual token usage from the response
+                $costData = $this->calculateCost($response->tokenUsage, $response->model ?? $this->getCurrentModel());
+                $cost = is_array($costData) ? ($costData['total'] ?? $costData['total_cost'] ?? 0) : $costData;
+
+                event(new \JTD\LaravelAI\Events\CostCalculated(
+                    userId: $primaryMessage->user_id ?? 0,
+                    provider: $this->getName(),
+                    model: $response->model ?? $this->getCurrentModel() ?? 'unknown',
+                    cost: (float) $cost,
+                    inputTokens: $response->tokenUsage->inputTokens ?? 0,
+                    outputTokens: $response->tokenUsage->outputTokens ?? 0,
+                    conversationId: $primaryMessage->conversation_id ?? null,
+                    messageId: $primaryMessage->id ?? null
+                ));
+            }
 
             return $response;
         });
@@ -112,7 +163,70 @@ abstract class AbstractAIProvider implements AIProviderInterface
 
         $this->checkRateLimit();
 
-        yield from $this->doSendStreamingMessage($messages, $mergedOptions);
+        // Get the primary message for event firing
+        $primaryMessage = $messages[0] ?? null;
+        $startTime = microtime(true);
+
+        // Fire MessageSent event before streaming starts
+        if ($primaryMessage && config('ai.events.enabled', true)) {
+            event(new \JTD\LaravelAI\Events\MessageSent(
+                message: $primaryMessage,
+                provider: $this->getName(),
+                model: $mergedOptions['model'] ?? $this->getCurrentModel() ?? 'unknown',
+                options: $mergedOptions,
+                conversationId: $primaryMessage->conversation_id ?? null,
+                userId: $primaryMessage->user_id ?? null
+            ));
+        }
+
+        // Collect chunks for final event firing
+        $chunks = [];
+        $finalResponse = null;
+
+        foreach ($this->doSendStreamingMessage($messages, $mergedOptions) as $chunk) {
+            $chunks[] = $chunk;
+            $finalResponse = $chunk; // Keep track of the last chunk
+            yield $chunk;
+        }
+
+        // Fire ResponseGenerated event after streaming completes
+        if ($primaryMessage && $finalResponse && config('ai.events.enabled', true)) {
+            $totalTime = microtime(true) - $startTime;
+
+            event(new \JTD\LaravelAI\Events\ResponseGenerated(
+                message: $primaryMessage,
+                response: $finalResponse,
+                context: [
+                    'provider_level_event' => true,
+                    'streaming_response' => true,
+                    'total_chunks' => count($chunks),
+                    'processing_start_time' => $startTime,
+                ],
+                totalProcessingTime: $totalTime,
+                providerMetadata: [
+                    'provider' => $finalResponse->provider ?? $this->getName() ?? 'unknown',
+                    'model' => $finalResponse->model ?? $this->getCurrentModel() ?? 'unknown',
+                    'tokens_used' => $finalResponse->tokenUsage?->totalTokens ?? 0,
+                ]
+            ));
+
+            // Fire CostCalculated event if we have token usage
+            if ($finalResponse->tokenUsage) {
+                $costData = $this->calculateCost($finalResponse->tokenUsage, $finalResponse->model ?? $this->getCurrentModel());
+                $cost = is_array($costData) ? ($costData['total'] ?? $costData['total_cost'] ?? 0) : $costData;
+
+                event(new \JTD\LaravelAI\Events\CostCalculated(
+                    userId: $primaryMessage->user_id ?? 0,
+                    provider: $this->getName(),
+                    model: $finalResponse->model ?? $this->getCurrentModel() ?? 'unknown',
+                    cost: (float) $cost,
+                    inputTokens: $finalResponse->tokenUsage->inputTokens ?? 0,
+                    outputTokens: $finalResponse->tokenUsage->outputTokens ?? 0,
+                    conversationId: $primaryMessage->conversation_id ?? null,
+                    messageId: $primaryMessage->id ?? null
+                ));
+            }
+        }
     }
 
     /**
