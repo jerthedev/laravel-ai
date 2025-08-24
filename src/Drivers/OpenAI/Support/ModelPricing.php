@@ -283,6 +283,7 @@ class ModelPricing implements PricingInterface
 
         return match ($unit) {
             PricingUnit::PER_1K_TOKENS => $this->calculateTokenCost($pricing, $usage),
+            PricingUnit::PER_1M_TOKENS => $this->calculateTokenCostPerMillion($pricing, $usage),
             PricingUnit::PER_IMAGE => $pricing['cost'] * ($usage['images'] ?? 1),
             PricingUnit::PER_MINUTE => $pricing['cost'] * ($usage['minutes'] ?? 0),
             PricingUnit::PER_1K_CHARACTERS => $pricing['cost'] * (($usage['characters'] ?? 0) / 1000),
@@ -300,6 +301,20 @@ class ModelPricing implements PricingInterface
 
         $inputCost = ($inputTokens / 1000) * ($pricing['input'] ?? 0);
         $outputCost = ($outputTokens / 1000) * ($pricing['output'] ?? 0);
+
+        return $inputCost + $outputCost;
+    }
+
+    /**
+     * Calculate cost for token-based models per million tokens.
+     */
+    private function calculateTokenCostPerMillion(array $pricing, array $usage): float
+    {
+        $inputTokens = $usage['input_tokens'] ?? 0;
+        $outputTokens = $usage['output_tokens'] ?? 0;
+
+        $inputCost = ($inputTokens / 1000000) * ($pricing['input'] ?? 0);
+        $outputCost = ($outputTokens / 1000000) * ($pricing['output'] ?? 0);
 
         return $inputCost + $outputCost;
     }

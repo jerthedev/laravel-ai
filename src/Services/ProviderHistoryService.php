@@ -203,7 +203,7 @@ class ProviderHistoryService
     protected function getSwitchTypeBreakdown(Collection $sessions): array
     {
         return $sessions->groupBy('switch_type')
-            ->map(function ($typeSessions, $switchType) {
+            ->map(function ($typeSessions, $switchType) use ($sessions) {
                 return [
                     'switch_type' => $switchType,
                     'count' => $typeSessions->count(),
@@ -282,7 +282,9 @@ class ProviderHistoryService
                 ->map(function ($group) {
                     return $group->avg('success_rate');
                 })
-                ->sortByDesc()
+                ->sortByDesc(function ($value) {
+                    return $value;
+                })
                 ->keys()
                 ->first(),
             'average_fallback_success_rate' => $sessions->avg('success_rate'),

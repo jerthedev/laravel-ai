@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\Unit\Services;
+namespace JTD\LaravelAI\Tests\Unit\Services;
 
 use JTD\LaravelAI\Enums\BillingModel;
 use JTD\LaravelAI\Enums\PricingUnit;
 use JTD\LaravelAI\Services\PricingValidator;
-use Tests\TestCase;
+use JTD\LaravelAI\Tests\TestCase;
 
 class PricingValidatorTest extends TestCase
 {

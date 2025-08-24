@@ -32,8 +32,10 @@ return new class extends Migration
             ])->default('pay_per_use')->after('is_current');
         });
 
-        // Add comment to document the supported unit_type values
-        DB::statement("ALTER TABLE ai_provider_model_costs MODIFY COLUMN unit_type VARCHAR(255) COMMENT 'Supported values: per_token, 1k_tokens, 1m_tokens, per_character, 1k_characters, per_second, per_minute, per_hour, per_request, per_image, per_audio_file, per_mb, per_gb'");
+        // Add comment to document the supported unit_type values (SQLite compatible)
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE ai_provider_model_costs MODIFY COLUMN unit_type VARCHAR(255) COMMENT 'Supported values: per_token, 1k_tokens, 1m_tokens, per_character, 1k_characters, per_second, per_minute, per_hour, per_request, per_image, per_audio_file, per_mb, per_gb'");
+        }
     }
 
     /**
@@ -52,7 +54,9 @@ return new class extends Migration
                 ->after('is_current');
         });
 
-        // Remove comment from unit_type
-        DB::statement("ALTER TABLE ai_provider_model_costs MODIFY COLUMN unit_type VARCHAR(255) DEFAULT '1k_tokens'");
+        // Remove comment from unit_type (SQLite compatible)
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE ai_provider_model_costs MODIFY COLUMN unit_type VARCHAR(255) DEFAULT '1k_tokens'");
+        }
     }
 };

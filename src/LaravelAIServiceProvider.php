@@ -10,8 +10,16 @@ use JTD\LaravelAI\Services\BudgetService;
 use JTD\LaravelAI\Services\ConfigurationValidator;
 use JTD\LaravelAI\Services\ConversationBuilder;
 use JTD\LaravelAI\Services\DriverManager;
+use JTD\LaravelAI\Services\EventPerformanceTracker;
 use JTD\LaravelAI\Services\MiddlewareManager;
+use JTD\LaravelAI\Services\PerformanceAlertManager;
+use JTD\LaravelAI\Services\PerformanceOptimizationEngine;
 use JTD\LaravelAI\Services\PricingService;
+use JTD\LaravelAI\Services\QueuePerformanceMonitor;
+use JTD\LaravelAI\Services\MCPManager;
+use JTD\LaravelAI\Services\MCPToolDiscoveryService;
+use JTD\LaravelAI\Services\MCPConfigurationService;
+use JTD\LaravelAI\Contracts\MCPManagerInterface;
 
 /**
  * Laravel AI Service Provider
@@ -28,6 +36,7 @@ class LaravelAIServiceProvider extends ServiceProvider
      */
     public $bindings = [
         ConversationBuilderInterface::class => ConversationBuilder::class,
+        MCPManagerInterface::class => MCPManager::class,
     ];
 
     /**
@@ -42,6 +51,9 @@ class LaravelAIServiceProvider extends ServiceProvider
         'laravel-ai.middleware' => MiddlewareManager::class,
         'laravel-ai.budget' => BudgetService::class,
         'laravel-ai.pricing' => PricingService::class,
+        'laravel-ai.mcp.manager' => MCPManager::class,
+        'laravel-ai.mcp.discovery' => MCPToolDiscoveryService::class,
+        'laravel-ai.mcp.config' => MCPConfigurationService::class,
     ];
 
     /**
@@ -87,6 +99,12 @@ class LaravelAIServiceProvider extends ServiceProvider
             return new ConversationBuilder($app['laravel-ai']);
         });
 
+        // Register performance monitoring services
+        $this->app->singleton(EventPerformanceTracker::class);
+        $this->app->singleton(QueuePerformanceMonitor::class);
+        $this->app->singleton(PerformanceAlertManager::class);
+        $this->app->singleton(PerformanceOptimizationEngine::class);
+
         // Register facade alias
         $this->app->alias('laravel-ai', 'AI');
     }
@@ -109,6 +127,12 @@ class LaravelAIServiceProvider extends ServiceProvider
 
         // Register event listeners
         $this->registerEventListeners();
+
+        // Register routes
+        $this->registerRoutes();
+
+        // Load views
+        $this->loadViewsFrom(__DIR__ . '/../resources/views', 'laravel-ai');
 
         // Register artisan commands
         if ($this->app->runningInConsole()) {
@@ -171,6 +195,16 @@ class LaravelAIServiceProvider extends ServiceProvider
             Event::listen(\JTD\LaravelAI\Events\ResponseGenerated::class, \JTD\LaravelAI\Listeners\NotificationListener::class . '@handleResponseGenerated');
         }
 
+        // Performance monitoring listeners
+        if (config('ai.performance.alerts.enabled', true)) {
+            Event::listen(\JTD\LaravelAI\Events\PerformanceThresholdExceeded::class, \JTD\LaravelAI\Listeners\PerformanceAlertListener::class);
+        }
+
+        // Performance tracking listeners
+        if (config('ai.performance.tracking.enabled', true)) {
+            Event::subscribe(\JTD\LaravelAI\Listeners\PerformanceTrackingListener::class);
+        }
+
         // Conversation events (existing)
         Event::listen(\JTD\LaravelAI\Events\ConversationCreated::class, function ($event) {
             // Log conversation creation for analytics
@@ -197,9 +231,21 @@ class LaravelAIServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
+                // Core sync commands
                 \JTD\LaravelAI\Console\Commands\SyncModelsCommand::class,
                 \JTD\LaravelAI\Console\Commands\SyncPricingCommand::class,
                 \JTD\LaravelAI\Console\Commands\SetupE2ECommand::class,
+
+                // MCP commands
+                \JTD\LaravelAI\Console\Commands\MCPSetupCommand::class,
+                \JTD\LaravelAI\Console\Commands\MCPDiscoverCommand::class,
+                \JTD\LaravelAI\Console\Commands\MCPListCommand::class,
+                \JTD\LaravelAI\Console\Commands\MCPRemoveCommand::class,
+                \JTD\LaravelAI\Console\Commands\MCPTestCommand::class,
+
+                // Performance and migration commands
+                \JTD\LaravelAI\Console\Commands\RunPerformanceTestsCommand::class,
+                \JTD\LaravelAI\Console\Commands\MigratePricingSystemCommand::class,
             ]);
         }
     }
@@ -230,6 +276,27 @@ class LaravelAIServiceProvider extends ServiceProvider
                 'error' => $e->getMessage(),
                 'config' => config('ai'),
             ]);
+        }
+    }
+
+    /**
+     * Register package routes.
+     */
+    protected function registerRoutes(): void
+    {
+        // Only load routes if globally enabled
+        if (!config('ai.routes.enabled', true)) {
+            return;
+        }
+
+        // Load API routes if enabled
+        if (config('ai.routes.api.enabled', true)) {
+            $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+        }
+
+        // Load web routes if enabled
+        if (config('ai.routes.web.enabled', false)) {
+            $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
         }
     }
 

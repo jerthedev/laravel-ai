@@ -351,24 +351,118 @@ return [
     | Model Context Protocol (MCP)
     |--------------------------------------------------------------------------
     |
-    | Configure MCP servers for enhanced AI capabilities like Sequential
-    | Thinking and custom tool integrations.
+    | Configure MCP servers for enhanced AI capabilities including Sequential
+    | Thinking, GitHub integration, Brave Search, and custom tool integrations.
+    | MCP servers provide structured thinking, tool calling, and context management.
     |
     */
 
     'mcp' => [
         'enabled' => env('AI_MCP_ENABLED', true),
-        'servers' => [
-            'sequential-thinking' => [
-                'enabled' => env('AI_MCP_SEQUENTIAL_THINKING_ENABLED', true),
-                'max_thoughts' => env('AI_MCP_SEQUENTIAL_THINKING_MAX_THOUGHTS', 10),
-                'timeout' => env('AI_MCP_SEQUENTIAL_THINKING_TIMEOUT', 30),
-            ],
-            'custom-server' => [
-                'enabled' => env('AI_MCP_CUSTOM_ENABLED', false),
-                'endpoint' => env('AI_MCP_CUSTOM_ENDPOINT'),
-                'timeout' => env('AI_MCP_CUSTOM_TIMEOUT', 30),
-            ],
+        'config_file' => base_path('.mcp.json'),
+        'tools_file' => base_path('.mcp.tools.json'),
+        'timeout' => env('AI_MCP_TIMEOUT', 30),
+        'max_concurrent' => env('AI_MCP_MAX_CONCURRENT', 3),
+        'retry_attempts' => env('AI_MCP_RETRY_ATTEMPTS', 2),
+
+        /*
+        |----------------------------------------------------------------------
+        | External Server Configuration
+        |----------------------------------------------------------------------
+        |
+        | Settings for external MCP servers that run as separate processes.
+        | These servers are installed via npm and communicate through command
+        | execution and JSON protocols.
+        |
+        */
+
+        'external_server_timeout' => env('AI_MCP_EXTERNAL_TIMEOUT', 30),
+        'tool_discovery_cache_ttl' => env('AI_MCP_TOOL_CACHE_TTL', 3600),
+        'server_health_check_interval' => env('AI_MCP_HEALTH_CHECK_INTERVAL', 300),
+
+        /*
+        |----------------------------------------------------------------------
+        | Built-in Server Configurations
+        |----------------------------------------------------------------------
+        |
+        | Configuration for built-in MCP servers. Note: As of Sprint 4b,
+        | all servers are external and installed via Easy MCP Setup.
+        | This section is kept for backward compatibility.
+        |
+        */
+
+        'built_in_servers' => [
+            // All servers are now external and installed via Easy MCP Setup
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Performance and Monitoring
+        |----------------------------------------------------------------------
+        |
+        | Settings for MCP server performance monitoring, metrics collection,
+        | and optimization features.
+        |
+        */
+
+        'performance' => [
+            'track_metrics' => env('AI_MCP_TRACK_METRICS', true),
+            'log_slow_operations' => env('AI_MCP_LOG_SLOW_OPS', true),
+            'slow_operation_threshold_ms' => env('AI_MCP_SLOW_THRESHOLD', 1000),
+            'enable_performance_alerts' => env('AI_MCP_PERFORMANCE_ALERTS', false),
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Tool Discovery and Validation
+        |----------------------------------------------------------------------
+        |
+        | Configuration for automatic tool discovery from MCP servers,
+        | validation of tool schemas, and caching of tool definitions.
+        |
+        */
+
+        'tool_discovery' => [
+            'auto_discover' => env('AI_MCP_AUTO_DISCOVER', true),
+            'validate_schemas' => env('AI_MCP_VALIDATE_SCHEMAS', true),
+            'cache_discovered_tools' => env('AI_MCP_CACHE_TOOLS', true),
+            'discovery_timeout' => env('AI_MCP_DISCOVERY_TIMEOUT', 10),
+            'max_tools_per_server' => env('AI_MCP_MAX_TOOLS_PER_SERVER', 100),
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Error Handling and Fallbacks
+        |----------------------------------------------------------------------
+        |
+        | Configuration for error handling, graceful degradation, and fallback
+        | behavior when MCP servers are unavailable or fail.
+        |
+        */
+
+        'error_handling' => [
+            'graceful_degradation' => env('AI_MCP_GRACEFUL_DEGRADATION', true),
+            'log_errors' => env('AI_MCP_LOG_ERRORS', true),
+            'retry_failed_servers' => env('AI_MCP_RETRY_FAILED', true),
+            'fallback_on_timeout' => env('AI_MCP_FALLBACK_TIMEOUT', true),
+            'max_error_rate' => env('AI_MCP_MAX_ERROR_RATE', 0.5), // 50% error rate threshold
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Security and Validation
+        |----------------------------------------------------------------------
+        |
+        | Security settings for MCP server communication, input validation,
+        | and output sanitization.
+        |
+        */
+
+        'security' => [
+            'validate_server_responses' => env('AI_MCP_VALIDATE_RESPONSES', true),
+            'sanitize_tool_outputs' => env('AI_MCP_SANITIZE_OUTPUTS', true),
+            'allow_arbitrary_commands' => env('AI_MCP_ALLOW_ARBITRARY_COMMANDS', false),
+            'trusted_server_paths' => env('AI_MCP_TRUSTED_PATHS', '/usr/local/bin,/usr/bin'),
         ],
     ],
 
@@ -543,6 +637,62 @@ return [
             'auto_register' => true, // Automatically register functions with providers
             'timeout' => 300, // Function execution timeout in seconds
             'max_retries' => 3,
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Routes Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure the package routes including API endpoints for performance
+    | monitoring, cost tracking, and administrative functions.
+    |
+    */
+
+    'routes' => [
+
+        // Enable/disable all package routes
+        'enabled' => env('AI_ROUTES_ENABLED', true),
+
+        // API routes configuration
+        'api' => [
+            'enabled' => env('AI_API_ROUTES_ENABLED', true),
+            'prefix' => env('AI_API_PREFIX', 'ai-admin'),
+            'middleware' => ['api'],
+            'name_prefix' => 'ai.',
+        ],
+
+        // Web routes configuration (for future dashboard UI)
+        'web' => [
+            'enabled' => env('AI_WEB_ROUTES_ENABLED', false),
+            'prefix' => env('AI_WEB_PREFIX', 'ai-dashboard'),
+            'middleware' => ['web', 'auth'],
+            'name_prefix' => 'ai.web.',
+        ],
+
+        // Performance monitoring routes
+        'performance' => [
+            'enabled' => env('AI_PERFORMANCE_ROUTES_ENABLED', true),
+            'dashboard_enabled' => env('AI_PERFORMANCE_DASHBOARD_ENABLED', false), // Disabled by default in production
+        ],
+
+        // Cost tracking routes
+        'costs' => [
+            'enabled' => env('AI_COST_ROUTES_ENABLED', true),
+            'analytics_enabled' => env('AI_COST_ANALYTICS_ENABLED', false), // Disabled by default in production
+        ],
+
+        // MCP management routes
+        'mcp' => [
+            'enabled' => env('AI_MCP_ROUTES_ENABLED', true),
+        ],
+
+        // Rate limiting for API routes
+        'rate_limiting' => [
+            'enabled' => env('AI_RATE_LIMITING_ENABLED', true),
+            'max_attempts' => env('AI_RATE_LIMIT_ATTEMPTS', 60),
+            'decay_minutes' => env('AI_RATE_LIMIT_DECAY', 1),
         ],
     ],
 

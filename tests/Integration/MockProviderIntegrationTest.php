@@ -287,15 +287,15 @@ class MockProviderIntegrationTest extends TestCase
     public function mock_provider_works_with_different_message_types()
     {
         $messages = [
-            AIMessage::user('Hello'),
-            AIMessage::assistant('Hi there!'),
-            AIMessage::system('You are a helpful assistant'),
+            'Hello',
+            'Hi there!',
+            'You are a helpful assistant',
         ];
 
-        foreach ($messages as $message) {
+        foreach ($messages as $messageContent) {
             $response = AI::conversation()
                 ->provider('mock')
-                ->message($message)
+                ->message($messageContent)
                 ->send();
 
             $this->assertInstanceOf(AIResponse::class, $response);

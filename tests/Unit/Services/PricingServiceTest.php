@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Services;
+namespace JTD\LaravelAI\Tests\Unit\Services;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -10,7 +10,7 @@ use JTD\LaravelAI\Enums\PricingUnit;
 use JTD\LaravelAI\Services\DriverManager;
 use JTD\LaravelAI\Services\PricingService;
 use JTD\LaravelAI\Services\PricingValidator;
-use Tests\TestCase;
+use JTD\LaravelAI\Tests\TestCase;
 
 class PricingServiceTest extends TestCase
 {
@@ -199,16 +199,24 @@ class PricingServiceTest extends TestCase
         float $inputCost = 0.01,
         float $outputCost = 0.03
     ): void {
-        // Create provider
-        $providerId = DB::table('ai_providers')->insertGetId([
-            'name' => 'openai',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // Create provider (or get existing)
+        $provider = DB::table('ai_providers')->where('slug', 'openai')->first();
+        if (!$provider) {
+            $providerId = DB::table('ai_providers')->insertGetId([
+                'name' => 'openai',
+                'slug' => 'openai',
+                'driver' => 'openai',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } else {
+            $providerId = $provider->id;
+        }
 
         // Create model
         $modelId = DB::table('ai_provider_models')->insertGetId([
             'ai_provider_id' => $providerId,
+            'model_id' => $model,
             'name' => $model,
             'created_at' => now(),
             'updated_at' => now(),

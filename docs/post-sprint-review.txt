@@ -11,3 +11,5 @@ Post-Sprint Review Process:
   - What we will do differently next time
   - Any other notes or feedback
 - Again, only after everything is complete, update the filename to "SprintX-Done.md"
+
+Then, write a git commit message in standard format that is concise with 6-7 main bullet points for the work completed this sprint.  Do not actually commit, just output the commit message in chat.

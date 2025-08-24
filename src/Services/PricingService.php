@@ -60,6 +60,8 @@ class PricingService
     {
         $pricing = $this->getModelPricing($provider, $model);
 
+
+
         if (empty($pricing)) {
             return $this->getDefaultCostCalculation($inputTokens, $outputTokens);
         }
@@ -69,12 +71,9 @@ class PricingService
             'output_tokens' => $outputTokens,
         ];
 
-        // Use driver's calculation method if available
-        if ($driver = $this->getDriverPricingClass($provider)) {
-            $totalCost = $driver->calculateCost($model, $usage);
-        } else {
-            $totalCost = $this->calculateGenericCost($pricing, $usage);
-        }
+        // Always use generic calculation with database-first pricing
+        // The generic method handles unit conversion properly
+        $totalCost = $this->calculateGenericCost($pricing, $usage);
 
         return [
             'model' => $model,
@@ -132,7 +131,14 @@ class PricingService
             $pricingClass = $this->getDriverPricingClass($provider);
 
             if ($pricingClass) {
-                return $pricingClass->getModelPricing($model);
+                $pricing = $pricingClass->getModelPricing($model);
+                if (!empty($pricing)) {
+                    // Add source if not already present
+                    if (!isset($pricing['source'])) {
+                        $pricing['source'] = 'driver_static';
+                    }
+                    return $pricing;
+                }
             }
         } catch (\Exception $e) {
             // Driver not available or no pricing class
@@ -297,6 +303,8 @@ class PricingService
         if (! $providerId) {
             $providerId = DB::table('ai_providers')->insertGetId([
                 'name' => $provider,
+                'slug' => $provider,
+                'driver' => $provider,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -318,6 +326,7 @@ class PricingService
         if (! $modelId) {
             $modelId = DB::table('ai_provider_models')->insertGetId([
                 'ai_provider_id' => $providerId,
+                'model_id' => $model,
                 'name' => $model,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -375,6 +384,8 @@ class PricingService
     {
         $unit = $pricing['unit'];
 
+
+
         return match ($unit) {
             PricingUnit::PER_1K_TOKENS, PricingUnit::PER_1M_TOKENS => $this->calculateTokenBasedCost($pricing, $usage),
             PricingUnit::PER_IMAGE, PricingUnit::PER_REQUEST => $pricing['cost'] * ($usage['requests'] ?? 1),
@@ -400,8 +411,11 @@ class PricingService
 
         $inputCost = ($inputTokens / $divisor) * ($pricing['input'] ?? 0);
         $outputCost = ($outputTokens / $divisor) * ($pricing['output'] ?? 0);
+        $total = $inputCost + $outputCost;
 
-        return $inputCost + $outputCost;
+
+
+        return $total;
     }
 
     /**

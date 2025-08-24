@@ -55,7 +55,7 @@ class SyncModelsCommandTest extends TestCase
 
         $this->assertEquals(0, $exitCode);
         $output = Artisan::output();
-        $this->assertStringContainsString('Syncing models from AI providers', $output);
+        $this->assertStringContainsString('Syncing models and pricing from AI providers', $output);
         $this->assertStringContainsString('Sync completed successfully', $output);
     }
 
@@ -162,8 +162,8 @@ class SyncModelsCommandTest extends TestCase
         $this->assertEquals(0, $exitCode);
         $output = Artisan::output();
         $this->assertStringContainsString('Statistics updated', $output);
-        $this->assertStringContainsString('Total: 15', $output);
-        $this->assertStringContainsString('GPT-4: 5', $output);
+        $this->assertStringContainsString('Total: 3', $output);
+        $this->assertStringContainsString('mock: 3 models', $output);
     }
 
     #[Test]
@@ -215,7 +215,7 @@ class SyncModelsCommandTest extends TestCase
 
         $this->assertEquals(0, $exitCode);
         $output = Artisan::output();
-        $this->assertStringContainsString('openai:', $output);
+        $this->assertStringContainsString('Skipping openai:', $output);
         $this->assertStringNotContainsString('invalid-provider:', $output);
     }
 

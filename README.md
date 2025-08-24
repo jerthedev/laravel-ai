@@ -71,6 +71,43 @@ OPENAI_PROJECT=your-project-id   # Optional
 # AI_GEMINI_API_KEY=your-gemini-key
 ```
 
+## Route Configuration
+
+The package provides configurable API and web routes for monitoring and management. **Routes are production-safe by default** with sensitive endpoints disabled.
+
+### Production Configuration (Recommended)
+
+```env
+# Enable basic monitoring with secure defaults
+AI_ROUTES_ENABLED=true
+AI_API_PREFIX=ai-admin
+AI_PERFORMANCE_DASHBOARD_ENABLED=false  # Disabled for security
+AI_COST_ANALYTICS_ENABLED=false         # Disabled for security
+AI_WEB_ROUTES_ENABLED=false             # Disabled for security
+```
+
+### Available Endpoints
+
+With default configuration, these endpoints are available:
+
+- `GET /ai-admin/system/health` - System health check
+- `GET /ai-admin/performance/alerts` - Performance alerts
+- `POST /ai-admin/performance/alerts/{id}/acknowledge` - Acknowledge alerts
+- `GET /ai-admin/costs/current` - Current usage summary
+- `GET /ai-admin/mcp/status` - MCP server status
+
+### Development Configuration
+
+For development environments, enable additional features:
+
+```env
+AI_PERFORMANCE_DASHBOARD_ENABLED=true
+AI_COST_ANALYTICS_ENABLED=true
+AI_WEB_ROUTES_ENABLED=true
+```
+
+See [Route Configuration Documentation](docs/ROUTES_CONFIGURATION.md) for complete details.
+
 ## OpenAI Usage Examples
 
 ### Basic Chat Completion

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Performance;
+namespace JTD\LaravelAI\Tests\Performance;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -8,7 +8,7 @@ use JTD\LaravelAI\Enums\BillingModel;
 use JTD\LaravelAI\Enums\PricingUnit;
 use JTD\LaravelAI\Services\PricingService;
 use JTD\LaravelAI\Services\PricingValidator;
-use Tests\TestCase;
+use JTD\LaravelAI\Tests\TestCase;
 
 class PricingSystemBenchmarkTest extends TestCase
 {

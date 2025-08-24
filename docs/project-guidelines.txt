@@ -55,6 +55,8 @@
 
 ## Testing Strategy
 
+**IMPORTANT**: ALWAYS RUN TESTS AS YOU COMPLETE TASKS AND ENSURE 100% PASS.  ALWAYS RUN PREVIOUS TESTS AND ENSURE YOU DIDN'T BREAK ANYTHING.
+
 ### PHPUnit 12 Standards
 - **Test Framework**: PHPUnit 12.3+ with PHP 8 attributes
 - **Test Attributes**: Use `#[Test]` instead of `/** @test */` docblock annotations

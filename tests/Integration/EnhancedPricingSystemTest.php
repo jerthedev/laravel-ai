@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Integration;
+namespace JTD\LaravelAI\Tests\Integration;
 
-use Tests\TestCase;
+use JTD\LaravelAI\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
@@ -23,7 +23,7 @@ class EnhancedPricingSystemTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->pricingService = app(PricingService::class);
         $this->pricingValidator = app(PricingValidator::class);
     }
@@ -45,7 +45,7 @@ class EnhancedPricingSystemTest extends TestCase
 
         // 2. Retrieve pricing from database
         $retrievedPricing = $this->pricingService->getModelPricing('openai', 'gpt-4o');
-        
+
         $this->assertEquals('database', $retrievedPricing['source']);
         $this->assertEquals(0.0025, $retrievedPricing['input']);
         $this->assertEquals(0.01, $retrievedPricing['output']);
@@ -53,7 +53,7 @@ class EnhancedPricingSystemTest extends TestCase
 
         // 3. Calculate cost using database pricing
         $cost = $this->pricingService->calculateCost('openai', 'gpt-4o', 1000, 500);
-        
+
         $this->assertEquals(0.0025, $cost['input_cost']); // 1000/1000 * 0.0025
         $this->assertEquals(0.005, $cost['output_cost']); // 500/1000 * 0.01
         $this->assertEquals(0.0075, $cost['total_cost']);
@@ -61,13 +61,13 @@ class EnhancedPricingSystemTest extends TestCase
 
         // 4. Test cache functionality
         Cache::flush();
-        
+
         // First call should hit database
         $pricing1 = $this->pricingService->getModelPricing('openai', 'gpt-4o');
-        
+
         // Second call should hit cache
         $pricing2 = $this->pricingService->getModelPricing('openai', 'gpt-4o');
-        
+
         $this->assertEquals($pricing1, $pricing2);
     }
 
@@ -75,7 +75,7 @@ class EnhancedPricingSystemTest extends TestCase
     {
         // Test 1: No database data, should fallback to driver static
         $pricing = $this->pricingService->getModelPricing('openai', 'gpt-4o-mini');
-        
+
         // Should get pricing from driver or universal fallback
         $this->assertArrayHasKey('input', $pricing);
         $this->assertArrayHasKey('output', $pricing);
@@ -83,7 +83,7 @@ class EnhancedPricingSystemTest extends TestCase
 
         // Test 2: Unknown provider, should use universal fallback
         $unknownPricing = $this->pricingService->getModelPricing('unknown', 'unknown-model');
-        
+
         $this->assertEquals('universal_fallback', $unknownPricing['source']);
         $this->assertEquals(PricingUnit::PER_1K_TOKENS, $unknownPricing['unit']);
         $this->assertEquals(0.00001, $unknownPricing['input']);
@@ -127,7 +127,7 @@ class EnhancedPricingSystemTest extends TestCase
                 'currency' => 'USD',
                 'billing_model' => BillingModel::PAY_PER_USE,
             ]);
-            
+
             $this->pricingService->storePricingToDatabase('test', $model, $pricing);
         }
 

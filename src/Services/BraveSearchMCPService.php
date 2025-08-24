@@ -17,7 +17,7 @@ class BraveSearchMCPService
 {
     protected string $baseUrl;
 
-    protected string $apiKey;
+    protected ?string $apiKey;
 
     protected int $timeout;
 
