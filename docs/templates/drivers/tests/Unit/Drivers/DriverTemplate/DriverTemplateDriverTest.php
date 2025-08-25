@@ -2,29 +2,31 @@
 
 namespace JTD\LaravelAI\Tests\Unit;
 
-use JTD\LaravelAI\Drivers\XAI\XAIDriver;
-use JTD\LaravelAI\Exceptions\XAI\XAIInvalidCredentialsException;
+use JTD\LaravelAI\Drivers\DriverTemplate\DriverTemplateDriver;
+use JTD\LaravelAI\Exceptions\DriverTemplate\DriverTemplateInvalidCredentialsException;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Tests\TestCase;
-use Illuminate\Support\Facades\Http;
 use Mockery;
+use DriverTemplate\Client as DriverTemplateClient;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
- * xAI Driver Unit Tests
+ * DriverTemplate Driver Unit Tests
  *
- * Tests the xAI driver implementation including API integration,
+ * Tests the DriverTemplate driver implementation including API integration,
  * error handling, cost calculation, and streaming responses.
  */
 #[Group('unit')]
-#[Group('xai')]
-class XAIDriverTest extends TestCase
+#[Group('drivertemplate')]
+class DriverTemplateDriverTest extends TestCase
 {
     protected DriverTemplateDriver $driver;
+
     protected $mockClient; // Anonymous class, can't type hint
+
     protected array $validConfig;
 
     protected function setUp(): void
@@ -45,20 +47,25 @@ class XAIDriverTest extends TestCase
         $this->driver = new DriverTemplateDriver($this->validConfig);
 
         // Create a mock client using anonymous class since DriverTemplate\Client is final
-        $this->mockClient = new class {
+        $this->mockClient = new class
+        {
             public $chatMock;
+
             public $modelsMock;
 
-            public function __construct() {
+            public function __construct()
+            {
                 $this->chatMock = Mockery::mock();
                 $this->modelsMock = Mockery::mock();
             }
 
-            public function chat() {
+            public function chat()
+            {
                 return $this->chatMock;
             }
 
-            public function models() {
+            public function models()
+            {
                 return $this->modelsMock;
             }
         };

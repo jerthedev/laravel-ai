@@ -2,6 +2,12 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate\Support;
 
+use JTD\LaravelAI\Exceptions\DriverTemplate\DriverTemplateException;
+use JTD\LaravelAI\Exceptions\DriverTemplate\DriverTemplateInvalidCredentialsException;
+use JTD\LaravelAI\Exceptions\DriverTemplate\DriverTemplateQuotaExceededException;
+use JTD\LaravelAI\Exceptions\DriverTemplate\DriverTemplateRateLimitException;
+use JTD\LaravelAI\Exceptions\DriverTemplate\DriverTemplateServerException;
+
 /**
  * DriverTemplate Error Mapping and Exception Handling
  *
@@ -107,4 +113,5 @@ class ErrorMapper
     {
         // TODO: Implement getRetryConfig
     }
+
 }

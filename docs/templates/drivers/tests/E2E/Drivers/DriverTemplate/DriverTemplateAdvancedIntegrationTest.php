@@ -26,7 +26,7 @@ class DriverTemplateAdvancedIntegrationTest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('drivertemplate')) {
+        if (! $this->hasE2ECredentials('drivertemplate')) {
             $this->markTestSkipped('DriverTemplate E2E credentials not available');
         }
 
@@ -48,7 +48,6 @@ class DriverTemplateAdvancedIntegrationTest extends E2ETestCase
     {
 
         // TODO: Implement test
-
             } catch (\Exception $e) {
                 $this->logTestStep("❌ {$model} failed: " . $e->getMessage());
                 throw $e;
@@ -70,7 +69,6 @@ class DriverTemplateAdvancedIntegrationTest extends E2ETestCase
     {
 
         // TODO: Implement test
-
             } catch (\Exception $e) {
                 $this->logTestStep("❌ {$name} failed: " . $e->getMessage());
                 throw $e;
@@ -88,7 +86,6 @@ class DriverTemplateAdvancedIntegrationTest extends E2ETestCase
             } else {
                 $this->logTestStep('⚠️  System message partially followed (AI behavior can vary)');
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ System message test failed: ' . $e->getMessage());
             throw $e;
@@ -103,7 +100,6 @@ class DriverTemplateAdvancedIntegrationTest extends E2ETestCase
 
         // TODO: Implement test
             }
-
         } catch (\Exception $e) {
             // This is acceptable - empty messages might be rejected
             $this->logTestStep('⚠️  Empty message rejected (acceptable): ' . $e->getMessage());
@@ -121,7 +117,6 @@ class DriverTemplateAdvancedIntegrationTest extends E2ETestCase
                 $this->assertInstanceOf(AIResponse::class, $response);
                 $this->logTestStep('✅ Long message handled successfully');
             }
-
         } catch (\Exception $e) {
             // This is acceptable - very long messages might exceed context limits
             $this->logTestStep('⚠️  Long message rejected (acceptable): ' . $e->getMessage());
@@ -138,7 +133,6 @@ class DriverTemplateAdvancedIntegrationTest extends E2ETestCase
             $this->assertInstanceOf(AIResponse::class, $response);
             $this->assertLessThanOrEqual(3, $response->tokenUsage->outputTokens); // Very small response
             $this->logTestStep('✅ Minimal token limit handled: "' . $response->content . '"');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Minimal token limit failed: ' . $e->getMessage());
             throw $e;

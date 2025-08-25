@@ -104,4 +104,5 @@ class ModelCapabilities
     {
         // TODO: Implement compareModels
     }
+
 }

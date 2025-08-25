@@ -2,9 +2,18 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate;
 
-use DriverTemplate;
 use JTD\LaravelAI\Drivers\Contracts\AbstractAIProvider;
+use JTD\LaravelAI\Drivers\DriverTemplate\Traits\CalculatesCosts;
+use JTD\LaravelAI\Drivers\DriverTemplate\Traits\HandlesApiCommunication;
+use JTD\LaravelAI\Drivers\DriverTemplate\Traits\HandlesErrors;
+use JTD\LaravelAI\Drivers\DriverTemplate\Traits\HandlesFunctionCalling;
+use JTD\LaravelAI\Drivers\DriverTemplate\Traits\IntegratesResponsesAPI;
+use JTD\LaravelAI\Drivers\DriverTemplate\Traits\ManagesModels;
+use JTD\LaravelAI\Drivers\DriverTemplate\Traits\SupportsStreaming;
+use JTD\LaravelAI\Drivers\DriverTemplate\Traits\ValidatesHealth;
 use JTD\LaravelAI\Models\AIMessage;
+use JTD\LaravelAI\Models\AIResponse;
+use DriverTemplate;
 
 /**
  * DriverTemplate Driver - Production-Ready Implementation
@@ -58,8 +67,6 @@ class DriverTemplateDriver extends AbstractAIProvider
      *
      * Used for logging, events, and provider identification throughout the system.
      * This value is used in database records, log entries, and event dispatching.
-     *
-     * @var string
      */
     protected $providerName = 'drivertemplate';
 
@@ -68,8 +75,6 @@ class DriverTemplateDriver extends AbstractAIProvider
      *
      * This model is used when no specific model is requested in API calls.
      * Can be overridden in configuration or per-request options.
-     *
-     * @var string
      */
     protected $defaultModel = 'gpt-3.5-turbo';
 
@@ -98,7 +103,7 @@ class DriverTemplateDriver extends AbstractAIProvider
      *                         - cost_tracking (array, optional): Cost tracking configuration
      *
      * @throws \JTD\LaravelAI\Exceptions\DriverTemplate\DriverTemplateInvalidCredentialsException
-     *                                                                                            When API key is missing or invalid format
+     *                                                                            When API key is missing or invalid format
      * @throws \InvalidArgumentException
      *                                   When configuration parameters are invalid
      *
@@ -223,6 +228,47 @@ class DriverTemplateDriver extends AbstractAIProvider
     }
 
     /**
+     * Format resolved tools for DriverTemplate API.
+     *
+     * @param  array  $resolvedTools  Resolved tool definitions from UnifiedToolRegistry
+     * @return array Formatted tools for DriverTemplate API
+     */
+    protected function formatToolsForAPI(array $resolvedTools): array
+    {
+        // TODO: Implement formatToolsForAPI
+    }
+
+    /**
+     * Check if response contains tool calls.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
+     * @return bool True if response has tool calls
+     */
+    protected function hasToolCalls($response): bool
+    {
+        // TODO: Implement hasToolCalls
+    }
+
+    /**
+     * Check if provider supports function calling.
+     */
+    public function supportsFunctionCalling(): bool
+    {
+        // TODO: Implement supportsFunctionCalling
+    }
+
+    /**
+     * Extract tool calls from DriverTemplate response.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
+     * @return array Extracted tool calls in unified format
+     */
+    protected function extractToolCalls($response): array
+    {
+        // TODO: Implement extractToolCalls
+    }
+
+    /**
      * Magic method to handle dynamic method calls.
      */
     public function __call(string $method, array $arguments)
@@ -257,7 +303,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Calculate cost for a message or token usage.
      */
-    public function calculateCost($message, ?string $modelId = null): array
+    public function calculateCost($message, string $modelId = null): array
     {
         // TODO: Implement calculateCost
     }
@@ -417,7 +463,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Estimate tokens for input.
      */
-    public function estimateTokens($input, ?string $modelId = null): int
+    public function estimateTokens($input, string $modelId = null): int
     {
         // TODO: Implement estimateTokens
     }
@@ -460,6 +506,94 @@ class DriverTemplateDriver extends AbstractAIProvider
     public function getSyncableModels(): array
     {
         // TODO: Implement getSyncableModels
+    }
+
+    /**
+     * Calculate actual cost from token usage.
+     */
+    protected function calculateActualCost(JTD\LaravelAI\Models\TokenUsage $tokenUsage, string $modelId): array
+    {
+        // TODO: Implement calculateActualCost
+    }
+
+    /**
+     * Get pricing information for a model.
+     */
+    protected function getModelPricing(string $modelId): array
+    {
+        // TODO: Implement getModelPricing
+    }
+
+    /**
+     * Estimate cost for a conversation.
+     */
+    public function estimateConversationCost(array $messages, string $modelId = null): array
+    {
+        // TODO: Implement estimateConversationCost
+    }
+
+    /**
+     * Calculate cost for a completed response.
+     */
+    public function calculateResponseCost(JTD\LaravelAI\Models\AIResponse $response): array
+    {
+        // TODO: Implement calculateResponseCost
+    }
+
+    /**
+     * Get cost breakdown for multiple requests.
+     */
+    public function calculateBatchCost(array $requests, string $modelId = null): array
+    {
+        // TODO: Implement calculateBatchCost
+    }
+
+    /**
+     * Compare costs across different models.
+     */
+    public function compareCostsAcrossModels($message, array $modelIds): array
+    {
+        // TODO: Implement compareCostsAcrossModels
+    }
+
+    /**
+     * Get cost efficiency metrics for a model.
+     */
+    public function getCostEfficiencyMetrics(string $modelId): array
+    {
+        // TODO: Implement getCostEfficiencyMetrics
+    }
+
+    /**
+     * Calculate efficiency score for a model.
+     */
+    protected function calculateEfficiencyScore(array $pricing, array $capabilities, int $contextLength): float
+    {
+        // TODO: Implement calculateEfficiencyScore
+    }
+
+    /**
+     * Estimate monthly cost based on usage patterns.
+     */
+    public function estimateMonthlyCost(array $usagePattern, string $modelId = null): array
+    {
+        // TODO: Implement estimateMonthlyCost
+    }
+
+    /**
+     * Get cost optimization recommendations.
+     */
+    public function getCostOptimizationRecommendations($message, string $currentModel = null): array
+    {
+        // TODO: Implement getCostOptimizationRecommendations
+    }
+
+    /**
+     * Get trade-offs between two models.
+     */
+    protected function getModelTradeOffs(string $currentModel, string $alternativeModel): array
+    {
+        // TODO: Implement getModelTradeOffs
     }
 
     /**
@@ -687,6 +821,225 @@ class DriverTemplateDriver extends AbstractAIProvider
     }
 
     /**
+     * Format functions for DriverTemplate API.
+     */
+    protected function formatFunctions(array $functions): array
+    {
+        // TODO: Implement formatFunctions
+    }
+
+    /**
+     * Format tools for DriverTemplate API.
+     */
+    protected function formatTools(array $tools): array
+    {
+        // TODO: Implement formatTools
+    }
+
+    /**
+     * Validate and format a single function definition.
+     */
+    protected function validateAndFormatFunction(array $function): array
+    {
+        // TODO: Implement validateAndFormatFunction
+    }
+
+    /**
+     * Validate and format a single tool definition.
+     */
+    protected function validateAndFormatTool(array $tool): array
+    {
+        // TODO: Implement validateAndFormatTool
+    }
+
+    /**
+     * Validate function parameters schema.
+     */
+    protected function validateFunctionParameters(array $parameters): array
+    {
+        // TODO: Implement validateFunctionParameters
+    }
+
+    /**
+     * Check if response has function calls.
+     */
+    protected function hasFunctionCalls(JTD\LaravelAI\Models\AIResponse $response): bool
+    {
+        // TODO: Implement hasFunctionCalls
+    }
+
+    /**
+     * Extract function calls from response.
+     */
+    protected function extractFunctionCalls(JTD\LaravelAI\Models\AIResponse $response): array
+    {
+        // TODO: Implement extractFunctionCalls
+    }
+
+    /**
+     * Create a function result message.
+     */
+    public function createFunctionResultMessage(string $functionName, string $result): JTD\LaravelAI\Models\AIMessage
+    {
+        // TODO: Implement createFunctionResultMessage
+    }
+
+    /**
+     * Create a tool result message.
+     */
+    public function createToolResultMessage(string $toolCallId, string $result): JTD\LaravelAI\Models\AIMessage
+    {
+        // TODO: Implement createToolResultMessage
+    }
+
+    /**
+     * Validate function result.
+     */
+    protected function validateFunctionResult($result): string
+    {
+        // TODO: Implement validateFunctionResult
+    }
+
+    /**
+     * Execute function calls (placeholder for user implementation).
+     */
+    public function executeFunctionCalls(array $functionCalls, callable $executor = null): array
+    {
+        // TODO: Implement executeFunctionCalls
+    }
+
+    /**
+     * Create conversation with function calling workflow.
+     *
+     * @deprecated This method is deprecated and will be removed in the next version.
+     *             Use the new unified tool system with withTools() or allTools() instead.
+     */
+    public function conversationWithFunctions($message, array $functions, callable $functionExecutor = null, array $options = []): JTD\LaravelAI\Models\AIResponse
+    {
+        // TODO: Implement conversationWithFunctions
+    }
+
+    /**
+     * Validate function definition schema.
+     */
+    public function validateFunctionDefinition(array $function): array
+    {
+        // TODO: Implement validateFunctionDefinition
+    }
+
+    /**
+     * Validate parameters schema.
+     */
+    protected function validateParametersSchema(array $parameters): array
+    {
+        // TODO: Implement validateParametersSchema
+    }
+
+    /**
+     * Get function calling examples.
+     */
+    public function getFunctionCallingExamples(): array
+    {
+        // TODO: Implement getFunctionCallingExamples
+    }
+
+    /**
+     * Check if we should use the Responses API.
+     */
+    protected function shouldUseResponsesAPI(array $options): bool
+    {
+        // TODO: Implement shouldUseResponsesAPI
+    }
+
+    /**
+     * Prepare parameters for Responses API.
+     */
+    protected function prepareResponsesAPIParameters(array $messages, array $options): array
+    {
+        // TODO: Implement prepareResponsesAPIParameters
+    }
+
+    /**
+     * Format messages for Responses API.
+     */
+    protected function formatMessagesForResponsesAPI(array $messages, array $options): array
+    {
+        // TODO: Implement formatMessagesForResponsesAPI
+    }
+
+    /**
+     * Format tools for Responses API.
+     */
+    protected function formatToolsForResponsesAPI(array $tools): array
+    {
+        // TODO: Implement formatToolsForResponsesAPI
+    }
+
+    /**
+     * Parse Responses API response.
+     */
+    protected function parseResponsesAPIResponse($response, float $responseTime, array $options): JTD\LaravelAI\Models\AIResponse
+    {
+        // TODO: Implement parseResponsesAPIResponse
+    }
+
+    /**
+     * Check if response contains reasoning.
+     */
+    protected function hasReasoningInResponse($response): bool
+    {
+        // TODO: Implement hasReasoningInResponse
+    }
+
+    /**
+     * Extract reasoning from response.
+     */
+    protected function extractReasoningFromResponse($response): string
+    {
+        // TODO: Implement extractReasoningFromResponse
+    }
+
+    /**
+     * Get supported Responses API models.
+     */
+    protected function getResponsesAPIModels(): array
+    {
+        // TODO: Implement getResponsesAPIModels
+    }
+
+    /**
+     * Check if model supports Responses API.
+     */
+    protected function supportsResponsesAPI(string $model): bool
+    {
+        // TODO: Implement supportsResponsesAPI
+    }
+
+    /**
+     * Get Responses API capabilities.
+     */
+    protected function getResponsesAPICapabilities(): array
+    {
+        // TODO: Implement getResponsesAPICapabilities
+    }
+
+    /**
+     * Convert Chat API parameters to Responses API parameters.
+     */
+    protected function convertChatToResponsesAPIParams(array $chatParams): array
+    {
+        // TODO: Implement convertChatToResponsesAPIParams
+    }
+
+    /**
+     * Get Responses API usage recommendations.
+     */
+    public function getResponsesAPIRecommendations(string $model): array
+    {
+        // TODO: Implement getResponsesAPIRecommendations
+    }
+
+    /**
      * Estimate tokens for a single message.
      */
     protected function estimateMessageTokens(JTD\LaravelAI\Models\AIMessage $message): int
@@ -807,91 +1160,59 @@ class DriverTemplateDriver extends AbstractAIProvider
     }
 
     /**
-     * Calculate actual cost from token usage.
+     * Send a streaming message with callback support.
      */
-    protected function calculateActualCost(JTD\LaravelAI\Models\TokenUsage $tokenUsage, string $modelId): array
+    public function sendStreamingMessageWithCallback($message, array $options = [], callable $callback = null): JTD\LaravelAI\Models\AIResponse
     {
-        // TODO: Implement calculateActualCost
+        // TODO: Implement sendStreamingMessageWithCallback
     }
 
     /**
-     * Get pricing information for a model.
+     * Parse a streaming chunk.
      */
-    protected function getModelPricing(string $modelId): array
+    protected function parseStreamChunk($chunk, int $chunkIndex, float $startTime, array $options): JTD\LaravelAI\Models\AIResponse
     {
-        // TODO: Implement getModelPricing
+        // TODO: Implement parseStreamChunk
     }
 
     /**
-     * Estimate cost for a conversation.
+     * Create final streaming response.
      */
-    public function estimateConversationCost(array $messages, ?string $modelId = null): array
+    protected function createFinalStreamResponse(string $fullContent, int $totalTokens, float $responseTime, array $options, $lastChunk = null): JTD\LaravelAI\Models\AIResponse
     {
-        // TODO: Implement estimateConversationCost
+        // TODO: Implement createFinalStreamResponse
     }
 
     /**
-     * Calculate cost for a completed response.
+     * Stream with progress tracking.
      */
-    public function calculateResponseCost(JTD\LaravelAI\Models\AIResponse $response): array
+    public function streamWithProgress($message, array $options = [], callable $progressCallback = null): JTD\LaravelAI\Models\AIResponse
     {
-        // TODO: Implement calculateResponseCost
+        // TODO: Implement streamWithProgress
     }
 
     /**
-     * Get cost breakdown for multiple requests.
+     * Stream with timeout handling.
      */
-    public function calculateBatchCost(array $requests, ?string $modelId = null): array
+    public function streamWithTimeout($message, array $options = [], int $timeoutMs = 30000): JTD\LaravelAI\Models\AIResponse
     {
-        // TODO: Implement calculateBatchCost
+        // TODO: Implement streamWithTimeout
     }
 
     /**
-     * Compare costs across different models.
+     * Stream with content filtering.
      */
-    public function compareCostsAcrossModels($message, array $modelIds): array
+    public function streamWithFilter($message, array $options = [], callable $filter = null): JTD\LaravelAI\Models\AIResponse
     {
-        // TODO: Implement compareCostsAcrossModels
+        // TODO: Implement streamWithFilter
     }
 
     /**
-     * Get cost efficiency metrics for a model.
+     * Get streaming statistics.
      */
-    public function getCostEfficiencyMetrics(string $modelId): array
+    public function getStreamingStats($message, array $options = []): array
     {
-        // TODO: Implement getCostEfficiencyMetrics
-    }
-
-    /**
-     * Calculate efficiency score for a model.
-     */
-    protected function calculateEfficiencyScore(array $pricing, array $capabilities, int $contextLength): float
-    {
-        // TODO: Implement calculateEfficiencyScore
-    }
-
-    /**
-     * Estimate monthly cost based on usage patterns.
-     */
-    public function estimateMonthlyCost(array $usagePattern, ?string $modelId = null): array
-    {
-        // TODO: Implement estimateMonthlyCost
-    }
-
-    /**
-     * Get cost optimization recommendations.
-     */
-    public function getCostOptimizationRecommendations($message, ?string $currentModel = null): array
-    {
-        // TODO: Implement getCostOptimizationRecommendations
-    }
-
-    /**
-     * Get trade-offs between two models.
-     */
-    protected function getModelTradeOffs(string $currentModel, string $alternativeModel): array
-    {
-        // TODO: Implement getModelTradeOffs
+        // TODO: Implement getStreamingStats
     }
 
     /**
@@ -982,275 +1303,4 @@ class DriverTemplateDriver extends AbstractAIProvider
         // TODO: Implement checkCompletionsAccess
     }
 
-    /**
-     * Format functions for DriverTemplate API.
-     */
-    protected function formatFunctions(array $functions): array
-    {
-        // TODO: Implement formatFunctions
-    }
-
-    /**
-     * Format tools for DriverTemplate API.
-     */
-    protected function formatTools(array $tools): array
-    {
-        // TODO: Implement formatTools
-    }
-
-    /**
-     * Validate and format a single function definition.
-     */
-    protected function validateAndFormatFunction(array $function): array
-    {
-        // TODO: Implement validateAndFormatFunction
-    }
-
-    /**
-     * Validate and format a single tool definition.
-     */
-    protected function validateAndFormatTool(array $tool): array
-    {
-        // TODO: Implement validateAndFormatTool
-    }
-
-    /**
-     * Validate function parameters schema.
-     */
-    protected function validateFunctionParameters(array $parameters): array
-    {
-        // TODO: Implement validateFunctionParameters
-    }
-
-    /**
-     * Check if response has function calls.
-     */
-    protected function hasFunctionCalls(JTD\LaravelAI\Models\AIResponse $response): bool
-    {
-        // TODO: Implement hasFunctionCalls
-    }
-
-    /**
-     * Extract function calls from response.
-     */
-    protected function extractFunctionCalls(JTD\LaravelAI\Models\AIResponse $response): array
-    {
-        // TODO: Implement extractFunctionCalls
-    }
-
-    /**
-     * Create a function result message.
-     */
-    public function createFunctionResultMessage(string $functionName, string $result): JTD\LaravelAI\Models\AIMessage
-    {
-        // TODO: Implement createFunctionResultMessage
-    }
-
-    /**
-     * Create a tool result message.
-     */
-    public function createToolResultMessage(string $toolCallId, string $result): JTD\LaravelAI\Models\AIMessage
-    {
-        // TODO: Implement createToolResultMessage
-    }
-
-    /**
-     * Validate function result.
-     */
-    protected function validateFunctionResult($result): string
-    {
-        // TODO: Implement validateFunctionResult
-    }
-
-    /**
-     * Execute function calls (placeholder for user implementation).
-     */
-    public function executeFunctionCalls(array $functionCalls, ?callable $executor = null): array
-    {
-        // TODO: Implement executeFunctionCalls
-    }
-
-    /**
-     * Create conversation with function calling workflow.
-     */
-    public function conversationWithFunctions($message, array $functions, ?callable $functionExecutor = null, array $options = []): JTD\LaravelAI\Models\AIResponse
-    {
-        // TODO: Implement conversationWithFunctions
-    }
-
-    /**
-     * Validate function definition schema.
-     */
-    public function validateFunctionDefinition(array $function): array
-    {
-        // TODO: Implement validateFunctionDefinition
-    }
-
-    /**
-     * Validate parameters schema.
-     */
-    protected function validateParametersSchema(array $parameters): array
-    {
-        // TODO: Implement validateParametersSchema
-    }
-
-    /**
-     * Get function calling examples.
-     */
-    public function getFunctionCallingExamples(): array
-    {
-        // TODO: Implement getFunctionCallingExamples
-    }
-
-    /**
-     * Send a streaming message with callback support.
-     */
-    public function sendStreamingMessageWithCallback($message, array $options = [], ?callable $callback = null): JTD\LaravelAI\Models\AIResponse
-    {
-        // TODO: Implement sendStreamingMessageWithCallback
-    }
-
-    /**
-     * Parse a streaming chunk.
-     */
-    protected function parseStreamChunk($chunk, int $chunkIndex, float $startTime, array $options): JTD\LaravelAI\Models\AIResponse
-    {
-        // TODO: Implement parseStreamChunk
-    }
-
-    /**
-     * Create final streaming response.
-     */
-    protected function createFinalStreamResponse(string $fullContent, int $totalTokens, float $responseTime, array $options, $lastChunk = null): JTD\LaravelAI\Models\AIResponse
-    {
-        // TODO: Implement createFinalStreamResponse
-    }
-
-    /**
-     * Stream with progress tracking.
-     */
-    public function streamWithProgress($message, array $options = [], ?callable $progressCallback = null): JTD\LaravelAI\Models\AIResponse
-    {
-        // TODO: Implement streamWithProgress
-    }
-
-    /**
-     * Stream with timeout handling.
-     */
-    public function streamWithTimeout($message, array $options = [], int $timeoutMs = 30000): JTD\LaravelAI\Models\AIResponse
-    {
-        // TODO: Implement streamWithTimeout
-    }
-
-    /**
-     * Stream with content filtering.
-     */
-    public function streamWithFilter($message, array $options = [], ?callable $filter = null): JTD\LaravelAI\Models\AIResponse
-    {
-        // TODO: Implement streamWithFilter
-    }
-
-    /**
-     * Get streaming statistics.
-     */
-    public function getStreamingStats($message, array $options = []): array
-    {
-        // TODO: Implement getStreamingStats
-    }
-
-    /**
-     * Check if we should use the Responses API.
-     */
-    protected function shouldUseResponsesAPI(array $options): bool
-    {
-        // TODO: Implement shouldUseResponsesAPI
-    }
-
-    /**
-     * Prepare parameters for Responses API.
-     */
-    protected function prepareResponsesAPIParameters(array $messages, array $options): array
-    {
-        // TODO: Implement prepareResponsesAPIParameters
-    }
-
-    /**
-     * Format messages for Responses API.
-     */
-    protected function formatMessagesForResponsesAPI(array $messages, array $options): array
-    {
-        // TODO: Implement formatMessagesForResponsesAPI
-    }
-
-    /**
-     * Format tools for Responses API.
-     */
-    protected function formatToolsForResponsesAPI(array $tools): array
-    {
-        // TODO: Implement formatToolsForResponsesAPI
-    }
-
-    /**
-     * Parse Responses API response.
-     */
-    protected function parseResponsesAPIResponse($response, float $responseTime, array $options): JTD\LaravelAI\Models\AIResponse
-    {
-        // TODO: Implement parseResponsesAPIResponse
-    }
-
-    /**
-     * Check if response contains reasoning.
-     */
-    protected function hasReasoningInResponse($response): bool
-    {
-        // TODO: Implement hasReasoningInResponse
-    }
-
-    /**
-     * Extract reasoning from response.
-     */
-    protected function extractReasoningFromResponse($response): string
-    {
-        // TODO: Implement extractReasoningFromResponse
-    }
-
-    /**
-     * Get supported Responses API models.
-     */
-    protected function getResponsesAPIModels(): array
-    {
-        // TODO: Implement getResponsesAPIModels
-    }
-
-    /**
-     * Check if model supports Responses API.
-     */
-    protected function supportsResponsesAPI(string $model): bool
-    {
-        // TODO: Implement supportsResponsesAPI
-    }
-
-    /**
-     * Get Responses API capabilities.
-     */
-    protected function getResponsesAPICapabilities(): array
-    {
-        // TODO: Implement getResponsesAPICapabilities
-    }
-
-    /**
-     * Convert Chat API parameters to Responses API parameters.
-     */
-    protected function convertChatToResponsesAPIParams(array $chatParams): array
-    {
-        // TODO: Implement convertChatToResponsesAPIParams
-    }
-
-    /**
-     * Get Responses API usage recommendations.
-     */
-    public function getResponsesAPIRecommendations(string $model): array
-    {
-        // TODO: Implement getResponsesAPIRecommendations
-    }
 }

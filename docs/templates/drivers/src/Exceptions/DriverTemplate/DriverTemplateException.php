@@ -39,7 +39,7 @@ class DriverTemplateException extends ProviderException
      * @param  int  $code  Exception code
      * @param  \Exception|null  $previous  Previous exception
      */
-    public function __construct(string $message = 'OpenAI API error', ?string $openaiErrorType = null, ?string $openaiErrorCode = null, ?string $requestId = null, array $details = [], bool $retryable = false, int $code = 500, ?Exception $previous = null)
+    public function __construct(string $message = 'OpenAI API error', string $openaiErrorType = null, string $openaiErrorCode = null, string $requestId = null, array $details = [], bool $retryable = false, int $code = 500, Exception $previous = null)
     {
         // TODO: Implement __construct
     }
@@ -50,7 +50,7 @@ class DriverTemplateException extends ProviderException
      * @param  array  $errorData  Error data from DriverTemplate API
      * @param  string|null  $requestId  Request ID
      */
-    public static function fromApiError(array $errorData, ?string $requestId = null): static
+    public static function fromApiError(array $errorData, string $requestId = null): static
     {
         // TODO: Implement fromApiError
     }
@@ -102,4 +102,5 @@ class DriverTemplateException extends ProviderException
     {
         // TODO: Implement getFormattedMessage
     }
+
 }

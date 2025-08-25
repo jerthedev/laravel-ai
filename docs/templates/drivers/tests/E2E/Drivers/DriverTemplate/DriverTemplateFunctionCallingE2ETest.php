@@ -21,6 +21,7 @@ use PHPUnit\Framework\Attributes\Test;
 class DriverTemplateFunctionCallingE2ETest extends TestCase
 {
     private DriverTemplateDriver $driver;
+
     private array $credentials;
 
     protected function setUp(): void
@@ -30,13 +31,13 @@ class DriverTemplateFunctionCallingE2ETest extends TestCase
         // Load credentials from E2E credentials file
         $credentialsPath = __DIR__ . '/../credentials/e2e-credentials.json';
 
-        if (!file_exists($credentialsPath)) {
+        if (! file_exists($credentialsPath)) {
             $this->markTestSkipped('E2E credentials file not found for function calling tests');
         }
 
         $this->credentials = json_decode(file_get_contents($credentialsPath), true);
 
-        if (empty($this->credentials['drivertemplate']['api_key']) || !$this->credentials['drivertemplate']['enabled']) {
+        if (empty($this->credentials['drivertemplate']['api_key']) || ! $this->credentials['drivertemplate']['enabled']) {
             $this->markTestSkipped('DriverTemplate credentials not configured or disabled for function calling E2E tests');
         }
 
@@ -54,7 +55,7 @@ class DriverTemplateFunctionCallingE2ETest extends TestCase
 
         // TODO: Implement test
         } else {
-            $this->logTestStep("ℹ️  Model chose not to call function, responded directly");
+            $this->logTestStep('ℹ️  Model chose not to call function, responded directly');
             $this->assertNotEmpty($response->content, 'Should have content if no function call');
         }
     }
@@ -65,7 +66,7 @@ class DriverTemplateFunctionCallingE2ETest extends TestCase
 
         // TODO: Implement test
         } else {
-            $this->logTestStep("ℹ️  Model chose not to call function, responded directly");
+            $this->logTestStep('ℹ️  Model chose not to call function, responded directly');
             $this->assertNotEmpty($response->content, 'Should have content if no function call');
         }
     }
@@ -76,7 +77,7 @@ class DriverTemplateFunctionCallingE2ETest extends TestCase
 
         // TODO: Implement test
         } else {
-            $this->logTestStep("ℹ️  Model chose not to call tool, responded directly");
+            $this->logTestStep('ℹ️  Model chose not to call tool, responded directly');
             $this->assertNotEmpty($response->content, 'Should have content if no tool call');
         }
     }
@@ -87,7 +88,7 @@ class DriverTemplateFunctionCallingE2ETest extends TestCase
 
         // TODO: Implement test
         } else {
-            $this->logTestStep("ℹ️  Model chose not to call function, responded directly");
+            $this->logTestStep('ℹ️  Model chose not to call function, responded directly');
         }
     }
 
@@ -103,9 +104,8 @@ class DriverTemplateFunctionCallingE2ETest extends TestCase
     {
 
         // TODO: Implement test
-
         } catch (\Exception $e) {
-            $this->logTestStep("✅ Error handled: " . $e->getMessage());
+            $this->logTestStep('✅ Error handled: ' . $e->getMessage());
             $this->assertStringContainsIgnoringCase($e->getMessage(), 'name');
         }
     }

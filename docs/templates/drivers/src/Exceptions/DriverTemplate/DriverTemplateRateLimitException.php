@@ -41,7 +41,7 @@ class DriverTemplateRateLimitException extends RateLimitException
      * @param  int  $code  Exception code
      * @param  \Exception|null  $previous  Previous exception
      */
-    public function __construct(string $message = 'OpenAI rate limit exceeded', ?int $rateLimit = null, ?int $remaining = null, ?int $resetTime = null, ?string $limitType = null, ?string $requestId = null, ?string $rateLimitType = null, ?string $organizationId = null, int $code = 429, ?Exception $previous = null)
+    public function __construct(string $message = 'OpenAI rate limit exceeded', int $rateLimit = null, int $remaining = null, int $resetTime = null, string $limitType = null, string $requestId = null, string $rateLimitType = null, string $organizationId = null, int $code = 429, Exception $previous = null)
     {
         // TODO: Implement __construct
     }
@@ -52,7 +52,7 @@ class DriverTemplateRateLimitException extends RateLimitException
      * @param  array  $headers  HTTP headers from DriverTemplate response
      * @param  string|null  $requestId  Request ID
      */
-    public static function fromHeaders(array $headers, ?string $requestId = null): static
+    public static function fromHeaders(array $headers, string $requestId = null): static
     {
         // TODO: Implement fromHeaders
     }
@@ -112,4 +112,5 @@ class DriverTemplateRateLimitException extends RateLimitException
     {
         // TODO: Implement getRetryDelay
     }
+
 }

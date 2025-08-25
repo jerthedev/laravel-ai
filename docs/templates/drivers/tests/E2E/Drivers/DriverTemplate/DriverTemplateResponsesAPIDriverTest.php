@@ -27,7 +27,7 @@ class DriverTemplateResponsesAPIDriverTest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('drivertemplate')) {
+        if (! $this->hasE2ECredentials('drivertemplate')) {
             $this->markTestSkipped('DriverTemplate E2E credentials not available');
         }
 
@@ -69,7 +69,6 @@ class DriverTemplateResponsesAPIDriverTest extends E2ETestCase
             } else {
                 $this->logTestStep('⚠️  Response content differs but GPT-5 is working');
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ GPT-5 test failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -84,7 +83,6 @@ class DriverTemplateResponsesAPIDriverTest extends E2ETestCase
     {
 
         // TODO: Implement test
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Explicit Responses API test failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -107,7 +105,6 @@ class DriverTemplateResponsesAPIDriverTest extends E2ETestCase
                 $this->logTestStep('⚠️  No function/tool calls - AI responded directly');
                 $this->logTestStep('This is acceptable AI behavior');
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Function calling test failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -128,7 +125,6 @@ class DriverTemplateResponsesAPIDriverTest extends E2ETestCase
     {
 
         // TODO: Implement test
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Chat API failed: ' . $e->getMessage());
             throw $e;
@@ -153,7 +149,6 @@ class DriverTemplateResponsesAPIDriverTest extends E2ETestCase
             $this->logTestStep('  Chat API length: ' . strlen($chatResponse->content) . ' chars');
             $this->logTestStep('  Responses API length: ' . strlen($responsesResponse->content) . ' chars');
             $this->logTestStep('  Both APIs working successfully!');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Responses API failed: ' . $e->getMessage());
             throw $e;

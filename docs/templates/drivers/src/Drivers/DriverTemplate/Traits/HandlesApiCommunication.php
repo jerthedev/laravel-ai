@@ -2,6 +2,10 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate\Traits;
 
+use JTD\LaravelAI\Models\AIMessage;
+use JTD\LaravelAI\Models\AIResponse;
+use JTD\LaravelAI\Models\TokenUsage;
+
 /**
  * Handles API Communication with DriverTemplate
  *
@@ -89,4 +93,5 @@ trait HandlesApiCommunication
     {
         // TODO: Implement updateConversationContext
     }
+
 }

@@ -2,10 +2,9 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
-use JTD\LaravelAI\Tests\E2E\E2ETestCase;
 use DriverTemplate\Client;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Test the new DriverTemplate Responses API directly
@@ -22,7 +21,7 @@ class DriverTemplateResponsesAPITest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('drivertemplate')) {
+        if (! $this->hasE2ECredentials('drivertemplate')) {
             $this->markTestSkipped('DriverTemplate E2E credentials not available');
         }
 
@@ -39,7 +38,6 @@ class DriverTemplateResponsesAPITest extends E2ETestCase
                     }
                 }
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Responses API failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -63,7 +61,6 @@ class DriverTemplateResponsesAPITest extends E2ETestCase
                     ]);
 
                     $this->logTestStep('✅ GPT-4o with Responses API works');
-
                 } catch (\Exception $e2) {
                     $this->logTestStep('❌ GPT-4o also failed: ' . $e2->getMessage());
                     throw $e2;
@@ -84,7 +81,6 @@ class DriverTemplateResponsesAPITest extends E2ETestCase
                     }
                 }
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Responses API with tools failed: ' . $e->getMessage());
 

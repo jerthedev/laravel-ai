@@ -26,7 +26,7 @@ class DriverTemplateSuccessfulCallsTest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('drivertemplate')) {
+        if (! $this->hasE2ECredentials('drivertemplate')) {
             $this->markTestSkipped('DriverTemplate E2E credentials not available');
         }
 
@@ -54,7 +54,6 @@ class DriverTemplateSuccessfulCallsTest extends E2ETestCase
 
             $this->assertGreaterThan(0, $response->responseTimeMs, 'Response time should be greater than 0');
             $this->logTestStep('Response time: ' . round($response->responseTimeMs) . 'ms');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ API call failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -84,7 +83,6 @@ class DriverTemplateSuccessfulCallsTest extends E2ETestCase
                 $this->assertGreaterThan(0, $estimatedCost['input_tokens']);
                 $this->logTestStep('✅ Cost estimation logic is working (even without actual token data)');
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Cost calculation test failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -100,7 +98,6 @@ class DriverTemplateSuccessfulCallsTest extends E2ETestCase
 
         // TODO: Implement test
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Credential validation failed: ' . $e->getMessage());
             throw $e;
@@ -120,13 +117,12 @@ class DriverTemplateSuccessfulCallsTest extends E2ETestCase
                 $this->logTestStep('Completions working: ' . ($status['details']['completions_working'] ? 'Yes' : 'No'));
             }
 
-            if (!empty($status['issues'])) {
+            if (! empty($status['issues'])) {
                 $this->logTestStep('Issues found:');
                 foreach ($status['issues'] as $issue) {
                     $this->logTestStep('  - ' . $issue);
                 }
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Health status check failed: ' . $e->getMessage());
             throw $e;
@@ -141,7 +137,6 @@ class DriverTemplateSuccessfulCallsTest extends E2ETestCase
 
         // TODO: Implement test
             }
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Model listing failed: ' . $e->getMessage());
             throw $e;

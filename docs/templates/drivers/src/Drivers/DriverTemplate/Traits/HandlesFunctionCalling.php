@@ -2,6 +2,9 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate\Traits;
 
+use JTD\LaravelAI\Models\AIMessage;
+use JTD\LaravelAI\Models\AIResponse;
+
 /**
  * Handles Function Calling Features
  *
@@ -93,15 +96,18 @@ trait HandlesFunctionCalling
     /**
      * Execute function calls (placeholder for user implementation).
      */
-    public function executeFunctionCalls(array $functionCalls, ?callable $executor = null): array
+    public function executeFunctionCalls(array $functionCalls, callable $executor = null): array
     {
         // TODO: Implement executeFunctionCalls
     }
 
     /**
      * Create conversation with function calling workflow.
+     *
+     * @deprecated This method is deprecated and will be removed in the next version.
+     *             Use the new unified tool system with withTools() or allTools() instead.
      */
-    public function conversationWithFunctions($message, array $functions, ?callable $functionExecutor = null, array $options = []): JTD\LaravelAI\Models\AIResponse
+    public function conversationWithFunctions($message, array $functions, callable $functionExecutor = null, array $options = []): JTD\LaravelAI\Models\AIResponse
     {
         // TODO: Implement conversationWithFunctions
     }
@@ -129,4 +135,5 @@ trait HandlesFunctionCalling
     {
         // TODO: Implement getFunctionCallingExamples
     }
+
 }

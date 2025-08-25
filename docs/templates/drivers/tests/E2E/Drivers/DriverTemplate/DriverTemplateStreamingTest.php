@@ -26,7 +26,7 @@ class DriverTemplateStreamingTest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('drivertemplate')) {
+        if (! $this->hasE2ECredentials('drivertemplate')) {
             $this->markTestSkipped('DriverTemplate E2E credentials not available');
         }
 
@@ -57,21 +57,20 @@ class DriverTemplateStreamingTest extends E2ETestCase
 
             // Token usage may not be available in streaming mode
             if ($response->tokenUsage->totalTokens > 0) {
-                $this->logTestStep("Token usage available: " . $response->tokenUsage->totalTokens);
+                $this->logTestStep('Token usage available: ' . $response->tokenUsage->totalTokens);
             } else {
-                $this->logTestStep("⚠️  Token usage not available in streaming mode (this is normal)");
+                $this->logTestStep('⚠️  Token usage not available in streaming mode (this is normal)');
             }
 
-            $this->logTestStep("✅ Streaming completed successfully");
+            $this->logTestStep('✅ Streaming completed successfully');
             $this->logTestStep("Chunks received: {$chunkCount}");
-            $this->logTestStep("Total content length: " . strlen($totalContent));
-            $this->logTestStep("Final response: \"" . trim($response->content) . "\"");
-            $this->logTestStep("Token usage: " . $response->tokenUsage->totalTokens);
+            $this->logTestStep('Total content length: ' . strlen($totalContent));
+            $this->logTestStep('Final response: "' . trim($response->content) . '"');
+            $this->logTestStep('Token usage: ' . $response->tokenUsage->totalTokens);
 
             // Verify content consistency
             $this->assertEquals(trim($totalContent), trim($response->content),
                 'Streamed content should match final response content');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Streaming test failed: ' . $e->getMessage());
             $this->logTestStep('Exception type: ' . get_class($e));
@@ -100,18 +99,17 @@ class DriverTemplateStreamingTest extends E2ETestCase
             $this->assertInstanceOf(AIResponse::class, $response);
             $this->assertGreaterThan(5, $chunkCount, 'Longer response should have more chunks');
 
-            $this->logTestStep("✅ Longer streaming completed");
-            $this->logTestStep("Total time: " . round($totalTime) . "ms");
-            $this->logTestStep("Streaming duration: " . round($streamingDuration) . "ms");
+            $this->logTestStep('✅ Longer streaming completed');
+            $this->logTestStep('Total time: ' . round($totalTime) . 'ms');
+            $this->logTestStep('Streaming duration: ' . round($streamingDuration) . 'ms');
             $this->logTestStep("Chunks: {$chunkCount}");
-            $this->logTestStep("Average chunk interval: " . round($streamingDuration / max($chunkCount - 1, 1)) . "ms");
-            $this->logTestStep("Response length: " . strlen($response->content) . " chars");
+            $this->logTestStep('Average chunk interval: ' . round($streamingDuration / max($chunkCount - 1, 1)) . 'ms');
+            $this->logTestStep('Response length: ' . strlen($response->content) . ' chars');
 
             // Verify response quality
             $sentences = explode('.', trim($response->content));
-            $sentences = array_filter($sentences, fn($s) => !empty(trim($s)));
-            $this->logTestStep("Sentences detected: " . count($sentences));
-
+            $sentences = array_filter($sentences, fn ($s) => ! empty(trim($s)));
+            $this->logTestStep('Sentences detected: ' . count($sentences));
         } catch (\Exception $e) {
             $this->logTestStep('❌ Longer streaming test failed: ' . $e->getMessage());
             throw $e;
@@ -139,7 +137,6 @@ class DriverTemplateStreamingTest extends E2ETestCase
             $this->assertStringContainsString('blue', $responseContent,
                 'AI should remember the favorite color from context');
             $this->logTestStep('✅ Context was properly maintained');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Context streaming test failed: ' . $e->getMessage());
             throw $e;
@@ -159,9 +156,8 @@ class DriverTemplateStreamingTest extends E2ETestCase
                 $this->assertNotEmpty($response->content);
                 $this->assertGreaterThan(0, count($chunks));
 
-                $this->logTestStep("✅ {$name}: \"" . trim($response->content) . "\"");
-                $this->logTestStep("   Chunks: " . count($chunks) . ", Length: " . strlen($response->content));
-
+                $this->logTestStep("✅ {$name}: \"" . trim($response->content) . '"');
+                $this->logTestStep('   Chunks: ' . count($chunks) . ', Length: ' . strlen($response->content));
             } catch (\Exception $e) {
                 $this->logTestStep("❌ {$name} failed: " . $e->getMessage());
                 throw $e;
@@ -179,7 +175,6 @@ class DriverTemplateStreamingTest extends E2ETestCase
             });
 
             $this->fail('Expected exception for invalid model');
-
         } catch (\Exception $e) {
             $this->logTestStep('✅ Invalid model properly rejected');
             $this->logTestStep('Error: ' . $e->getMessage());
@@ -200,7 +195,6 @@ class DriverTemplateStreamingTest extends E2ETestCase
             $this->logTestStep('✅ Low token limit handled gracefully');
             $this->logTestStep('Response: "' . trim($response->content) . '"');
             $this->logTestStep('Chunks: ' . count($chunks));
-
         } catch (\Exception $e) {
             $this->logTestStep('⚠️  Low token limit caused error (acceptable): ' . $e->getMessage());
         }

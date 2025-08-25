@@ -27,7 +27,7 @@ class DriverTemplateQuotaErrorTest extends E2ETestCase
         parent::setUp();
 
         // Skip if no credentials available
-        if (!$this->hasE2ECredentials('drivertemplate')) {
+        if (! $this->hasE2ECredentials('drivertemplate')) {
             $this->markTestSkipped('DriverTemplate E2E credentials not available');
         }
 
@@ -49,7 +49,6 @@ class DriverTemplateQuotaErrorTest extends E2ETestCase
     {
 
         // TODO: Implement test
-
         } catch (DriverTemplateQuotaExceededException $e) {
             // This is what we expect with $0 balance
             $this->logTestStep('✅ Caught expected DriverTemplateQuotaExceededException');
@@ -79,13 +78,11 @@ class DriverTemplateQuotaErrorTest extends E2ETestCase
                 }
                 $this->assertNotEmpty($suggestions, 'Should provide resolution suggestions');
             }
-
         } catch (DriverTemplateInvalidCredentialsException $e) {
             // This might happen if credentials are invalid
             $this->logTestStep('❌ Caught DriverTemplateInvalidCredentialsException instead');
             $this->logTestStep('Error: ' . $e->getMessage());
             $this->fail('Credentials appear to be invalid. Please check the credentials file.');
-
         } catch (\Exception $e) {
             // Any other exception is unexpected
             $this->logTestStep('❌ Caught unexpected exception: ' . get_class($e));
@@ -102,7 +99,6 @@ class DriverTemplateQuotaErrorTest extends E2ETestCase
 
         // TODO: Implement test
             }
-
         } catch (DriverTemplateQuotaExceededException $e) {
             // Some endpoints might be restricted with $0 balance
             $this->logTestStep('⚠️  Model list also restricted due to quota');
@@ -110,7 +106,6 @@ class DriverTemplateQuotaErrorTest extends E2ETestCase
 
             // This is acceptable - some accounts restrict all API access with $0 balance
             $this->assertTrue(true, 'Model list restriction is acceptable with $0 balance');
-
         } catch (\Exception $e) {
             $this->logTestStep('❌ Unexpected error getting models: ' . $e->getMessage());
             throw $e;
@@ -124,7 +119,6 @@ class DriverTemplateQuotaErrorTest extends E2ETestCase
     {
 
         // TODO: Implement test
-
         } catch (DriverTemplateQuotaExceededException $e) {
             $originalMessage = $e->getMessage();
             $this->logTestStep('Original Error Message: ' . $originalMessage);
@@ -142,7 +136,6 @@ class DriverTemplateQuotaErrorTest extends E2ETestCase
             $this->assertTrue($hasHelpfulInfo, 'Error message should contain billing/quota related terms');
 
             $this->logTestStep('✅ Error message contains helpful billing/quota information');
-
         } catch (\Exception $e) {
             $this->logTestStep('Caught different exception: ' . get_class($e));
             $this->logTestStep('Message: ' . $e->getMessage());

@@ -19,7 +19,9 @@ use PHPUnit\Framework\Attributes\Test;
 class DriverTemplateDriverPerformanceTest extends TestCase
 {
     private DriverTemplateDriver $driver;
+
     private PerformanceBenchmark $benchmark;
+
     private array $performanceMetrics = [];
 
     protected function setUp(): void
@@ -29,13 +31,13 @@ class DriverTemplateDriverPerformanceTest extends TestCase
         // Load credentials from E2E credentials file
         $credentialsPath = __DIR__ . '/../credentials/e2e-credentials.json';
 
-        if (!file_exists($credentialsPath)) {
+        if (! file_exists($credentialsPath)) {
             $this->markTestSkipped('E2E credentials file not found for performance testing');
         }
 
         $credentials = json_decode(file_get_contents($credentialsPath), true);
 
-        if (empty($credentials['drivertemplate']['api_key']) || !$credentials['drivertemplate']['enabled']) {
+        if (empty($credentials['drivertemplate']['api_key']) || ! $credentials['drivertemplate']['enabled']) {
             $this->markTestSkipped('DriverTemplate credentials not configured or disabled for performance testing');
         }
 
@@ -46,7 +48,7 @@ class DriverTemplateDriverPerformanceTest extends TestCase
             'timeout' => 60, // Longer timeout for performance tests
         ]);
 
-        $this->benchmark = new PerformanceBenchmark();
+        $this->benchmark = new PerformanceBenchmark;
     }
 
     /**
@@ -62,7 +64,7 @@ class DriverTemplateDriverPerformanceTest extends TestCase
     protected function tearDown(): void
     {
         // Output performance summary
-        if (!empty($this->performanceMetrics)) {
+        if (! empty($this->performanceMetrics)) {
             $this->outputPerformanceSummary();
         }
 
@@ -78,7 +80,7 @@ class DriverTemplateDriverPerformanceTest extends TestCase
 
         $this->logTestStep("✅ Response time: {$metrics['response_time']}ms");
         $this->logTestStep("📊 Memory usage: {$metrics['memory_usage']}MB");
-        $this->logTestStep("🔤 Response length: " . (isset($metrics['response_length']) ? $metrics['response_length'] : 'N/A') . " chars");
+        $this->logTestStep('🔤 Response length: ' . (isset($metrics['response_length']) ? $metrics['response_length'] : 'N/A') . ' chars');
 
         // Performance assertions
         $this->assertLessThan(5000, $metrics['response_time'], 'Basic message should respond within 5 seconds');
@@ -158,7 +160,7 @@ class DriverTemplateDriverPerformanceTest extends TestCase
         $this->logTestStep("✅ Total time: {$totalTime}ms");
         $this->logTestStep("📊 Memory usage: {$memoryUsage}MB");
         $this->logTestStep("⚡ Throughput: {$throughput} requests/second");
-        $this->logTestStep("📈 Average per request: " . ($totalTime / $concurrentRequests) . "ms");
+        $this->logTestStep('📈 Average per request: ' . ($totalTime / $concurrentRequests) . 'ms');
 
         $this->performanceMetrics['concurrent_throughput'] = [
             'total_time' => $totalTime,
@@ -265,7 +267,7 @@ class DriverTemplateDriverPerformanceTest extends TestCase
         $responseTimes = array_column($this->performanceMetrics, 'response_time');
         $memoryUsages = array_column($this->performanceMetrics, 'memory_usage');
 
-        if (!empty($responseTimes)) {
+        if (! empty($responseTimes)) {
             $avgResponseTime = array_sum($responseTimes) / count($responseTimes);
             $maxResponseTime = max($responseTimes);
             $avgMemoryUsage = array_sum($memoryUsages) / count($memoryUsages);
@@ -348,7 +350,7 @@ class DriverTemplateDriverPerformanceTest extends TestCase
         // TODO: Implement test
             });
 
-            $this->logTestStep("  Message " . ($index + 1) . " ({$metrics['response_time']}ms): {$metrics['result_summary']['value']} tokens");
+            $this->logTestStep('  Message ' . ($index + 1) . " ({$metrics['response_time']}ms): {$metrics['result_summary']['value']} tokens");
         }
 
         // Get the last metrics for assertions

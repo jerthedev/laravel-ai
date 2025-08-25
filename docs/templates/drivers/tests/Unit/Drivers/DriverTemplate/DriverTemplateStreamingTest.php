@@ -22,6 +22,7 @@ use PHPUnit\Framework\Attributes\Test;
 class DriverTemplateStreamingTest extends TestCase
 {
     private DriverTemplateDriver $driver;
+
     private $mockClient;
 
     protected function setUp(): void
@@ -173,13 +174,13 @@ class DriverTemplateStreamingTest extends TestCase
         ?array $usage = null,
         string $model = 'default-model-3.5-turbo'
     ) {
-        $chunk = new \stdClass();
+        $chunk = new \stdClass;
         $chunk->model = $model;
 
-        $choice = new \stdClass();
+        $choice = new \stdClass;
         $choice->finishReason = $isLast ? ($finishReason ?? 'stop') : null;
 
-        $choice->delta = new \stdClass();
+        $choice->delta = new \stdClass;
         $choice->delta->content = $content;
         $choice->delta->role = 'assistant';
 
@@ -192,7 +193,7 @@ class DriverTemplateStreamingTest extends TestCase
         $chunk->choices = [$choice];
 
         if ($usage) {
-            $chunk->usage = new \stdClass();
+            $chunk->usage = new \stdClass;
             $chunk->usage->promptTokens = $usage['prompt_tokens'] ?? 0;
             $chunk->usage->completionTokens = $usage['completion_tokens'] ?? 0;
             $chunk->usage->totalTokens = $usage['total_tokens'] ?? 0;

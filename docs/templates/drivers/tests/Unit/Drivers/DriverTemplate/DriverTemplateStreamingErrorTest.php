@@ -25,6 +25,7 @@ use PHPUnit\Framework\Attributes\Test;
 class DriverTemplateStreamingErrorTest extends TestCase
 {
     private DriverTemplateDriver $driver;
+
     private $mockClient;
 
     protected function setUp(): void
@@ -134,7 +135,7 @@ class DriverTemplateStreamingErrorTest extends TestCase
      */
     private function createMalformedChunk(string $type)
     {
-        $chunk = new \stdClass();
+        $chunk = new \stdClass;
 
         switch ($type) {
             case 'missing_choices':
@@ -144,7 +145,7 @@ class DriverTemplateStreamingErrorTest extends TestCase
 
             case 'missing_delta':
                 $chunk->model = 'default-model-3.5-turbo';
-                $chunk->choices = [new \stdClass()];
+                $chunk->choices = [new \stdClass];
                 // Missing delta in choice
                 break;
 
@@ -161,13 +162,13 @@ class DriverTemplateStreamingErrorTest extends TestCase
      */
     private function createValidChunk(string $content, bool $isLast = false, ?string $finishReason = null)
     {
-        $chunk = new \stdClass();
+        $chunk = new \stdClass;
         $chunk->model = 'default-model-3.5-turbo';
 
-        $choice = new \stdClass();
+        $choice = new \stdClass;
         $choice->finishReason = $isLast ? ($finishReason ?? 'stop') : null;
 
-        $choice->delta = new \stdClass();
+        $choice->delta = new \stdClass;
         $choice->delta->content = $content;
         $choice->delta->role = 'assistant';
 
@@ -181,16 +182,16 @@ class DriverTemplateStreamingErrorTest extends TestCase
      */
     private function createChunkWithInvalidJson()
     {
-        $chunk = new \stdClass();
+        $chunk = new \stdClass;
         $chunk->model = 'default-model-3.5-turbo';
 
-        $choice = new \stdClass();
+        $choice = new \stdClass;
         $choice->finishReason = null;
 
-        $choice->delta = new \stdClass();
+        $choice->delta = new \stdClass;
         $choice->delta->content = '';
         $choice->delta->role = 'assistant';
-        $choice->delta->functionCall = new \stdClass();
+        $choice->delta->functionCall = new \stdClass;
         $choice->delta->functionCall->name = 'test_function';
         $choice->delta->functionCall->arguments = '{"invalid": json}'; // Invalid JSON
 

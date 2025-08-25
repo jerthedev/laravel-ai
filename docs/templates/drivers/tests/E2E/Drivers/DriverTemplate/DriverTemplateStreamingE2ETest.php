@@ -21,6 +21,7 @@ use PHPUnit\Framework\Attributes\Test;
 class DriverTemplateStreamingE2ETest extends TestCase
 {
     private DriverTemplateDriver $driver;
+
     private array $credentials;
 
     protected function setUp(): void
@@ -30,13 +31,13 @@ class DriverTemplateStreamingE2ETest extends TestCase
         // Load credentials from E2E credentials file
         $credentialsPath = __DIR__ . '/../credentials/e2e-credentials.json';
 
-        if (!file_exists($credentialsPath)) {
+        if (! file_exists($credentialsPath)) {
             $this->markTestSkipped('E2E credentials file not found for streaming tests');
         }
 
         $this->credentials = json_decode(file_get_contents($credentialsPath), true);
 
-        if (empty($this->credentials['drivertemplate']['api_key']) || !$this->credentials['drivertemplate']['enabled']) {
+        if (empty($this->credentials['drivertemplate']['api_key']) || ! $this->credentials['drivertemplate']['enabled']) {
             $this->markTestSkipped('DriverTemplate credentials not configured or disabled for streaming E2E tests');
         }
 
@@ -57,11 +58,11 @@ class DriverTemplateStreamingE2ETest extends TestCase
 
         $responseTime = (microtime(true) - $startTime) * 1000;
 
-        $this->logTestStep("✅ Received {count} chunks in {time}ms", [
+        $this->logTestStep('✅ Received {count} chunks in {time}ms', [
             'count' => count($chunks),
             'time' => round($responseTime),
         ]);
-        $this->logTestStep("📝 Full content: " . substr($fullContent, 0, 100) . "...");
+        $this->logTestStep('📝 Full content: ' . substr($fullContent, 0, 100) . '...');
 
         // Assertions
         $this->assertGreaterThan(0, count($chunks), 'Should receive at least one chunk');
@@ -88,10 +89,10 @@ class DriverTemplateStreamingE2ETest extends TestCase
 
         $totalTime = (microtime(true) - $startTime) * 1000;
 
-        $this->logTestStep("✅ First chunk: {time}ms", ['time' => round($firstChunkTime)]);
-        $this->logTestStep("✅ Total time: {time}ms", ['time' => round($totalTime)]);
-        $this->logTestStep("📦 Total chunks: {count}", ['count' => count($chunks)]);
-        $this->logTestStep("📝 Content length: {length} chars", ['length' => strlen($fullContent)]);
+        $this->logTestStep('✅ First chunk: {time}ms', ['time' => round($firstChunkTime)]);
+        $this->logTestStep('✅ Total time: {time}ms', ['time' => round($totalTime)]);
+        $this->logTestStep('📦 Total chunks: {count}', ['count' => count($chunks)]);
+        $this->logTestStep('📝 Content length: {length} chars', ['length' => strlen($fullContent)]);
 
         // Assertions
         $this->assertGreaterThan(5, count($chunks), 'Should receive multiple chunks for longer content');
@@ -114,9 +115,9 @@ class DriverTemplateStreamingE2ETest extends TestCase
 
         $responseTime = (microtime(true) - $startTime) * 1000;
 
-        $this->logTestStep("✅ Response time: {time}ms", ['time' => round($responseTime)]);
-        $this->logTestStep("📦 Total chunks: {count}", ['count' => count($chunks)]);
-        $this->logTestStep("🔧 Function call detected: " . ($hasFunctionCall ? 'Yes' : 'No'));
+        $this->logTestStep('✅ Response time: {time}ms', ['time' => round($responseTime)]);
+        $this->logTestStep('📦 Total chunks: {count}', ['count' => count($chunks)]);
+        $this->logTestStep('🔧 Function call detected: ' . ($hasFunctionCall ? 'Yes' : 'No'));
 
         // Assertions
         $this->assertGreaterThan(0, count($chunks), 'Should receive chunks');
@@ -142,9 +143,8 @@ class DriverTemplateStreamingE2ETest extends TestCase
             }
 
             $this->fail('Should have thrown an exception for invalid model');
-
         } catch (\Exception $e) {
-            $this->logTestStep("✅ Error handled: " . $e->getMessage());
+            $this->logTestStep('✅ Error handled: ' . $e->getMessage());
             $this->assertStringContainsIgnoringCase($e->getMessage(), 'model');
         }
     }
@@ -161,11 +161,11 @@ class DriverTemplateStreamingE2ETest extends TestCase
         $maxChunkInterval = max($chunkTimes);
         $chunksPerSecond = count($chunks) / ($totalTime / 1000);
 
-        $this->logTestStep("✅ Total time: {time}ms", ['time' => round($totalTime)]);
-        $this->logTestStep("📦 Total chunks: {count}", ['count' => count($chunks)]);
-        $this->logTestStep("⚡ Avg chunk interval: {time}ms", ['time' => round($avgChunkInterval)]);
-        $this->logTestStep("⏱️  Max chunk interval: {time}ms", ['time' => round($maxChunkInterval)]);
-        $this->logTestStep("📈 Chunks per second: {rate}", ['rate' => round($chunksPerSecond, 2)]);
+        $this->logTestStep('✅ Total time: {time}ms', ['time' => round($totalTime)]);
+        $this->logTestStep('📦 Total chunks: {count}', ['count' => count($chunks)]);
+        $this->logTestStep('⚡ Avg chunk interval: {time}ms', ['time' => round($avgChunkInterval)]);
+        $this->logTestStep('⏱️  Max chunk interval: {time}ms', ['time' => round($maxChunkInterval)]);
+        $this->logTestStep('📈 Chunks per second: {rate}', ['rate' => round($chunksPerSecond, 2)]);
 
         // Performance assertions
         $this->assertLessThan(15000, $totalTime, 'Should complete within 15 seconds');
@@ -181,8 +181,8 @@ class DriverTemplateStreamingE2ETest extends TestCase
         // TODO: Implement test
         }
 
-        $this->logTestStep("✅ Processed {count} chunks with preserved metadata", [
-            'count' => count($chunks)
+        $this->logTestStep('✅ Processed {count} chunks with preserved metadata', [
+            'count' => count($chunks),
         ]);
 
         $this->assertGreaterThan(0, count($chunks), 'Should receive chunks');
@@ -190,8 +190,8 @@ class DriverTemplateStreamingE2ETest extends TestCase
         // Check final chunk has token usage (if available)
         $finalChunk = end($chunks);
         if ($finalChunk->tokenUsage->totalTokens > 0) {
-            $this->logTestStep("📊 Token usage: {tokens} total", [
-                'tokens' => $finalChunk->tokenUsage->totalTokens
+            $this->logTestStep('📊 Token usage: {tokens} total', [
+                'tokens' => $finalChunk->tokenUsage->totalTokens,
             ]);
             $this->assertGreaterThan(0, $finalChunk->tokenUsage->inputTokens);
         }

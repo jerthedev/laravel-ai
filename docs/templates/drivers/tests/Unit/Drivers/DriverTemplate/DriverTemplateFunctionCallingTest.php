@@ -22,6 +22,7 @@ use PHPUnit\Framework\Attributes\Test;
 class DriverTemplateFunctionCallingTest extends TestCase
 {
     private DriverTemplateDriver $driver;
+
     private $mockClient;
 
     protected function setUp(): void
@@ -112,7 +113,7 @@ class DriverTemplateFunctionCallingTest extends TestCase
         // Verify tool call structure exists (flexible for different formats)
         $this->assertTrue(
             (is_array($response->toolCalls) && count($response->toolCalls) > 0) ||
-            (is_object($response->toolCalls) && !empty((array)$response->toolCalls))
+            (is_object($response->toolCalls) && ! empty((array) $response->toolCalls))
         );
     }
 
@@ -174,10 +175,12 @@ class DriverTemplateFunctionCallingTest extends TestCase
 
         // TODO: Implement test
             }
+
             return 'Function executed successfully';
         };
 
         $message = AIMessage::user('What time is it?');
+        // Note: Testing deprecated conversationWithFunctions method - will be removed in next version
         $response = $this->driver->conversationWithFunctions($message, $functions, $executor);
 
         $this->assertInstanceOf(AIResponse::class, $response);
@@ -197,23 +200,23 @@ class DriverTemplateFunctionCallingTest extends TestCase
      */
     private function createMockFunctionCallResponse(string $name = 'get_weather', string $arguments = '{"location": "Paris"}'): object
     {
-        $response = new \stdClass();
+        $response = new \stdClass;
         $response->model = 'default-model-3.5-turbo';
 
-        $choice = new \stdClass();
+        $choice = new \stdClass;
         $choice->finishReason = 'function_call';
 
-        $message = new \stdClass();
+        $message = new \stdClass;
         $message->role = 'assistant';
         $message->content = null;
-        $message->functionCall = new \stdClass();
+        $message->functionCall = new \stdClass;
         $message->functionCall->name = $name;
         $message->functionCall->arguments = $arguments;
 
         $choice->message = $message;
         $response->choices = [$choice];
 
-        $response->usage = new \stdClass();
+        $response->usage = new \stdClass;
         $response->usage->promptTokens = 20;
         $response->usage->completionTokens = 10;
         $response->usage->totalTokens = 30;
@@ -226,20 +229,20 @@ class DriverTemplateFunctionCallingTest extends TestCase
      */
     private function createMockToolCallResponse(): object
     {
-        $response = new \stdClass();
+        $response = new \stdClass;
         $response->model = 'default-model-3.5-turbo';
 
-        $choice = new \stdClass();
+        $choice = new \stdClass;
         $choice->finishReason = 'tool_calls';
 
-        $message = new \stdClass();
+        $message = new \stdClass;
         $message->role = 'assistant';
         $message->content = null;
 
-        $toolCall = new \stdClass();
+        $toolCall = new \stdClass;
         $toolCall->id = 'call_123456';
         $toolCall->type = 'function';
-        $toolCall->function = new \stdClass();
+        $toolCall->function = new \stdClass;
         $toolCall->function->name = 'calculate';
         $toolCall->function->arguments = '{"expression": "2 + 2"}';
 
@@ -247,7 +250,7 @@ class DriverTemplateFunctionCallingTest extends TestCase
         $choice->message = $message;
         $response->choices = [$choice];
 
-        $response->usage = new \stdClass();
+        $response->usage = new \stdClass;
         $response->usage->promptTokens = 25;
         $response->usage->completionTokens = 15;
         $response->usage->totalTokens = 40;
@@ -260,20 +263,20 @@ class DriverTemplateFunctionCallingTest extends TestCase
      */
     private function createMockTextResponse(string $content): object
     {
-        $response = new \stdClass();
+        $response = new \stdClass;
         $response->model = 'default-model-3.5-turbo';
 
-        $choice = new \stdClass();
+        $choice = new \stdClass;
         $choice->finishReason = 'stop';
 
-        $message = new \stdClass();
+        $message = new \stdClass;
         $message->role = 'assistant';
         $message->content = $content;
 
         $choice->message = $message;
         $response->choices = [$choice];
 
-        $response->usage = new \stdClass();
+        $response->usage = new \stdClass;
         $response->usage->promptTokens = 30;
         $response->usage->completionTokens = 20;
         $response->usage->totalTokens = 50;

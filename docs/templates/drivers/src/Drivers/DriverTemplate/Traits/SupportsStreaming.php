@@ -2,6 +2,10 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate\Traits;
 
+use JTD\LaravelAI\Models\AIMessage;
+use JTD\LaravelAI\Models\AIResponse;
+use JTD\LaravelAI\Models\TokenUsage;
+
 /**
  * Supports Streaming Responses
  *
@@ -21,7 +25,7 @@ trait SupportsStreaming
     /**
      * Send a streaming message with callback support.
      */
-    public function sendStreamingMessageWithCallback($message, array $options = [], ?callable $callback = null): JTD\LaravelAI\Models\AIResponse
+    public function sendStreamingMessageWithCallback($message, array $options = [], callable $callback = null): JTD\LaravelAI\Models\AIResponse
     {
         // TODO: Implement sendStreamingMessageWithCallback
     }
@@ -61,7 +65,7 @@ trait SupportsStreaming
     /**
      * Stream with progress tracking.
      */
-    public function streamWithProgress($message, array $options = [], ?callable $progressCallback = null): JTD\LaravelAI\Models\AIResponse
+    public function streamWithProgress($message, array $options = [], callable $progressCallback = null): JTD\LaravelAI\Models\AIResponse
     {
         // TODO: Implement streamWithProgress
     }
@@ -77,7 +81,7 @@ trait SupportsStreaming
     /**
      * Stream with content filtering.
      */
-    public function streamWithFilter($message, array $options = [], ?callable $filter = null): JTD\LaravelAI\Models\AIResponse
+    public function streamWithFilter($message, array $options = [], callable $filter = null): JTD\LaravelAI\Models\AIResponse
     {
         // TODO: Implement streamWithFilter
     }
@@ -89,4 +93,5 @@ trait SupportsStreaming
     {
         // TODO: Implement getStreamingStats
     }
+
 }
