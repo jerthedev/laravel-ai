@@ -89,6 +89,9 @@ class AIManager
     {
         $provider = $this->driver(); // Uses AI_DEFAULT_PROVIDER config
 
+        // Process tool options if present
+        $options = $this->processToolOptions($options);
+
         // Ensure user_id is set if not already provided
         if (!isset($message->user_id)) {
             $message->user_id = auth()->id() ?? 0;
@@ -118,6 +121,9 @@ class AIManager
     public function sendStreamingMessage(AIMessage $message, array $options = []): \Generator
     {
         $provider = $this->driver(); // Uses AI_DEFAULT_PROVIDER config
+
+        // Process tool options if present
+        $options = $this->processToolOptions($options);
 
         // Ensure user_id is set if not already provided
         if (!isset($message->user_id)) {
@@ -298,5 +304,53 @@ class AIManager
         } catch (\Exception $e) {
             return [];
         }
+    }
+
+    /**
+     * Process tool options and resolve tool definitions.
+     *
+     * @param  array  $options  Request options
+     * @return array  Processed options with resolved tools
+     */
+    protected function processToolOptions(array $options): array
+    {
+        // Check if withTools or allTools options are present
+        if (!isset($options['withTools']) && !isset($options['allTools'])) {
+            return $options;
+        }
+
+        $toolRegistry = $this->app->make('laravel-ai.tools.registry');
+
+        if (isset($options['allTools']) && $options['allTools'] === true) {
+            // Enable all available tools
+            $allTools = $toolRegistry->getAllTools();
+            $toolNames = array_keys($allTools);
+
+            $options['withTools'] = $toolNames;
+            $options['resolved_tools'] = $allTools;
+        } elseif (isset($options['withTools']) && is_array($options['withTools'])) {
+            // Validate specific tool names
+            $toolNames = $options['withTools'];
+            $missingTools = $toolRegistry->validateToolNames($toolNames);
+
+            if (!empty($missingTools)) {
+                throw new \InvalidArgumentException(
+                    'Unknown tools: ' . implode(', ', $missingTools)
+                );
+            }
+
+            // Resolve tool definitions
+            $resolvedTools = [];
+            foreach ($toolNames as $toolName) {
+                $tool = $toolRegistry->getTool($toolName);
+                if ($tool) {
+                    $resolvedTools[$toolName] = $tool;
+                }
+            }
+
+            $options['resolved_tools'] = $resolvedTools;
+        }
+
+        return $options;
     }
 }

@@ -156,33 +156,25 @@ echo "Output tokens: " . $response->usage['output_tokens'];
 echo "Total cost: $" . $response->cost;
 ```
 
-## Function Calling
+## Tool Integration
 
-### Defining Functions
+### Using Tools with Gemini
 
 ```php
 use JTD\LaravelAI\Facades\AI;
 
-$functions = [
-    [
-        'name' => 'get_weather',
-        'description' => 'Get current weather for a location',
-        'parameters' => [
-            'type' => 'object',
-            'properties' => [
-                'location' => [
-                    'type' => 'string',
-                    'description' => 'City name',
-                ],
-            ],
-            'required' => ['location'],
-        ],
-    ],
-];
+// Use specific tools by name
+$response = AI::conversation()
+    ->provider('gemini')
+    ->withTools(['get_weather', 'calculator'])
+    ->message('What\'s the weather in New York and calculate 15% of 250?')
+    ->send();
 
-$response = AI::provider('gemini')
-    ->functions($functions)
-    ->message('What\'s the weather in New York?')
+// Use all available tools
+$response = AI::conversation()
+    ->provider('gemini')
+    ->allTools()
+    ->message('Help me with any task you can')
     ->send();
 ```
 

@@ -87,6 +87,9 @@ abstract class AbstractAIProvider implements AIProviderInterface
         $messages = is_array($message) ? $message : [$message];
         $mergedOptions = array_merge($this->options, $options);
 
+        // Process tool options if present
+        $mergedOptions = $this->processToolOptions($mergedOptions);
+
         return $this->executeWithRetry(function () use ($messages, $mergedOptions) {
             $this->checkRateLimit();
 
@@ -149,6 +152,9 @@ abstract class AbstractAIProvider implements AIProviderInterface
                 ));
             }
 
+            // Process tool calls if present in response
+            $response = $this->processToolCallsInResponse($response, $mergedOptions, $primaryMessage);
+
             return $response;
         });
     }
@@ -160,6 +166,9 @@ abstract class AbstractAIProvider implements AIProviderInterface
     {
         $messages = is_array($message) ? $message : [$message];
         $mergedOptions = array_merge($this->options, $options);
+
+        // Process tool options if present
+        $mergedOptions = $this->processToolOptions($mergedOptions);
 
         $this->checkRateLimit();
 
@@ -504,4 +513,209 @@ abstract class AbstractAIProvider implements AIProviderInterface
      * Get cost rates for a specific model.
      */
     abstract protected function getCostRates(string $model): array;
+
+    /**
+     * Process tool options and format them for the provider.
+     *
+     * @param  array  $options  Request options
+     * @return array  Processed options with formatted tools
+     */
+    protected function processToolOptions(array $options): array
+    {
+        // Check if withTools or allTools options are present
+        if (!isset($options['withTools']) && !isset($options['allTools']) && !isset($options['resolved_tools'])) {
+            return $options;
+        }
+
+        // If tools are already resolved (from ConversationBuilder), use them
+        if (isset($options['resolved_tools']) && !empty($options['resolved_tools'])) {
+            // Format tools for this provider's API
+            $formattedTools = $this->formatToolsForAPI($options['resolved_tools']);
+
+            if (!empty($formattedTools)) {
+                $options['tools'] = $formattedTools;
+            }
+
+            return $options;
+        }
+
+        // Handle direct tool options (from sendMessage calls)
+        $toolRegistry = app('laravel-ai.tools.registry');
+
+        if (isset($options['allTools']) && $options['allTools'] === true) {
+            // Enable all available tools
+            $allTools = $toolRegistry->getAllTools();
+            $toolNames = array_keys($allTools);
+
+            $options['withTools'] = $toolNames;
+            $options['resolved_tools'] = $allTools;
+        } elseif (isset($options['withTools']) && is_array($options['withTools'])) {
+            // Validate specific tool names
+            $toolNames = $options['withTools'];
+            $missingTools = $toolRegistry->validateToolNames($toolNames);
+
+            if (!empty($missingTools)) {
+                throw new \InvalidArgumentException(
+                    'Unknown tools: ' . implode(', ', $missingTools)
+                );
+            }
+
+            // Resolve tool definitions
+            $resolvedTools = [];
+            foreach ($toolNames as $toolName) {
+                $tool = $toolRegistry->getTool($toolName);
+                if ($tool) {
+                    $resolvedTools[$toolName] = $tool;
+                }
+            }
+
+            $options['resolved_tools'] = $resolvedTools;
+        }
+
+        // Format tools for this provider's API if we have resolved tools
+        if (isset($options['resolved_tools']) && !empty($options['resolved_tools'])) {
+            $formattedTools = $this->formatToolsForAPI($options['resolved_tools']);
+
+            if (!empty($formattedTools)) {
+                $options['tools'] = $formattedTools;
+            }
+        }
+
+        return $options;
+    }
+
+    /**
+     * Format resolved tools for this provider's API.
+     * Override this method in concrete providers to format tools appropriately.
+     *
+     * @param  array  $resolvedTools  Resolved tool definitions
+     * @return array  Formatted tools for API
+     */
+    protected function formatToolsForAPI(array $resolvedTools): array
+    {
+        // Default implementation - providers should override this
+        $formattedTools = [];
+
+        foreach ($resolvedTools as $toolName => $tool) {
+            $formattedTools[] = [
+                'type' => 'function',
+                'function' => [
+                    'name' => $tool['name'] ?? $toolName,
+                    'description' => $tool['description'] ?? '',
+                    'parameters' => $tool['parameters'] ?? [
+                        'type' => 'object',
+                        'properties' => [],
+                    ],
+                ],
+            ];
+        }
+
+        return $formattedTools;
+    }
+
+    /**
+     * Process tool calls in AI response and route to execution.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
+     * @param  array  $options  Request options
+     * @param  \JTD\LaravelAI\Models\AIMessage|null  $message  Original message
+     * @return \JTD\LaravelAI\Models\AIResponse  Response with tool execution results
+     */
+    protected function processToolCallsInResponse($response, array $options, $message = null)
+    {
+        // Check if response contains tool calls
+        if (!$this->hasToolCalls($response)) {
+            return $response;
+        }
+
+        // Extract tool calls from response
+        $toolCalls = $this->extractToolCalls($response);
+
+        if (empty($toolCalls)) {
+            return $response;
+        }
+
+        // Prepare context for tool execution
+        $context = [
+            'user_id' => $message->user_id ?? 0,
+            'conversation_id' => $message->conversation_id ?? null,
+            'message_id' => $message->id ?? null,
+            'provider' => $this->getName(),
+            'model' => $response->model ?? $this->getCurrentModel(),
+        ];
+
+        // Execute tools via UnifiedToolExecutor
+        try {
+            $toolExecutor = app('laravel-ai.tools.executor');
+            $executionResults = $toolExecutor->processToolCalls($toolCalls, $context);
+
+            // Add execution results to response metadata
+            $response->metadata = array_merge($response->metadata ?? [], [
+                'tool_execution_results' => $executionResults,
+                'tools_executed' => count($toolCalls),
+            ]);
+        } catch (\Exception $e) {
+            // Log error but don't fail the response
+            \Log::error('Tool execution failed in provider', [
+                'provider' => $this->getName(),
+                'error' => $e->getMessage(),
+                'tool_calls' => $toolCalls,
+            ]);
+
+            $response->metadata = array_merge($response->metadata ?? [], [
+                'tool_execution_error' => $e->getMessage(),
+                'tools_failed' => count($toolCalls),
+            ]);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Check if response contains tool calls.
+     * Override this method in concrete providers.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
+     * @return bool  True if response has tool calls
+     */
+    protected function hasToolCalls($response): bool
+    {
+        return !empty($response->toolCalls) || !empty($response->functionCalls);
+    }
+
+    /**
+     * Extract tool calls from response.
+     * Override this method in concrete providers.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
+     * @return array  Extracted tool calls
+     */
+    protected function extractToolCalls($response): array
+    {
+        $calls = [];
+
+        // Handle legacy function_call format
+        if (!empty($response->functionCalls)) {
+            $calls[] = [
+                'name' => $response->functionCalls['name'] ?? '',
+                'arguments' => $response->functionCalls['arguments'] ?? [],
+                'id' => null,
+            ];
+        }
+
+        // Handle new tool_calls format
+        if (!empty($response->toolCalls)) {
+            foreach ($response->toolCalls as $toolCall) {
+                if (($toolCall['type'] ?? '') === 'function') {
+                    $calls[] = [
+                        'name' => $toolCall['function']['name'] ?? '',
+                        'arguments' => $toolCall['function']['arguments'] ?? [],
+                        'id' => $toolCall['id'] ?? null,
+                    ];
+                }
+            }
+        }
+
+        return $calls;
+    }
 }

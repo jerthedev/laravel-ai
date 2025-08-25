@@ -319,25 +319,23 @@ $response = AI::conversation()
 
 ## Provider-Specific Features
 
-### OpenAI Function Calling
+### Tool Integration
 
 ```php
+// Use specific tools by name
 $response = AI::conversation()
     ->provider('openai')
     ->model('gpt-4')
-    ->functions([
-        [
-            'name' => 'get_weather',
-            'description' => 'Get weather information',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'location' => ['type' => 'string'],
-                ],
-            ],
-        ],
-    ])
-    ->message('What\'s the weather in New York?')
+    ->withTools(['get_weather', 'calculator'])
+    ->message('What\'s the weather in New York and calculate 15% of 250?')
+    ->send();
+
+// Use all available tools
+$response = AI::conversation()
+    ->provider('openai')
+    ->model('gpt-4')
+    ->allTools()
+    ->message('Help me with any task you can')
     ->send();
 ```
 

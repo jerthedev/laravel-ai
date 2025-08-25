@@ -231,25 +231,7 @@ class ConversationBuilder implements ConversationBuilderInterface
         return $this;
     }
 
-    /**
-     * Enable function calling with provided functions.
-     */
-    public function functions(array $functions): self
-    {
-        $this->options['functions'] = $functions;
 
-        return $this;
-    }
-
-    /**
-     * Enable tool calling with provided tools.
-     */
-    public function tools(array $tools): self
-    {
-        $this->options['tools'] = $tools;
-
-        return $this;
-    }
 
     /**
      * Apply middleware to this conversation.
@@ -289,6 +271,57 @@ class ConversationBuilder implements ConversationBuilderInterface
     public function options(array $options): self
     {
         $this->options = array_merge($this->options, $options);
+
+        return $this;
+    }
+
+    /**
+     * Enable specific tools by name.
+     *
+     * @param  array  $toolNames  Array of tool names to enable
+     * @throws \InvalidArgumentException  If any tool names are invalid
+     */
+    public function withTools(array $toolNames): self
+    {
+        $toolRegistry = app('laravel-ai.tools.registry');
+
+        // Validate all tool names exist
+        $missingTools = $toolRegistry->validateToolNames($toolNames);
+        if (!empty($missingTools)) {
+            throw new \InvalidArgumentException(
+                'Unknown tools: ' . implode(', ', $missingTools)
+            );
+        }
+
+        // Resolve tool definitions for provider processing
+        $resolvedTools = [];
+        foreach ($toolNames as $toolName) {
+            $tool = $toolRegistry->getTool($toolName);
+            if ($tool) {
+                $resolvedTools[$toolName] = $tool;
+            }
+        }
+
+        $this->options['withTools'] = $toolNames;
+        $this->options['resolved_tools'] = $resolvedTools;
+
+        return $this;
+    }
+
+    /**
+     * Enable all available tools.
+     */
+    public function allTools(): self
+    {
+        $toolRegistry = app('laravel-ai.tools.registry');
+
+        // Get all available tools
+        $allTools = $toolRegistry->getAllTools();
+        $toolNames = array_keys($allTools);
+
+        $this->options['allTools'] = true;
+        $this->options['withTools'] = $toolNames;
+        $this->options['resolved_tools'] = $allTools;
 
         return $this;
     }

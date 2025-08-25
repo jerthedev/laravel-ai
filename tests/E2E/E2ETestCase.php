@@ -147,6 +147,29 @@ abstract class E2ETestCase extends TestCase
     }
 
     /**
+     * Log E2E test information.
+     */
+    protected function logE2EInfo(string $message, array $context = []): void
+    {
+        if (app()->environment('testing')) {
+            logger()->info($message, array_merge([
+                'test_class' => static::class,
+                'test_method' => $this->name(),
+                'timestamp' => now()->toISOString(),
+            ], $context));
+        }
+    }
+
+    /**
+     * Rate limit API calls to avoid hitting provider limits.
+     */
+    protected function rateLimitApiCall(): void
+    {
+        // Add a small delay between API calls to avoid rate limiting
+        usleep(500000); // 0.5 seconds
+    }
+
+    /**
      * Assert that a response contains expected AI-generated content patterns.
      *
      * @param  string  $content  Response content to check

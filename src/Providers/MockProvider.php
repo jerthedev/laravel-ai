@@ -109,7 +109,7 @@ class MockProvider extends AbstractAIProvider
             ? $lastMessage->getContentAsString()
             : (string) $lastMessage;
 
-        $responseData = $this->getMockResponse($content);
+        $responseData = $this->getMockResponse($content, $options);
 
         // Check if this is an error response
         if (isset($responseData['error'])) {
@@ -124,13 +124,24 @@ class MockProvider extends AbstractAIProvider
             'USD'
         );
 
-        return AIResponse::success(
+        $response = AIResponse::success(
             $responseData['content'],
             $tokenUsage,
             $this->model,
             'mock',
             ['mock_response' => true, 'response_data' => $responseData]
         );
+
+        // Add tool calls if configured
+        if (isset($responseData['tool_calls'])) {
+            $response->toolCalls = $responseData['tool_calls'];
+        }
+
+        if (isset($responseData['function_calls'])) {
+            $response->functionCalls = $responseData['function_calls'];
+        }
+
+        return $response;
     }
 
     /**
@@ -145,7 +156,7 @@ class MockProvider extends AbstractAIProvider
             ? $lastMessage->getContentAsString()
             : (string) $lastMessage;
 
-        $responseData = $this->getMockResponse($content);
+        $responseData = $this->getMockResponse($content, $options);
 
         // Check if this is an error response
         if (isset($responseData['error'])) {
@@ -609,10 +620,18 @@ class MockProvider extends AbstractAIProvider
     /**
      * Get mock response for given content.
      */
-    protected function getMockResponse(string $content): array
+    protected function getMockResponse(string $content, array $options = []): array
     {
         // First check configured responses
         $responses = $this->config['mock_responses'];
+
+        // Check if tools are enabled and simulate tool calls
+        if (isset($options['tools']) && !empty($options['tools'])) {
+            $toolCallResponse = $this->simulateToolCalls($content, $options['tools']);
+            if ($toolCallResponse) {
+                return $toolCallResponse;
+            }
+        }
 
         // Check for specific responses first
         foreach ($responses as $trigger => $response) {
@@ -724,5 +743,218 @@ class MockProvider extends AbstractAIProvider
                 'created' => time(),
             ];
         }, $models);
+    }
+
+    /**
+     * Format resolved tools for Mock provider API.
+     *
+     * @param  array  $resolvedTools  Resolved tool definitions from UnifiedToolRegistry
+     * @return array  Formatted tools for Mock provider
+     */
+    protected function formatToolsForAPI(array $resolvedTools): array
+    {
+        $formattedTools = [];
+
+        foreach ($resolvedTools as $toolName => $tool) {
+            $formattedTools[] = [
+                'type' => 'function',
+                'function' => [
+                    'name' => $tool['name'] ?? $toolName,
+                    'description' => $tool['description'] ?? '',
+                    'parameters' => $tool['parameters'] ?? [
+                        'type' => 'object',
+                        'properties' => [],
+                    ],
+                ],
+                // Add mock-specific metadata
+                'mock_metadata' => [
+                    'tool_type' => $tool['type'] ?? 'unknown',
+                    'execution_mode' => $tool['execution_mode'] ?? 'unknown',
+                    'source' => $tool['source'] ?? 'unknown',
+                ],
+            ];
+        }
+
+        return $formattedTools;
+    }
+
+    /**
+     * Simulate tool calls based on content and available tools.
+     *
+     * @param  string  $content  Message content
+     * @param  array  $tools  Available tools
+     * @return array|null  Tool call response or null if no simulation
+     */
+    protected function simulateToolCalls(string $content, array $tools): ?array
+    {
+        // Check if content suggests tool usage
+        $contentLower = strtolower($content);
+        $shouldSimulateToolCall = false;
+        $toolsToCall = [];
+
+        // Look for tool-related keywords
+        foreach ($tools as $tool) {
+            $toolName = $tool['function']['name'] ?? '';
+            $toolDescription = $tool['function']['description'] ?? '';
+
+            // Simple keyword matching for simulation
+            if (stripos($content, $toolName) !== false ||
+                stripos($contentLower, 'use') !== false ||
+                stripos($contentLower, 'call') !== false ||
+                stripos($contentLower, 'execute') !== false) {
+
+                $shouldSimulateToolCall = true;
+                $toolsToCall[] = $tool;
+                break; // Simulate only one tool call for simplicity
+            }
+        }
+
+        // Check for specific tool simulation patterns
+        if (stripos($contentLower, 'sequential_thinking') !== false ||
+            stripos($contentLower, 'think') !== false) {
+            $shouldSimulateToolCall = true;
+            $toolsToCall = array_filter($tools, function($tool) {
+                return stripos($tool['function']['name'] ?? '', 'sequential_thinking') !== false;
+            });
+        }
+
+        if (stripos($contentLower, 'send_email') !== false ||
+            stripos($contentLower, 'email') !== false) {
+            $shouldSimulateToolCall = true;
+            $toolsToCall = array_filter($tools, function($tool) {
+                return stripos($tool['function']['name'] ?? '', 'send_email') !== false;
+            });
+        }
+
+        if (!$shouldSimulateToolCall || empty($toolsToCall)) {
+            return null;
+        }
+
+        // Generate mock tool calls
+        $toolCalls = [];
+        foreach (array_slice($toolsToCall, 0, 1) as $tool) { // Limit to 1 tool call
+            $toolCalls[] = [
+                'id' => 'call_' . uniqid(),
+                'type' => 'function',
+                'function' => [
+                    'name' => $tool['function']['name'],
+                    'arguments' => json_encode($this->generateMockArguments($tool['function'])),
+                ],
+            ];
+        }
+
+        return [
+            'content' => 'I\'ll help you with that. Let me use the appropriate tool.',
+            'input_tokens' => 15,
+            'output_tokens' => 12,
+            'cost' => 0.0027,
+            'finish_reason' => 'tool_calls',
+            'tool_calls' => $toolCalls,
+        ];
+    }
+
+    /**
+     * Generate mock arguments for a tool function.
+     *
+     * @param  array  $functionDef  Function definition
+     * @return array  Mock arguments
+     */
+    protected function generateMockArguments(array $functionDef): array
+    {
+        $parameters = $functionDef['parameters'] ?? [];
+        $properties = $parameters['properties'] ?? [];
+        $required = $parameters['required'] ?? [];
+
+        $arguments = [];
+
+        foreach ($properties as $paramName => $paramDef) {
+            $paramType = $paramDef['type'] ?? 'string';
+
+            // Generate mock values based on parameter type
+            switch ($paramType) {
+                case 'string':
+                    $arguments[$paramName] = 'mock_' . $paramName . '_value';
+                    break;
+                case 'integer':
+                case 'number':
+                    $arguments[$paramName] = rand(1, 100);
+                    break;
+                case 'boolean':
+                    $arguments[$paramName] = true;
+                    break;
+                case 'array':
+                    $arguments[$paramName] = ['mock_item_1', 'mock_item_2'];
+                    break;
+                case 'object':
+                    $arguments[$paramName] = ['mock_key' => 'mock_value'];
+                    break;
+                default:
+                    $arguments[$paramName] = 'mock_value';
+            }
+        }
+
+        // Ensure required parameters are included
+        foreach ($required as $requiredParam) {
+            if (!isset($arguments[$requiredParam])) {
+                $arguments[$requiredParam] = 'required_mock_value';
+            }
+        }
+
+        return $arguments;
+    }
+
+    /**
+     * Check if response contains tool calls.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
+     * @return bool  True if response has tool calls
+     */
+    protected function hasToolCalls($response): bool
+    {
+        return !empty($response->toolCalls) || !empty($response->functionCalls);
+    }
+
+    /**
+     * Extract tool calls from Mock response.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
+     * @return array  Extracted tool calls in unified format
+     */
+    protected function extractToolCalls($response): array
+    {
+        $calls = [];
+
+        // Handle legacy function_call format
+        if (!empty($response->functionCalls)) {
+            $calls[] = [
+                'name' => $response->functionCalls['name'] ?? '',
+                'arguments' => $response->functionCalls['arguments'] ?? [],
+                'id' => null,
+            ];
+        }
+
+        // Handle new tool_calls format
+        if (!empty($response->toolCalls)) {
+            foreach ($response->toolCalls as $toolCall) {
+                if (($toolCall['type'] ?? '') === 'function') {
+                    $arguments = $toolCall['function']['arguments'] ?? '{}';
+                    if (is_string($arguments)) {
+                        try {
+                            $arguments = json_decode($arguments, true) ?? [];
+                        } catch (\Exception $e) {
+                            $arguments = [];
+                        }
+                    }
+
+                    $calls[] = [
+                        'name' => $toolCall['function']['name'] ?? '',
+                        'arguments' => $arguments,
+                        'id' => $toolCall['id'] ?? null,
+                    ];
+                }
+            }
+        }
+
+        return $calls;
     }
 }

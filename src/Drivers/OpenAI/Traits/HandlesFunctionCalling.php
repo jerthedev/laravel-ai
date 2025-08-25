@@ -230,6 +230,9 @@ trait HandlesFunctionCalling
 
     /**
      * Create conversation with function calling workflow.
+     *
+     * @deprecated This method is deprecated and will be removed in the next version.
+     *             Use the new unified tool system with withTools() or allTools() instead.
      */
     public function conversationWithFunctions(
         $message,

@@ -142,38 +142,25 @@ echo "Output tokens: " . $response->usage['output_tokens'];
 echo "Total cost: $" . $response->cost;
 ```
 
-## Function Calling
+## Tool Integration
 
-### Tool Integration
+### Using Tools with xAI
 
 ```php
 use JTD\LaravelAI\Facades\AI;
 
-$functions = [
-    [
-        'name' => 'search_web',
-        'description' => 'Search the web for current information',
-        'parameters' => [
-            'type' => 'object',
-            'properties' => [
-                'query' => [
-                    'type' => 'string',
-                    'description' => 'Search query',
-                ],
-                'limit' => [
-                    'type' => 'integer',
-                    'description' => 'Number of results',
-                    'default' => 5,
-                ],
-            ],
-            'required' => ['query'],
-        ],
-    ],
-];
+// Use specific tools by name
+$response = AI::conversation()
+    ->provider('xai')
+    ->withTools(['search_web', 'calculator'])
+    ->message('What are the latest AI research papers and calculate the average?')
+    ->send();
 
-$response = AI::provider('xai')
-    ->functions($functions)
-    ->message('What are the latest AI research papers?')
+// Use all available tools
+$response = AI::conversation()
+    ->provider('xai')
+    ->allTools()
+    ->message('Help me research and analyze data')
     ->send();
 ```
 

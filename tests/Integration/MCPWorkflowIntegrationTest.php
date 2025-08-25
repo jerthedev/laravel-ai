@@ -213,9 +213,9 @@ class MCPWorkflowIntegrationTest extends TestCase
         // Mock AI conversation to test tool integration
         $mockConversation = $this->createMock(\JTD\LaravelAI\Services\ConversationBuilder::class);
 
-        // Test that tools can be specified by name
+        // Test that tools can be specified by name (using new unified system)
         $mockConversation->expects($this->once())
-            ->method('tools')
+            ->method('withTools')
             ->with(['sequential_thinking'])
             ->willReturnSelf();
 
@@ -226,7 +226,7 @@ class MCPWorkflowIntegrationTest extends TestCase
 
         // This would be the correct usage after MCP is properly set up
         // $response = AI::conversation()
-        //     ->tools(['sequential_thinking'])
+        //     ->withTools(['sequential_thinking'])
         //     ->message('Test message')
         //     ->send();
 
@@ -241,15 +241,15 @@ class MCPWorkflowIntegrationTest extends TestCase
         // Mock AI conversation to test Brave Search integration
         $mockConversation = $this->createMock(\JTD\LaravelAI\Services\ConversationBuilder::class);
 
-        // Test that Brave Search tools can be specified by name
+        // Test that Brave Search tools can be specified by name (using new unified system)
         $mockConversation->expects($this->once())
-            ->method('tools')
+            ->method('withTools')
             ->with(['web_search'])
             ->willReturnSelf();
 
         // This would be the correct usage:
         // $response = AI::conversation()
-        //     ->tools(['web_search'])
+        //     ->withTools(['web_search'])
         //     ->message('Search for current AI model pricing')
         //     ->send();
 

@@ -314,6 +314,105 @@ class OpenAIDriver extends AbstractAIProvider
     }
 
     /**
+     * Format resolved tools for OpenAI API.
+     *
+     * @param  array  $resolvedTools  Resolved tool definitions from UnifiedToolRegistry
+     * @return array Formatted tools for OpenAI API
+     */
+    protected function formatToolsForAPI(array $resolvedTools): array
+    {
+        $formattedTools = [];
+
+        foreach ($resolvedTools as $toolName => $tool) {
+            $formattedTools[] = [
+                'type' => 'function',
+                'function' => [
+                    'name' => $tool['name'] ?? $toolName,
+                    'description' => $tool['description'] ?? '',
+                    'parameters' => $tool['parameters'] ?? [
+                        'type' => 'object',
+                        'properties' => [],
+                    ],
+                ],
+            ];
+        }
+
+        return $formattedTools;
+    }
+
+    /**
+     * Check if response contains tool calls.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
+     * @return bool True if response has tool calls
+     */
+    protected function hasToolCalls($response): bool
+    {
+        return ! empty($response->toolCalls) || ! empty($response->functionCalls);
+    }
+
+    /**
+     * Check if provider supports function calling.
+     */
+    public function supportsFunctionCalling(): bool
+    {
+        return true; // OpenAI supports function calling
+    }
+
+    /**
+     * Extract tool calls from OpenAI response.
+     *
+     * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
+     * @return array Extracted tool calls in unified format
+     */
+    protected function extractToolCalls($response): array
+    {
+        $calls = [];
+
+        // Handle legacy function_call format
+        if (! empty($response->functionCalls)) {
+            $arguments = $response->functionCalls['arguments'] ?? '{}';
+            if (is_string($arguments)) {
+                try {
+                    $arguments = json_decode($arguments, true) ?? [];
+                } catch (\Exception $e) {
+                    $arguments = [];
+                }
+            }
+
+            $calls[] = [
+                'name' => $response->functionCalls['name'] ?? '',
+                'arguments' => $arguments,
+                'id' => null,
+            ];
+        }
+
+        // Handle new tool_calls format
+        if (! empty($response->toolCalls)) {
+            foreach ($response->toolCalls as $toolCall) {
+                if (($toolCall['type'] ?? '') === 'function') {
+                    $arguments = $toolCall['function']['arguments'] ?? '{}';
+                    if (is_string($arguments)) {
+                        try {
+                            $arguments = json_decode($arguments, true) ?? [];
+                        } catch (\Exception $e) {
+                            $arguments = [];
+                        }
+                    }
+
+                    $calls[] = [
+                        'name' => $toolCall['function']['name'] ?? '',
+                        'arguments' => $arguments,
+                        'id' => $toolCall['id'] ?? null,
+                    ];
+                }
+            }
+        }
+
+        return $calls;
+    }
+
+    /**
      * Magic method to handle dynamic method calls.
      */
     public function __call(string $method, array $arguments)

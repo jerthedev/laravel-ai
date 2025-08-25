@@ -244,55 +244,50 @@ Route::get('/ai-stream', function () {
 });
 ```
 
-## Function Calling
+## Tool Integration
 
-### OpenAI Function Calling
+### Using Specific Tools
 
 ```php
+// Enable specific tools by name
 $response = AI::conversation()
     ->provider('openai')
     ->model('gpt-4')
-    ->functions([
-        [
-            'name' => 'get_weather',
-            'description' => 'Get current weather for a location',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'location' => [
-                        'type' => 'string',
-                        'description' => 'City name',
-                    ],
-                    'unit' => [
-                        'type' => 'string',
-                        'enum' => ['celsius', 'fahrenheit'],
-                    ],
-                ],
-                'required' => ['location'],
-            ],
-        ],
-    ])
-    ->functionCall('auto') // auto, none, or specific function
-    ->onFunctionCall(function ($functionCall) {
-        // Handle function call
-        if ($functionCall->name === 'get_weather') {
-            return $this->getWeather($functionCall->arguments);
-        }
-    })
-    ->message('What\'s the weather in New York?')
+    ->withTools(['get_weather', 'calculator', 'web_search'])
+    ->message('What\'s the weather in New York and calculate 15% of 250?')
     ->send();
 ```
 
-### Tool Integration
+### Using All Available Tools
 
 ```php
+// Enable all discovered tools (MCP + Function Events)
 $response = AI::conversation()
-    ->tools([
-        'calculator' => Calculator::class,
-        'database' => DatabaseTool::class,
-        'web_search' => WebSearchTool::class,
-    ])
-    ->message('Calculate 15% of 250 and search for Laravel tutorials')
+    ->provider('openai')
+    ->model('gpt-4')
+    ->allTools()
+    ->message('Help me with any task you can')
+    ->send();
+```
+
+### Tool Types
+
+The system supports two types of tools:
+
+- **MCP Tools**: Execute immediately and return results in the AI response
+- **Function Events**: Execute in background via Laravel queue system
+
+```php
+// MCP tools (immediate execution)
+$response = AI::conversation()
+    ->withTools(['sequential_thinking', 'brave_search'])
+    ->message('Think through this problem and search for information')
+    ->send();
+
+// Function Events (background execution)
+$response = AI::conversation()
+    ->withTools(['send_email', 'create_calendar_event'])
+    ->message('Send a meeting invite and create a calendar event')
     ->send();
 ```
 

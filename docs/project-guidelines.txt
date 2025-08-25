@@ -232,6 +232,34 @@ class ExampleTest extends TestCase
 - Use appropriate version constraints
 - Document all dependencies and their purposes
 
+## AI Tool Integration
+
+### Tool Usage Patterns
+- Use `->withTools(['tool1', 'tool2'])` to enable specific tools by name
+- Use `->allTools()` to enable all discovered tools (MCP + Function Events)
+- Never use old `->tools()` or `->functions()` methods (removed in unified system)
+
+### Tool Types
+- **MCP Tools**: Execute immediately, results included in AI response
+- **Function Events**: Execute in background via Laravel queue system
+- Both types are discoverable by name through UnifiedToolRegistry
+
+### Examples
+```php
+// ConversationBuilder pattern
+$response = AI::conversation()
+    ->provider('openai')
+    ->withTools(['sequential_thinking', 'send_email'])
+    ->message('Think about this and send a summary email')
+    ->send();
+
+// Direct sendMessage pattern
+$response = AI::sendMessage(
+    AIMessage::user('Use any available tools'),
+    ['allTools' => true]
+);
+```
+
 ## Development Tools
 
 ### Test Annotation Conversion

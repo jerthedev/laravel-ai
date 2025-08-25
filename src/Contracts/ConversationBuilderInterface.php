@@ -114,18 +114,16 @@ interface ConversationBuilderInterface
     public function streaming(bool $enabled = true): self;
 
     /**
-     * Enable function calling with provided functions.
+     * Enable specific tools by name.
      *
-     * @param  array  $functions  Available functions
+     * @param  array  $toolNames  Array of tool names to enable
      */
-    public function functions(array $functions): self;
+    public function withTools(array $toolNames): self;
 
     /**
-     * Enable tool calling with provided tools.
-     *
-     * @param  array  $tools  Available tools
+     * Enable all available tools.
      */
-    public function tools(array $tools): self;
+    public function allTools(): self;
 
     /**
      * Set custom options for the request.

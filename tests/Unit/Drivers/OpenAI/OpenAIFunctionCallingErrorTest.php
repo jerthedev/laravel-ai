@@ -438,6 +438,7 @@ class OpenAIFunctionCallingErrorTest extends TestCase
         };
 
         $message = AIMessage::user('Test message');
+        // Note: Testing deprecated conversationWithFunctions method - will be removed in next version
         $response = $this->driver->conversationWithFunctions($message, $functions, $executor);
 
         // Should handle function execution error and continue conversation

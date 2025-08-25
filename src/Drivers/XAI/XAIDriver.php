@@ -233,6 +233,44 @@ class XAIDriver extends AbstractAIProvider
     }
 
     /**
+     * Check if provider supports function calling.
+     */
+    public function supportsFunctionCalling(): bool
+    {
+        return $this->supportsFeature('function_calling');
+    }
+
+    /**
+     * Format resolved tools for xAI API.
+     *
+     * Converts unified tool definitions from UnifiedToolRegistry to xAI's
+     * specific tool format for function calling (OpenAI-compatible format).
+     *
+     * @param  array  $resolvedTools  Resolved tool definitions from UnifiedToolRegistry
+     * @return array Formatted tools for xAI API
+     */
+    protected function formatToolsForAPI(array $resolvedTools): array
+    {
+        $formattedTools = [];
+
+        foreach ($resolvedTools as $toolName => $tool) {
+            $formattedTools[] = [
+                'type' => 'function',
+                'function' => [
+                    'name' => $tool['name'] ?? $toolName,
+                    'description' => $tool['description'] ?? '',
+                    'parameters' => $tool['parameters'] ?? [
+                        'type' => 'object',
+                        'properties' => [],
+                    ],
+                ],
+            ];
+        }
+
+        return $formattedTools;
+    }
+
+    /**
      * Fire events for background processing.
      */
     protected function fireEvents($originalMessage, AIResponse $response, array $options): void

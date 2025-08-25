@@ -275,7 +275,7 @@ class GeminiDriver extends AbstractAIProvider
      */
     public function supportsStreaming(): bool
     {
-        return false; // Gemini doesn't support streaming yet
+        return true; // Now supported
     }
 
     /**
@@ -283,7 +283,7 @@ class GeminiDriver extends AbstractAIProvider
      */
     public function supportsFunctionCalling(): bool
     {
-        return false; // Not implemented yet
+        return true; // Now fully supported with unified tool system
     }
 
     /**
@@ -292,6 +292,37 @@ class GeminiDriver extends AbstractAIProvider
     public function supportsVision(): bool
     {
         return true;
+    }
+
+    /**
+     * Format resolved tools for Gemini API.
+     *
+     * Converts unified tool definitions from UnifiedToolRegistry to Gemini's
+     * specific tool format for function calling.
+     *
+     * @param  array  $resolvedTools  Resolved tool definitions from UnifiedToolRegistry
+     * @return array Formatted tools for Gemini API
+     */
+    protected function formatToolsForAPI(array $resolvedTools): array
+    {
+        $formattedTools = [];
+
+        foreach ($resolvedTools as $toolName => $tool) {
+            $formattedTools[] = [
+                'function_declarations' => [
+                    [
+                        'name' => $tool['name'] ?? $toolName,
+                        'description' => $tool['description'] ?? '',
+                        'parameters' => $tool['parameters'] ?? [
+                            'type' => 'object',
+                            'properties' => [],
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        return $formattedTools;
     }
 
     /**

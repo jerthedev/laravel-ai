@@ -366,6 +366,7 @@ class OpenAIFunctionCallingTest extends TestCase
         };
 
         $message = AIMessage::user('What time is it?');
+        // Note: Testing deprecated conversationWithFunctions method - will be removed in next version
         $response = $this->driver->conversationWithFunctions($message, $functions, $executor);
 
         $this->assertInstanceOf(AIResponse::class, $response);

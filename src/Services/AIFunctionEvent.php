@@ -8,7 +8,7 @@ use JTD\LaravelAI\Events\FunctionCallRequested;
 
 /**
  * AI Function Event Service
- * 
+ *
  * Provides a unified system for registering AI function calls as events.
  * Single AIFunctionEvent::listen() call registers both function definition
  * and event listener for background processing.
@@ -117,7 +117,7 @@ class AIFunctionEvent
     {
         // TODO: This will be implemented when we integrate with existing AI providers
         // For now, we just store the definition for later registration
-        
+
         // Example implementation:
         // $providers = app('ai.manager')->getProviders();
         // foreach ($providers as $provider) {
@@ -135,6 +135,38 @@ class AIFunctionEvent
     public static function getRegisteredFunctions(): array
     {
         return static::$registeredFunctions;
+    }
+
+    /**
+     * Get a specific registered function by name.
+     *
+     * @param  string  $functionName  The function name
+     * @return array|null  The function definition or null if not found
+     */
+    public static function getRegisteredFunction(string $functionName): ?array
+    {
+        return static::$registeredFunctions[$functionName] ?? null;
+    }
+
+    /**
+     * Check if a function is registered.
+     *
+     * @param  string  $functionName  The function name
+     * @return bool  True if the function is registered
+     */
+    public static function hasRegisteredFunction(string $functionName): bool
+    {
+        return isset(static::$registeredFunctions[$functionName]);
+    }
+
+    /**
+     * Get all registered function names.
+     *
+     * @return array<string>  Array of function names
+     */
+    public static function getRegisteredFunctionNames(): array
+    {
+        return array_keys(static::$registeredFunctions);
     }
 
     /**

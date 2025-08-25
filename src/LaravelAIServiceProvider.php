@@ -19,6 +19,8 @@ use JTD\LaravelAI\Services\QueuePerformanceMonitor;
 use JTD\LaravelAI\Services\MCPManager;
 use JTD\LaravelAI\Services\MCPToolDiscoveryService;
 use JTD\LaravelAI\Services\MCPConfigurationService;
+use JTD\LaravelAI\Services\UnifiedToolRegistry;
+use JTD\LaravelAI\Services\UnifiedToolExecutor;
 use JTD\LaravelAI\Contracts\MCPManagerInterface;
 
 /**
@@ -54,6 +56,8 @@ class LaravelAIServiceProvider extends ServiceProvider
         'laravel-ai.mcp.manager' => MCPManager::class,
         'laravel-ai.mcp.discovery' => MCPToolDiscoveryService::class,
         'laravel-ai.mcp.config' => MCPConfigurationService::class,
+        'laravel-ai.tools.registry' => UnifiedToolRegistry::class,
+        'laravel-ai.tools.executor' => UnifiedToolExecutor::class,
     ];
 
     /**
