@@ -1,10 +1,11 @@
 <?php
 
-namespace JTD\LaravelAI\Tests\Integration;
+namespace JTD\LaravelAI\Tests\Feature\MCPIntegration;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -16,11 +17,14 @@ use PHPUnit\Framework\Attributes\Test;
  * 3. Test AI calls with ->tools(['tool-name'])
  * 4. Cleanup configuration files
  */
+#[Group('mcp-integration')]
+#[Group('mcp-workflow')]
 class MCPWorkflowIntegrationTest extends TestCase
 {
     use RefreshDatabase;
 
     protected string $mcpConfigPath;
+
     protected string $mcpToolsPath;
 
     protected function setUp(): void
@@ -53,7 +57,7 @@ class MCPWorkflowIntegrationTest extends TestCase
     public function it_completes_full_mcp_workflow_with_brave_search()
     {
         // Skip if no Brave Search API key available
-        if (!config('ai.mcp.servers.brave-search.api_key')) {
+        if (! config('ai.mcp.servers.brave-search.api_key')) {
             $this->markTestSkipped('Brave Search API key not configured');
         }
 
@@ -208,7 +212,7 @@ class MCPWorkflowIntegrationTest extends TestCase
     /**
      * Test AI Integration with MCP Tools (Mock)
      */
-    protected function testAIIntegrationWithMCPTools(): void
+    protected function test_ai_integration_with_mcp_tools(): void
     {
         // Mock AI conversation to test tool integration
         $mockConversation = $this->createMock(\JTD\LaravelAI\Services\ConversationBuilder::class);
@@ -236,7 +240,7 @@ class MCPWorkflowIntegrationTest extends TestCase
     /**
      * Test AI Integration with Brave Search
      */
-    protected function testAIIntegrationWithBraveSearch(): void
+    protected function test_ai_integration_with_brave_search(): void
     {
         // Mock AI conversation to test Brave Search integration
         $mockConversation = $this->createMock(\JTD\LaravelAI\Services\ConversationBuilder::class);

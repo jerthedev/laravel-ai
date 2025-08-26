@@ -129,6 +129,9 @@ class CostAnalyticsService
                         'cost_per_1k_tokens' => $item->total_tokens > 0
                             ? ($item->total_cost / $item->total_tokens) * 1000
                             : 0,
+                        'avg_tokens_per_request' => $item->request_count > 0
+                            ? ($item->total_tokens / $item->request_count)
+                            : 0,
                         'first_used' => $item->first_used,
                         'last_used' => $item->last_used,
                     ];
@@ -226,11 +229,11 @@ class CostAnalyticsService
         $cacheKey = "historical_trends_{$userId}_{$groupBy}_{$dateRange}_" . md5(json_encode($dateFilter));
 
         return Cache::remember($cacheKey, $this->defaultCacheTtl, function () use ($userId, $groupBy, $dateRange, $dateFilter) {
-            $dateFormat = $this->getDateFormat($groupBy);
+            $dateFormatSql = $this->getDateFormatSql($groupBy);
 
             $query = DB::table('ai_usage_costs')
                 ->select([
-                    DB::raw("DATE_FORMAT(created_at, '{$dateFormat}') as period"),
+                    DB::raw("{$dateFormatSql} as period"),
                     DB::raw('COUNT(*) as request_count'),
                     DB::raw('SUM(total_cost) as total_cost'),
                     DB::raw('SUM(total_tokens) as total_tokens'),
@@ -444,20 +447,34 @@ class CostAnalyticsService
     }
 
     /**
-     * Get date format for grouping.
+     * Get date format SQL for grouping (database-agnostic).
      *
      * @param  string  $groupBy  Group by period
-     * @return string Date format
+     * @return string Date format SQL
      */
-    protected function getDateFormat(string $groupBy): string
+    protected function getDateFormatSql(string $groupBy): string
     {
+        $driver = DB::getDriverName();
+
         return match ($groupBy) {
-            'hour' => '%Y-%m-%d %H:00:00',
-            'day' => '%Y-%m-%d',
-            'week' => '%Y-%u',
-            'month' => '%Y-%m',
-            'year' => '%Y',
-            default => '%Y-%m-%d',
+            'hour' => $driver === 'sqlite'
+                ? "strftime('%Y-%m-%d %H:00:00', created_at)"
+                : "DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00')",
+            'day' => $driver === 'sqlite'
+                ? "date(created_at)"
+                : "DATE_FORMAT(created_at, '%Y-%m-%d')",
+            'week' => $driver === 'sqlite'
+                ? "strftime('%Y-%W', created_at)"
+                : "DATE_FORMAT(created_at, '%Y-%u')",
+            'month' => $driver === 'sqlite'
+                ? "strftime('%Y-%m', created_at)"
+                : "DATE_FORMAT(created_at, '%Y-%m')",
+            'year' => $driver === 'sqlite'
+                ? "strftime('%Y', created_at)"
+                : "DATE_FORMAT(created_at, '%Y')",
+            default => $driver === 'sqlite'
+                ? "date(created_at)"
+                : "DATE_FORMAT(created_at, '%Y-%m-%d')",
         };
     }
 

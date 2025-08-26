@@ -30,12 +30,17 @@ class MCPSetupCommand extends Command
                             {server? : Specific server to install}
                             {--list : List available servers}
                             {--skip-install : Skip npm package installation}
-                            {--skip-test : Skip server testing}';
+                            {--skip-test : Skip server testing}
+                            {--skip-discovery : Skip tool discovery}
+                            {--api-key= : API key for servers that require it}
+                            {--timeout=30 : Server timeout in seconds}
+                            {--force : Force reconfiguration of existing servers}
+                            {--non-interactive : Run in non-interactive mode with defaults}';
 
     /**
      * The console command description.
      */
-    protected $description = 'Interactive setup for MCP servers with automatic installation and configuration';
+    protected $description = 'Interactive setup for MCP servers with automatic installation and configuration. Supports both interactive and non-interactive modes.';
 
     /**
      * MCP Configuration service.
@@ -105,8 +110,10 @@ class MCPSetupCommand extends Command
      */
     public function handle(): int
     {
-        info('🤖 JTD Laravel AI - MCP Server Setup');
-        info('This wizard will help you install and configure MCP servers.');
+        if (!$this->option('non-interactive')) {
+            info('🤖 JTD Laravel AI - MCP Server Setup');
+            info('This wizard will help you install and configure MCP servers.');
+        }
 
         if ($this->option('list')) {
             return $this->listAvailableServers();
@@ -116,11 +123,19 @@ class MCPSetupCommand extends Command
 
         if ($serverKey) {
             if (!isset($this->availableServers[$serverKey])) {
-                error("Unknown server: {$serverKey}");
+                if (!$this->option('non-interactive')) {
+                    error("Unknown server: {$serverKey}");
+                }
                 return 1;
             }
 
             return $this->installServer($serverKey, $this->availableServers[$serverKey]);
+        }
+
+        // Non-interactive mode requires server argument
+        if ($this->option('non-interactive')) {
+            $this->error('Server argument is required in non-interactive mode. Use --list to see available servers.');
+            return 1;
         }
 
         // Interactive server selection
@@ -171,12 +186,19 @@ class MCPSetupCommand extends Command
      */
     protected function installServer(string $key, array $server): int
     {
-        info("Installing {$server['name']}...");
+        if (!$this->option('non-interactive')) {
+            info("Installing {$server['name']}...");
+        }
 
         // Check if server is already configured
         $existingConfig = $this->configService->loadConfiguration();
         if (isset($existingConfig['servers'][$key])) {
-            if (!confirm("Server '{$key}' is already configured. Do you want to reconfigure it?")) {
+            if ($this->option('force')) {
+                // Force reconfiguration - continue
+            } elseif ($this->option('non-interactive')) {
+                // In non-interactive mode, skip if already configured and no force flag
+                return 0;
+            } elseif (!confirm("Server '{$key}' is already configured. Do you want to reconfigure it?")) {
                 info('Installation cancelled.');
                 return 0;
             }
@@ -185,7 +207,9 @@ class MCPSetupCommand extends Command
         // Install npm package
         if (!$this->option('skip-install')) {
             if (!$this->installNpmPackage($server['package'])) {
-                error("Failed to install {$server['package']}");
+                if (!$this->option('non-interactive')) {
+                    error("Failed to install {$server['package']}");
+                }
                 return 1;
             }
         }
@@ -194,28 +218,36 @@ class MCPSetupCommand extends Command
         $config = $this->collectServerConfiguration($key, $server);
 
         if (!$config) {
-            error('Configuration collection failed.');
+            if (!$this->option('non-interactive')) {
+                error('Configuration collection failed.');
+            }
             return 1;
         }
 
         // Save configuration
         if (!$this->configService->addServer($key, $config)) {
-            error('Failed to save server configuration.');
+            if (!$this->option('non-interactive')) {
+                error('Failed to save server configuration.');
+            }
             return 1;
         }
 
-        info("✅ {$server['name']} has been configured successfully!");
+        if (!$this->option('non-interactive')) {
+            info("✅ {$server['name']} has been configured successfully!");
+        }
 
         // Test server if not skipped
         if (!$this->option('skip-test')) {
-            if (confirm('Would you like to test the server configuration?', true)) {
+            if ($this->option('non-interactive') || confirm('Would you like to test the server configuration?', true)) {
                 $this->testServer($key);
             }
         }
 
         // Discover tools
-        if (confirm('Would you like to discover available tools?', true)) {
-            $this->discoverTools($key);
+        if (!$this->option('skip-discovery')) {
+            if ($this->option('non-interactive') || confirm('Would you like to discover available tools?', true)) {
+                $this->discoverTools($key);
+            }
         }
 
         return 0;
@@ -226,21 +258,29 @@ class MCPSetupCommand extends Command
      */
     protected function installNpmPackage(string $package): bool
     {
-        info("Installing npm package: {$package}");
+        if (!$this->option('non-interactive')) {
+            info("Installing npm package: {$package}");
+        }
 
         try {
             $result = Process::timeout(120)->run("npm install -g {$package}");
 
             if ($result->successful()) {
-                info("✅ Package {$package} installed successfully");
+                if (!$this->option('non-interactive')) {
+                    info("✅ Package {$package} installed successfully");
+                }
                 return true;
             } else {
-                error("❌ Failed to install {$package}");
-                error("Error: " . $result->errorOutput());
+                if (!$this->option('non-interactive')) {
+                    error("❌ Failed to install {$package}");
+                    error("Error: " . $result->errorOutput());
+                }
                 return false;
             }
         } catch (\Exception $e) {
-            error("❌ Exception during npm install: {$e->getMessage()}");
+            if (!$this->option('non-interactive')) {
+                error("❌ Exception during npm install: {$e->getMessage()}");
+            }
             return false;
         }
     }
@@ -269,26 +309,42 @@ class MCPSetupCommand extends Command
             foreach ($server['env_vars'] ?? [$server['api_key_name']] as $envVar) {
                 $currentValue = env($envVar);
 
-                if ($currentValue) {
-                    info("Environment variable {$envVar} is already set.");
-                    if (!confirm("Do you want to update it?")) {
+                if ($this->option('non-interactive')) {
+                    // In non-interactive mode, use provided API key or existing env var
+                    if ($this->option('api-key')) {
                         $env[$envVar] = "\${{{$envVar}}}";
-                        continue;
+                        if (!$this->option('non-interactive')) {
+                            warning("Don't forget to add {$envVar}={$this->option('api-key')} to your .env file!");
+                        }
+                    } elseif ($currentValue) {
+                        $env[$envVar] = "\${{{$envVar}}}";
+                    } else {
+                        // API key required but not provided
+                        return null;
                     }
+                } else {
+                    // Interactive mode
+                    if ($currentValue) {
+                        info("Environment variable {$envVar} is already set.");
+                        if (!confirm("Do you want to update it?")) {
+                            $env[$envVar] = "\${{{$envVar}}}";
+                            continue;
+                        }
+                    }
+
+                    $apiKey = password("Enter your {$envVar}:");
+
+                    if (empty($apiKey)) {
+                        error("API key is required for this server.");
+                        return null;
+                    }
+
+                    // Store in environment variable format
+                    $env[$envVar] = "\${{{$envVar}}}";
+
+                    // Suggest adding to .env file
+                    warning("Don't forget to add {$envVar}={$apiKey} to your .env file!");
                 }
-
-                $apiKey = password("Enter your {$envVar}:");
-
-                if (empty($apiKey)) {
-                    error("API key is required for this server.");
-                    return null;
-                }
-
-                // Store in environment variable format
-                $env[$envVar] = "\${{{$envVar}}}";
-
-                // Suggest adding to .env file
-                warning("Don't forget to add {$envVar}={$apiKey} to your .env file!");
             }
 
             if (!empty($env)) {
@@ -298,13 +354,17 @@ class MCPSetupCommand extends Command
 
         // Collect timeout if not set
         if (!isset($config['config']['timeout'])) {
-            $timeout = text(
-                'Server timeout in seconds (default: 30):',
-                default: '30',
-                validate: fn (string $value) => is_numeric($value) && (int) $value > 0 ? null : 'Timeout must be a positive number'
-            );
+            if ($this->option('non-interactive')) {
+                $config['timeout'] = (int) $this->option('timeout');
+            } else {
+                $timeout = text(
+                    'Server timeout in seconds (default: 30):',
+                    default: (string) $this->option('timeout'),
+                    validate: fn (string $value) => is_numeric($value) && (int) $value > 0 ? null : 'Timeout must be a positive number'
+                );
 
-            $config['timeout'] = (int) $timeout;
+                $config['timeout'] = (int) $timeout;
+            }
         }
 
         return $config;
@@ -315,7 +375,9 @@ class MCPSetupCommand extends Command
      */
     protected function testServer(string $serverName): void
     {
-        info("Testing server '{$serverName}'...");
+        if (!$this->option('non-interactive')) {
+            info("Testing server '{$serverName}'...");
+        }
 
         try {
             // Reload MCP manager to pick up new configuration
@@ -325,33 +387,45 @@ class MCPSetupCommand extends Command
             $result = $results[$serverName] ?? null;
 
             if (!$result) {
-                error("❌ Server '{$serverName}' not found or not loaded");
+                if (!$this->option('non-interactive')) {
+                    error("❌ Server '{$serverName}' not found or not loaded");
+                }
                 return;
             }
 
             switch ($result['status']) {
                 case 'healthy':
-                    info("✅ Server is healthy");
-                    info("   Response time: {$result['response_time_ms']}ms");
-                    if (isset($result['version'])) {
-                        info("   Version: {$result['version']}");
+                    if (!$this->option('non-interactive')) {
+                        info("✅ Server is healthy");
+                        info("   Response time: {$result['response_time_ms']}ms");
+                        if (isset($result['version'])) {
+                            info("   Version: {$result['version']}");
+                        }
                     }
                     break;
 
                 case 'error':
-                    error("❌ Server test failed: {$result['message']}");
+                    if (!$this->option('non-interactive')) {
+                        error("❌ Server test failed: {$result['message']}");
+                    }
                     break;
 
                 case 'disabled':
-                    warning("⚠️  Server is disabled");
+                    if (!$this->option('non-interactive')) {
+                        warning("⚠️  Server is disabled");
+                    }
                     break;
 
                 default:
-                    warning("⚠️  Unknown server status: {$result['status']}");
+                    if (!$this->option('non-interactive')) {
+                        warning("⚠️  Unknown server status: {$result['status']}");
+                    }
                     break;
             }
         } catch (\Exception $e) {
-            error("❌ Server test failed: {$e->getMessage()}");
+            if (!$this->option('non-interactive')) {
+                error("❌ Server test failed: {$e->getMessage()}");
+            }
         }
     }
 
@@ -360,7 +434,9 @@ class MCPSetupCommand extends Command
      */
     protected function discoverTools(string $serverName): void
     {
-        info("Discovering tools from '{$serverName}'...");
+        if (!$this->option('non-interactive')) {
+            info("Discovering tools from '{$serverName}'...");
+        }
 
         try {
             // Reload MCP manager to pick up new configuration
@@ -370,7 +446,9 @@ class MCPSetupCommand extends Command
             $serverTools = $discovery['tools'][$serverName] ?? null;
 
             if (!$serverTools) {
-                warning("⚠️  No tools discovered from server '{$serverName}'");
+                if (!$this->option('non-interactive')) {
+                    warning("⚠️  No tools discovered from server '{$serverName}'");
+                }
                 return;
             }
 
@@ -378,21 +456,27 @@ class MCPSetupCommand extends Command
             $toolCount = count($tools);
 
             if ($toolCount === 0) {
-                warning("⚠️  Server '{$serverName}' has no available tools");
+                if (!$this->option('non-interactive')) {
+                    warning("⚠️  Server '{$serverName}' has no available tools");
+                }
                 return;
             }
 
-            info("✅ Discovered {$toolCount} tool(s) from '{$serverName}':");
+            if (!$this->option('non-interactive')) {
+                info("✅ Discovered {$toolCount} tool(s) from '{$serverName}':");
 
-            foreach ($tools as $tool) {
-                $name = $tool['name'] ?? 'Unknown';
-                $description = $tool['description'] ?? 'No description';
-                $this->line("   • <fg=cyan>{$name}</> - {$description}");
+                foreach ($tools as $tool) {
+                    $name = $tool['name'] ?? 'Unknown';
+                    $description = $tool['description'] ?? 'No description';
+                    $this->line("   • <fg=cyan>{$name}</> - {$description}");
+                }
+
+                info("Tools have been cached in .mcp.tools.json");
             }
-
-            info("Tools have been cached in .mcp.tools.json");
         } catch (\Exception $e) {
-            error("❌ Tool discovery failed: {$e->getMessage()}");
+            if (!$this->option('non-interactive')) {
+                error("❌ Tool discovery failed: {$e->getMessage()}");
+            }
         }
     }
 

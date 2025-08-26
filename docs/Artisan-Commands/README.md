@@ -327,6 +327,63 @@ php artisan ai:config:show
 
 ## MCP Commands
 
+### `ai:mcp:setup`
+Interactive setup for MCP servers with automatic installation and configuration. Supports both interactive and non-interactive modes.
+
+```bash
+# Interactive mode - prompts for all options
+php artisan ai:mcp:setup
+
+# Install specific server interactively
+php artisan ai:mcp:setup sequential-thinking
+
+# List available servers
+php artisan ai:mcp:setup --list
+
+# Non-interactive mode with all options
+php artisan ai:mcp:setup github --api-key=your-token --timeout=60 --force --non-interactive
+
+# Skip certain steps
+php artisan ai:mcp:setup sequential-thinking --skip-install --skip-test --skip-discovery
+```
+
+**Arguments:**
+- `server` - Specific server to install (optional)
+
+**Options:**
+- `--list` - List available servers and exit
+- `--skip-install` - Skip npm package installation
+- `--skip-test` - Skip server testing after installation
+- `--skip-discovery` - Skip tool discovery after installation
+- `--api-key=KEY` - API key for servers that require it (GitHub, Brave Search)
+- `--timeout=SECONDS` - Server timeout in seconds (default: 30)
+- `--force` - Force reconfiguration of existing servers
+- `--non-interactive` - Run in non-interactive mode with defaults
+
+**Available Servers:**
+- `sequential-thinking` - Structured step-by-step problem-solving (no API key required)
+- `github` - GitHub repository management and search (requires GITHUB_PERSONAL_ACCESS_TOKEN)
+- `brave-search` - Web search using Brave Search API (requires BRAVE_API_KEY)
+
+**Examples:**
+
+```bash
+# Interactive installation with prompts
+php artisan ai:mcp:setup
+
+# Quick non-interactive installation
+php artisan ai:mcp:setup sequential-thinking --skip-test --non-interactive
+
+# Install GitHub MCP with API key
+php artisan ai:mcp:setup github --api-key=ghp_your_token_here --non-interactive
+
+# Force reconfigure existing server
+php artisan ai:mcp:setup sequential-thinking --force --non-interactive
+
+# Batch installation for CI/CD
+php artisan ai:mcp:setup sequential-thinking --skip-install --skip-test --skip-discovery --non-interactive
+```
+
 ### `ai:mcp:list`
 List available MCP servers.
 

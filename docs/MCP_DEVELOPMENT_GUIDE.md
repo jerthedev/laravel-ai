@@ -120,14 +120,26 @@ Update `config/ai.php` for application-wide MCP settings:
 ### 1. Server Installation
 
 ```bash
-# Interactive setup
+# Interactive setup with prompts
 php artisan ai:mcp:setup
 
-# Install specific server
+# Install specific server interactively
 php artisan ai:mcp:setup sequential-thinking
 
 # List available servers
 php artisan ai:mcp:setup --list
+
+# Non-interactive installation (for automation/CI)
+php artisan ai:mcp:setup sequential-thinking --non-interactive
+
+# Install with API key in non-interactive mode
+php artisan ai:mcp:setup github --api-key=your-token --non-interactive
+
+# Skip installation steps for testing
+php artisan ai:mcp:setup sequential-thinking --skip-install --skip-test --non-interactive
+
+# Force reconfiguration of existing server
+php artisan ai:mcp:setup sequential-thinking --force --non-interactive
 ```
 
 ### 2. Configuration Management

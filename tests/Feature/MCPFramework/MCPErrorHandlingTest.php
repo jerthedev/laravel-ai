@@ -1,6 +1,6 @@
 <?php
 
-namespace JTD\LaravelAI\Tests\Unit;
+namespace JTD\LaravelAI\Tests\Feature\MCPFramework;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;

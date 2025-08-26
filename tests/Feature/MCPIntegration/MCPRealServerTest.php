@@ -1,6 +1,6 @@
 <?php
 
-namespace JTD\LaravelAI\Tests\E2E;
+namespace JTD\LaravelAI\Tests\Feature\MCPIntegration;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Log;
 use JTD\LaravelAI\Events\MCPToolExecuted;
 use JTD\LaravelAI\Services\MCPManager;
 use JTD\LaravelAI\Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Real Server E2E Tests
@@ -17,20 +17,22 @@ use PHPUnit\Framework\Attributes\Group;
  * End-to-end tests with real MCP servers using actual API credentials.
  * Tests are skipped when credentials are not available.
  */
-#[Group('e2e')]
-#[Group('mcp-e2e')]
+#[Group('mcp-integration')]
+#[Group('mcp-real-servers')]
 class MCPRealServerTest extends TestCase
 {
     use RefreshDatabase;
 
     protected MCPManager $mcpManager;
+
     protected array $credentials = [];
+
     protected array $availableServers = [];
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->mcpManager = app(MCPManager::class);
         $this->loadCredentials();
         $this->setupRealServerConfiguration();
@@ -40,21 +42,21 @@ class MCPRealServerTest extends TestCase
     #[Test]
     public function it_executes_sequential_thinking_with_real_processing(): void
     {
-        if (!$this->isServerAvailable('sequential_thinking')) {
+        if (! $this->isServerAvailable('sequential_thinking')) {
             $this->markTestSkipped('Sequential Thinking MCP server not available');
         }
 
         Event::fake();
 
         $startTime = microtime(true);
-        
+
         $result = $this->mcpManager->executeTool('sequential_thinking', [
             'thought' => 'Let me analyze this complex problem step by step. First, I need to understand the core requirements.',
             'nextThoughtNeeded' => true,
             'thoughtNumber' => 1,
             'totalThoughts' => 3,
         ]);
-        
+
         $executionTime = (microtime(true) - $startTime) * 1000;
 
         // Verify successful execution
@@ -63,7 +65,7 @@ class MCPRealServerTest extends TestCase
         $this->assertArrayHasKey('result', $result);
 
         // Verify performance target
-        $this->assertLessThan(100, $executionTime, 
+        $this->assertLessThan(100, $executionTime,
             "Sequential thinking took {$executionTime}ms, exceeding 100ms target");
 
         // Verify event was fired
@@ -81,19 +83,19 @@ class MCPRealServerTest extends TestCase
     #[Test]
     public function it_executes_brave_search_with_real_api(): void
     {
-        if (!$this->isServerAvailable('brave_search')) {
+        if (! $this->isServerAvailable('brave_search')) {
             $this->markTestSkipped('Brave Search MCP server not available or credentials missing');
         }
 
         Event::fake();
 
         $startTime = microtime(true);
-        
+
         $result = $this->mcpManager->executeTool('brave_search', [
             'query' => 'Laravel MCP integration best practices',
             'count' => 5,
         ]);
-        
+
         $executionTime = (microtime(true) - $startTime) * 1000;
 
         // Verify successful execution
@@ -116,7 +118,7 @@ class MCPRealServerTest extends TestCase
         }
 
         // Verify performance target for external server
-        $this->assertLessThan(500, $executionTime, 
+        $this->assertLessThan(500, $executionTime,
             "Brave Search took {$executionTime}ms, exceeding 500ms target");
 
         // Verify event was fired
@@ -135,20 +137,20 @@ class MCPRealServerTest extends TestCase
     #[Test]
     public function it_executes_github_mcp_with_real_api(): void
     {
-        if (!$this->isServerAvailable('github')) {
+        if (! $this->isServerAvailable('github')) {
             $this->markTestSkipped('GitHub MCP server not available or credentials missing');
         }
 
         Event::fake();
 
         $startTime = microtime(true);
-        
+
         $result = $this->mcpManager->executeTool('github', [
             'action' => 'search_repositories',
             'query' => 'laravel ai',
             'limit' => 5,
         ]);
-        
+
         $executionTime = (microtime(true) - $startTime) * 1000;
 
         // Verify successful execution
@@ -172,7 +174,7 @@ class MCPRealServerTest extends TestCase
         }
 
         // Verify performance target for external server
-        $this->assertLessThan(500, $executionTime, 
+        $this->assertLessThan(500, $executionTime,
             "GitHub MCP took {$executionTime}ms, exceeding 500ms target");
 
         // Verify event was fired
@@ -209,11 +211,11 @@ class MCPRealServerTest extends TestCase
         // Execute available tools in sequence
         foreach (array_keys($availableTools) as $tool) {
             $startTime = microtime(true);
-            
+
             $result = $this->mcpManager->executeTool($tool, $this->getToolParameters($tool));
-            
+
             $executionTime = (microtime(true) - $startTime) * 1000;
-            
+
             $results[$tool] = [
                 'result' => $result,
                 'execution_time' => $executionTime,
@@ -228,7 +230,7 @@ class MCPRealServerTest extends TestCase
         }
 
         // Verify total execution time is reasonable
-        $this->assertLessThan(2000, $totalExecutionTime, 
+        $this->assertLessThan(2000, $totalExecutionTime,
             "Sequential execution took {$totalExecutionTime}ms, exceeding 2000ms target");
 
         // Verify events were fired for each tool
@@ -238,14 +240,14 @@ class MCPRealServerTest extends TestCase
         Log::info('E2E Sequential MCP Test Passed', [
             'tools_tested' => array_keys($availableTools),
             'total_execution_time_ms' => $totalExecutionTime,
-            'individual_times' => array_map(fn($data) => $data['execution_time'], $results),
+            'individual_times' => array_map(fn ($data) => $data['execution_time'], $results),
         ]);
     }
 
     #[Test]
     public function it_handles_real_server_errors_gracefully(): void
     {
-        if (!$this->isServerAvailable('brave_search')) {
+        if (! $this->isServerAvailable('brave_search')) {
             $this->markTestSkipped('Brave Search not available for error testing');
         }
 
@@ -256,9 +258,9 @@ class MCPRealServerTest extends TestCase
         ]);
 
         $this->assertIsArray($result);
-        
+
         // Should handle error gracefully
-        if (!$result['success']) {
+        if (! $result['success']) {
             $this->assertArrayHasKey('error', $result);
             $this->assertArrayHasKey('error_type', $result);
             Log::info('E2E Error Handling Test Passed', [
@@ -279,20 +281,20 @@ class MCPRealServerTest extends TestCase
 
         foreach ($this->availableServers as $server) {
             $executionTimes = [];
-            
+
             for ($i = 0; $i < $iterations; $i++) {
                 $startTime = microtime(true);
-                
+
                 $result = $this->mcpManager->executeTool($server, $this->getToolParameters($server));
-                
+
                 $executionTime = (microtime(true) - $startTime) * 1000;
-                
+
                 if ($result['success']) {
                     $executionTimes[] = $executionTime;
                 }
             }
 
-            if (!empty($executionTimes)) {
+            if (! empty($executionTimes)) {
                 $performanceData[$server] = [
                     'avg_ms' => array_sum($executionTimes) / count($executionTimes),
                     'min_ms' => min($executionTimes),
@@ -306,11 +308,11 @@ class MCPRealServerTest extends TestCase
         // Verify performance characteristics
         foreach ($performanceData as $server => $data) {
             $expectedTarget = $server === 'sequential_thinking' ? 100 : 500;
-            
-            $this->assertLessThan($expectedTarget * 1.5, $data['avg_ms'], 
+
+            $this->assertLessThan($expectedTarget * 1.5, $data['avg_ms'],
                 "Server {$server} average time {$data['avg_ms']}ms exceeds reasonable target");
-            
-            $this->assertGreaterThanOrEqual(66, $data['success_rate'], 
+
+            $this->assertGreaterThanOrEqual(66, $data['success_rate'],
                 "Server {$server} success rate {$data['success_rate']}% is too low");
         }
 
@@ -329,15 +331,16 @@ class MCPRealServerTest extends TestCase
     protected function loadCredentials(): void
     {
         $credentialsPath = __DIR__ . '/../credentials/e2e-credentials.json';
-        
-        if (!file_exists($credentialsPath)) {
+
+        if (! file_exists($credentialsPath)) {
             $this->credentials = [];
+
             return;
         }
 
         $credentialsContent = file_get_contents($credentialsPath);
         $credentials = json_decode($credentialsContent, true);
-        
+
         $this->credentials = $credentials['mcp_servers'] ?? [];
     }
 
@@ -355,7 +358,7 @@ class MCPRealServerTest extends TestCase
         ];
 
         // Brave Search
-        if (!empty($this->credentials['brave_search']['api_key'])) {
+        if (! empty($this->credentials['brave_search']['api_key'])) {
             $servers['brave_search'] = [
                 'type' => 'external',
                 'command' => 'npx @modelcontextprotocol/server-brave-search',
@@ -367,7 +370,7 @@ class MCPRealServerTest extends TestCase
         }
 
         // GitHub
-        if (!empty($this->credentials['github']['token'])) {
+        if (! empty($this->credentials['github']['token'])) {
             $servers['github'] = [
                 'type' => 'external',
                 'command' => 'npx @modelcontextprotocol/server-github',
@@ -387,7 +390,7 @@ class MCPRealServerTest extends TestCase
     protected function detectAvailableServers(): void
     {
         $servers = config('ai.mcp.servers', []);
-        
+
         foreach ($servers as $name => $config) {
             if ($config['enabled'] ?? false) {
                 $this->availableServers[] = $name;

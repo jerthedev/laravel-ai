@@ -1,14 +1,16 @@
 <?php
 
-namespace JTD\LaravelAI\Tests\E2E;
+namespace JTD\LaravelAI\Tests\Feature\MCPIntegration;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use JTD\LaravelAI\Services\MCPConfigurationService;
 use JTD\LaravelAI\Services\MCPToolDiscoveryService;
 use JTD\LaravelAI\Services\UnifiedToolRegistry;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Discovery Integration E2E Test
@@ -17,24 +19,44 @@ use PHPUnit\Framework\Attributes\Group;
  * Tests .mcp.tools.json cache file handling, tool discovery refresh scenarios,
  * and integration with UnifiedToolRegistry.
  */
-#[Group('e2e')]
-#[Group('mcp')]
-#[Group('discovery')]
-class MCPDiscoveryIntegrationE2ETest extends E2ETestCase
+#[Group('mcp-integration')]
+#[Group('mcp-discovery')]
+class MCPDiscoveryIntegrationE2ETest extends TestCase
 {
+    use RefreshDatabase;
+
     protected UnifiedToolRegistry $toolRegistry;
+
     protected MCPConfigurationService $mcpConfigService;
+
     protected MCPToolDiscoveryService $mcpDiscoveryService;
+
     protected string $mcpToolsPath;
+
     protected string $mcpConfigPath;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->toolRegistry = app('laravel-ai.tools.registry');
-        $this->mcpConfigService = app('laravel-ai.mcp.config');
-        $this->mcpDiscoveryService = app('laravel-ai.mcp.discovery');
+        // Try to resolve services, fall back to mocks if not available
+        try {
+            $this->toolRegistry = app('laravel-ai.tools.registry');
+        } catch (\Exception $e) {
+            $this->toolRegistry = app(UnifiedToolRegistry::class);
+        }
+
+        try {
+            $this->mcpConfigService = app('laravel-ai.mcp.config');
+        } catch (\Exception $e) {
+            $this->mcpConfigService = app(MCPConfigurationService::class);
+        }
+
+        try {
+            $this->mcpDiscoveryService = app('laravel-ai.mcp.discovery');
+        } catch (\Exception $e) {
+            $this->mcpDiscoveryService = app(MCPToolDiscoveryService::class);
+        }
 
         // Set up test paths
         $this->mcpToolsPath = base_path('.mcp.tools.json');
@@ -85,7 +107,7 @@ class MCPDiscoveryIntegrationE2ETest extends E2ETestCase
         ];
 
         foreach ($filesToClean as $file) {
-            if (File::exists($file) && !str_ends_with($file, '.backup')) {
+            if (File::exists($file) && ! str_ends_with($file, '.backup')) {
                 File::delete($file);
             }
         }
@@ -118,18 +140,15 @@ class MCPDiscoveryIntegrationE2ETest extends E2ETestCase
             $toolsData = json_decode($toolsContent, true);
 
             $this->assertIsArray($toolsData);
-            $this->logE2EInfo('MCP tools discovered via artisan command', [
-                'tools_file_exists' => true,
-                'servers_count' => count($toolsData),
-            ]);
+            // Log info about discovered tools
+            $this->assertTrue(true, 'MCP tools discovered via artisan command - servers: ' . count($toolsData));
         } else {
-            $this->logE2EInfo('No MCP tools file created (expected if no servers are running)');
+            // No tools file created (expected if no servers are running)
+            $this->assertTrue(true, 'No MCP tools file created (expected if no servers are running)');
         }
 
-        $this->logE2EInfo('MCP discovery artisan command test completed', [
-            'exit_code' => $exitCode,
-            'command_output' => Artisan::output(),
-        ]);
+        // Test completed successfully
+        $this->assertEquals(0, $exitCode, 'MCP discovery command should complete successfully');
     }
 
     #[Test]
@@ -138,17 +157,13 @@ class MCPDiscoveryIntegrationE2ETest extends E2ETestCase
         // Test the MCP setup command (this might be interactive, so we'll test what we can)
         try {
             $exitCode = Artisan::call('ai:mcp:setup', ['--help' => true]);
-            
+
             $this->assertIsInt($exitCode);
-            $this->logE2EInfo('MCP setup command accessible', [
-                'exit_code' => $exitCode,
-                'help_output_length' => strlen(Artisan::output()),
-            ]);
+            // MCP setup command is accessible
+            $this->assertTrue(true, 'MCP setup command accessible with exit code: ' . $exitCode);
         } catch (\Exception $e) {
-            $this->logE2EInfo('MCP setup command test skipped', [
-                'reason' => 'Interactive command or not available',
-                'error' => $e->getMessage(),
-            ]);
+            // MCP setup command test skipped due to interactive nature or availability
+            $this->markTestSkipped('MCP setup command test skipped: ' . $e->getMessage());
         }
     }
 
@@ -189,20 +204,19 @@ class MCPDiscoveryIntegrationE2ETest extends E2ETestCase
         // Get MCP tools from unified registry
         $mcpTools = $this->toolRegistry->getToolsByType('mcp_tool');
 
-        if (!empty($mcpTools)) {
+        if (! empty($mcpTools)) {
             $this->assertArrayHasKey('test_mcp_tool', $mcpTools);
-            
+
             $testTool = $mcpTools['test_mcp_tool'];
             $this->assertEquals('mcp_tool', $testTool['type']);
             $this->assertEquals('immediate', $testTool['execution_mode']);
             $this->assertEquals('test-server', $testTool['server']);
 
-            $this->logE2EInfo('MCP tools loaded from cache file', [
-                'mcp_tools_count' => count($mcpTools),
-                'test_tool_found' => true,
-            ]);
+            // MCP tools loaded from cache file successfully
+            $this->assertTrue(count($mcpTools) > 0, 'MCP tools loaded from cache file: ' . count($mcpTools));
         } else {
-            $this->logE2EInfo('No MCP tools found in unified registry');
+            // No MCP tools found in unified registry (may be expected)
+            $this->assertTrue(true, 'No MCP tools found in unified registry');
         }
     }
 
@@ -265,7 +279,7 @@ class MCPDiscoveryIntegrationE2ETest extends E2ETestCase
     public function it_integrates_mcp_discovery_with_unified_tool_registry()
     {
         // Test integration between MCP discovery and unified tool registry
-        
+
         // Create multiple MCP servers with tools
         $testToolsData = [
             'server-one' => [
@@ -316,7 +330,7 @@ class MCPDiscoveryIntegrationE2ETest extends E2ETestCase
             if (isset($mcpTools[$toolName])) {
                 $foundTools[] = $toolName;
                 $tool = $mcpTools[$toolName];
-                
+
                 // Verify tool structure
                 $this->assertEquals('mcp_tool', $tool['type']);
                 $this->assertEquals('immediate', $tool['execution_mode']);
@@ -343,7 +357,7 @@ class MCPDiscoveryIntegrationE2ETest extends E2ETestCase
         try {
             $toolsConfig = $this->mcpConfigService->loadToolsConfiguration();
             $this->assertIsArray($toolsConfig);
-            
+
             $this->logE2EInfo('Invalid MCP tools JSON handled gracefully', [
                 'config_loaded' => true,
                 'config_count' => count($toolsConfig),
@@ -425,7 +439,7 @@ class MCPDiscoveryIntegrationE2ETest extends E2ETestCase
         foreach (['metadata_tool_1', 'metadata_tool_2'] as $toolName) {
             if (isset($mcpTools[$toolName])) {
                 $tool = $mcpTools[$toolName];
-                
+
                 // Validate required fields
                 $this->assertArrayHasKey('name', $tool);
                 $this->assertArrayHasKey('description', $tool);
@@ -437,7 +451,7 @@ class MCPDiscoveryIntegrationE2ETest extends E2ETestCase
 
                 // Validate parameter structure
                 $this->assertIsArray($tool['parameters']);
-                
+
                 $this->logE2EInfo("MCP tool metadata validated: {$toolName}", [
                     'has_required_fields' => true,
                     'parameter_keys' => array_keys($tool['parameters']),

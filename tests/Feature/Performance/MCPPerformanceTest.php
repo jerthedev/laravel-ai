@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use JTD\LaravelAI\Services\MCPManager;
 use JTD\LaravelAI\Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Performance and Load Tests
@@ -24,12 +24,13 @@ class MCPPerformanceTest extends TestCase
     use RefreshDatabase;
 
     protected MCPManager $mcpManager;
+
     protected array $performanceMetrics = [];
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->mcpManager = app(MCPManager::class);
         $this->setupPerformanceConfiguration();
         $this->performanceMetrics = [];
@@ -49,18 +50,18 @@ class MCPPerformanceTest extends TestCase
 
         foreach ($builtInTools as $tool) {
             $executionTimes = [];
-            
+
             // Run multiple iterations for statistical accuracy
             for ($i = 0; $i < 10; $i++) {
                 $startTime = microtime(true);
-                
+
                 $result = $this->mcpManager->executeTool($tool, [
                     'thought' => "Performance test iteration {$i}",
                     'nextThoughtNeeded' => false,
                     'thoughtNumber' => 1,
                     'totalThoughts' => 1,
                 ]);
-                
+
                 $executionTime = (microtime(true) - $startTime) * 1000;
                 $executionTimes[] = $executionTime;
 
@@ -80,10 +81,10 @@ class MCPPerformanceTest extends TestCase
             ]);
 
             // Performance assertions
-            $this->assertLessThan($targetTime, $avgTime, 
+            $this->assertLessThan($targetTime, $avgTime,
                 "Built-in tool {$tool} average time {$avgTime}ms exceeds {$targetTime}ms target");
-            
-            $this->assertLessThan($targetTime * 1.5, $maxTime, 
+
+            $this->assertLessThan($targetTime * 1.5, $maxTime,
                 "Built-in tool {$tool} max time {$maxTime}ms exceeds acceptable variance");
         }
     }
@@ -100,27 +101,29 @@ class MCPPerformanceTest extends TestCase
 
         foreach ($externalTools as $tool) {
             $executionTimes = [];
-            
+
             // Run fewer iterations for external servers due to network latency
             for ($i = 0; $i < 5; $i++) {
                 $startTime = microtime(true);
-                
+
                 $result = $this->mcpManager->executeTool($tool, $this->getToolParameters($tool));
-                
+
                 $executionTime = (microtime(true) - $startTime) * 1000;
                 $executionTimes[] = $executionTime;
 
-                if (!$result['success']) {
+                if (! $result['success']) {
                     Log::warning("External tool {$tool} failed on iteration {$i}", [
                         'error' => $result['error'] ?? 'Unknown error',
                         'execution_time_ms' => $executionTime,
                     ]);
+
                     continue; // Don't fail test for external server issues
                 }
             }
 
             if (empty($executionTimes)) {
                 $this->markTestSkipped("External tool {$tool} failed all iterations");
+
                 continue;
             }
 
@@ -138,7 +141,7 @@ class MCPPerformanceTest extends TestCase
             ]);
 
             // Performance assertions with more lenient targets for external servers
-            $this->assertLessThan($targetTime, $avgTime, 
+            $this->assertLessThan($targetTime, $avgTime,
                 "External tool {$tool} average time {$avgTime}ms exceeds {$targetTime}ms target");
         }
     }
@@ -152,21 +155,21 @@ class MCPPerformanceTest extends TestCase
 
         $startTime = microtime(true);
         $promises = [];
-        
+
         // Simulate concurrent requests
         for ($i = 0; $i < $concurrentRequests; $i++) {
             $promises[] = function () use ($tool, $i) {
                 $requestStart = microtime(true);
-                
+
                 $result = $this->mcpManager->executeTool($tool, [
                     'thought' => "Concurrent load test request {$i}",
                     'nextThoughtNeeded' => false,
                     'thoughtNumber' => 1,
                     'totalThoughts' => 1,
                 ]);
-                
+
                 $requestTime = (microtime(true) - $requestStart) * 1000;
-                
+
                 return [
                     'success' => $result['success'],
                     'execution_time' => $requestTime,
@@ -176,13 +179,13 @@ class MCPPerformanceTest extends TestCase
         }
 
         // Execute all concurrent requests
-        $results = array_map(fn($promise) => $promise(), $promises);
+        $results = array_map(fn ($promise) => $promise(), $promises);
         $totalTime = (microtime(true) - $startTime) * 1000;
 
         // Analyze results
-        $successfulRequests = array_filter($results, fn($r) => $r['success']);
+        $successfulRequests = array_filter($results, fn ($r) => $r['success']);
         $executionTimes = array_column($successfulRequests, 'execution_time');
-        
+
         $avgTime = count($executionTimes) > 0 ? array_sum($executionTimes) / count($executionTimes) : 0;
         $maxTime = count($executionTimes) > 0 ? max($executionTimes) : 0;
         $successRate = (count($successfulRequests) / $concurrentRequests) * 100;
@@ -197,13 +200,13 @@ class MCPPerformanceTest extends TestCase
         ]);
 
         // Performance assertions
-        $this->assertLessThan($targetTotalTime, $totalTime, 
+        $this->assertLessThan($targetTotalTime, $totalTime,
             "Concurrent load test took {$totalTime}ms, exceeding {$targetTotalTime}ms target");
-        
-        $this->assertGreaterThanOrEqual(90, $successRate, 
+
+        $this->assertGreaterThanOrEqual(90, $successRate,
             "Success rate {$successRate}% is below 90% threshold");
-        
-        $this->assertLessThan(200, $avgTime, 
+
+        $this->assertLessThan(200, $avgTime,
             "Average concurrent request time {$avgTime}ms exceeds 200ms threshold");
     }
 
@@ -221,17 +224,17 @@ class MCPPerformanceTest extends TestCase
 
             for ($i = 0; $i < $load; $i++) {
                 $requestStart = microtime(true);
-                
+
                 $result = $this->mcpManager->executeTool($tool, [
                     'thought' => "Stress test load {$load} request {$i}",
                     'nextThoughtNeeded' => false,
                     'thoughtNumber' => 1,
                     'totalThoughts' => 1,
                 ]);
-                
+
                 $requestTime = (microtime(true) - $requestStart) * 1000;
                 $executionTimes[] = $requestTime;
-                
+
                 if ($result['success']) {
                     $successCount++;
                 }
@@ -265,9 +268,9 @@ class MCPPerformanceTest extends TestCase
 
         for ($i = 0; $i < $iterations; $i++) {
             $startTime = microtime(true);
-            
+
             $result = $this->mcpManager->executeTool($tool, $parameters);
-            
+
             $executionTime = (microtime(true) - $startTime) * 1000;
             $executionTimes[] = $executionTime;
 
@@ -287,7 +290,7 @@ class MCPPerformanceTest extends TestCase
             'iterations' => $iterations,
         ]);
 
-        $this->assertLessThan($expectedMaxTime, $avgTime, 
+        $this->assertLessThan($expectedMaxTime, $avgTime,
             "Tool {$tool} with specific parameters took {$avgTime}ms, exceeding {$expectedMaxTime}ms target");
     }
 
@@ -300,14 +303,14 @@ class MCPPerformanceTest extends TestCase
 
         for ($i = 0; $i < $iterations; $i++) {
             $memoryBefore = memory_get_usage(true);
-            
+
             $result = $this->mcpManager->executeTool($tool, [
                 'thought' => "Memory test iteration {$i}",
                 'nextThoughtNeeded' => false,
                 'thoughtNumber' => 1,
                 'totalThoughts' => 1,
             ]);
-            
+
             $memoryAfter = memory_get_usage(true);
             $memoryUsed = $memoryAfter - $memoryBefore;
             $memoryUsages[] = $memoryUsed;
@@ -329,10 +332,10 @@ class MCPPerformanceTest extends TestCase
         ]);
 
         // Memory usage assertions
-        $this->assertLessThan(10 * 1024 * 1024, $avgMemory, 
+        $this->assertLessThan(10 * 1024 * 1024, $avgMemory,
             "Average memory usage {$avgMemory} bytes exceeds 10MB threshold");
-        
-        $this->assertLessThan(50 * 1024 * 1024, $maxMemory, 
+
+        $this->assertLessThan(50 * 1024 * 1024, $maxMemory,
             "Max memory usage {$maxMemory} bytes exceeds 50MB threshold");
     }
 
@@ -416,18 +419,18 @@ class MCPPerformanceTest extends TestCase
         for ($i = 1; $i < count($loadLevels); $i++) {
             $currentThroughput = $throughputs[$i];
             $previousThroughput = $throughputs[$i - 1];
-            
+
             // Allow some degradation but not more than 50%
             $degradationThreshold = $previousThroughput * 0.5;
-            
-            $this->assertGreaterThan($degradationThreshold, $currentThroughput, 
+
+            $this->assertGreaterThan($degradationThreshold, $currentThroughput,
                 "Throughput degraded too much at load level {$loadLevels[$i]}: {$currentThroughput} vs {$previousThroughput}");
         }
 
         // Check that response times don't increase exponentially
         $maxAcceptableTime = 300; // 300ms max even under stress
         foreach ($avgTimes as $i => $avgTime) {
-            $this->assertLessThan($maxAcceptableTime, $avgTime, 
+            $this->assertLessThan($maxAcceptableTime, $avgTime,
                 "Average response time {$avgTime}ms at load {$loadLevels[$i]} exceeds {$maxAcceptableTime}ms threshold");
         }
     }
@@ -448,7 +451,7 @@ class MCPPerformanceTest extends TestCase
      */
     protected function logPerformanceMetrics(): void
     {
-        if (!empty($this->performanceMetrics)) {
+        if (! empty($this->performanceMetrics)) {
             Log::info('MCP Performance Test Results', [
                 'metrics' => $this->performanceMetrics,
                 'summary' => $this->generatePerformanceSummary(),

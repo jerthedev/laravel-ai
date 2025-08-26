@@ -4,6 +4,50 @@
 
 JTD Laravel AI includes built-in support for Model Context Protocol (MCP) servers, providing enhanced AI capabilities through structured thinking processes, tool integration, and context management. The package comes with Sequential Thinking support out of the box and provides an extensible architecture for custom MCP servers.
 
+## Quick Setup
+
+### Interactive Installation
+
+The easiest way to set up MCP servers is using the interactive setup command:
+
+```bash
+# Start interactive setup wizard
+php artisan ai:mcp:setup
+
+# Install specific server with prompts
+php artisan ai:mcp:setup sequential-thinking
+```
+
+### Non-Interactive Installation
+
+For automation, CI/CD, or batch operations, use non-interactive mode:
+
+```bash
+# Install Sequential Thinking (no API key required)
+php artisan ai:mcp:setup sequential-thinking --non-interactive
+
+# Install GitHub MCP with API key
+php artisan ai:mcp:setup github --api-key=ghp_your_token --non-interactive
+
+# Install with custom timeout and skip testing
+php artisan ai:mcp:setup sequential-thinking --timeout=60 --skip-test --non-interactive
+
+# Force reconfigure existing server
+php artisan ai:mcp:setup sequential-thinking --force --non-interactive
+```
+
+### Available Servers
+
+```bash
+# List all available MCP servers
+php artisan ai:mcp:setup --list
+```
+
+**Built-in Servers:**
+- **sequential-thinking**: Structured problem-solving (no API key required)
+- **github**: Repository management and search (requires `GITHUB_PERSONAL_ACCESS_TOKEN`)
+- **brave-search**: Web search capabilities (requires `BRAVE_API_KEY`)
+
 ## Sequential Thinking
 
 Sequential Thinking is a built-in MCP server that helps AI models break down complex problems into structured thinking steps, leading to more accurate and well-reasoned responses.
