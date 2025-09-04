@@ -215,7 +215,7 @@ class AIUsageAnalytics extends Model
         if ($this->total_requests == 0) {
             return 0;
         }
-        
+
         return ($this->successful_requests / $this->total_requests) * 100;
     }
 
@@ -224,7 +224,7 @@ class AIUsageAnalytics extends Model
         if ($this->total_requests == 0) {
             return 0;
         }
-        
+
         return ($this->failed_requests / $this->total_requests) * 100;
     }
 
@@ -233,7 +233,7 @@ class AIUsageAnalytics extends Model
         if ($this->total_requests == 0) {
             return 0;
         }
-        
+
         return $this->total_tokens / $this->total_requests;
     }
 
@@ -242,7 +242,7 @@ class AIUsageAnalytics extends Model
         if ($this->total_conversations == 0) {
             return 0;
         }
-        
+
         return $this->total_messages / $this->total_conversations;
     }
 
@@ -251,7 +251,7 @@ class AIUsageAnalytics extends Model
         if ($this->total_ratings == 0) {
             return 0;
         }
-        
+
         return ($this->positive_ratings / $this->total_ratings) * 100;
     }
 
@@ -260,7 +260,7 @@ class AIUsageAnalytics extends Model
         if ($this->total_ratings == 0) {
             return 0;
         }
-        
+
         return ($this->negative_ratings / $this->total_ratings) * 100;
     }
 
@@ -269,7 +269,7 @@ class AIUsageAnalytics extends Model
         if ($this->total_requests == 0) {
             return 0;
         }
-        
+
         return ($this->streaming_requests / $this->total_requests) * 100;
     }
 
@@ -278,7 +278,7 @@ class AIUsageAnalytics extends Model
         if ($this->total_requests == 0) {
             return 0;
         }
-        
+
         return ($this->function_call_requests / $this->total_requests) * 100;
     }
 
@@ -312,7 +312,7 @@ class AIUsageAnalytics extends Model
         $analytics = self::betweenDates($startDate, $endDate)
             ->forPeriod($periodType)
             ->get();
-        
+
         return [
             'total_requests' => $analytics->sum('total_requests'),
             'successful_requests' => $analytics->sum('successful_requests'),
@@ -323,7 +323,7 @@ class AIUsageAnalytics extends Model
             'avg_response_time_ms' => $analytics->avg('avg_response_time_ms'),
             'success_rate' => $analytics->avg('success_rate'),
             'user_satisfaction' => $analytics->avg('user_satisfaction_score'),
-            'provider_breakdown' => $analytics->groupBy('ai_provider_id')->map(function($group) {
+            'provider_breakdown' => $analytics->groupBy('ai_provider_id')->map(function ($group) {
                 return [
                     'requests' => $group->sum('total_requests'),
                     'cost' => $group->sum('total_cost'),
@@ -336,11 +336,11 @@ class AIUsageAnalytics extends Model
     public static function getTopPerformers(string $metric = 'total_requests', int $limit = 10, ?string $period = null): array
     {
         $query = self::query();
-        
+
         if ($period) {
             $query->forPeriod($period);
         }
-        
+
         return $query->orderBy($metric, 'desc')
             ->limit($limit)
             ->get()
@@ -350,18 +350,18 @@ class AIUsageAnalytics extends Model
     public static function getProviderComparison(?string $dateRange = null): array
     {
         $query = self::query();
-        
+
         if ($dateRange) {
             $dates = self::parseDateRange($dateRange);
             $query->betweenDates($dates['start'], $dates['end']);
         }
-        
+
         return $query
             ->selectRaw('ai_provider_id, SUM(total_requests) as total_requests, SUM(total_cost) as total_cost, AVG(success_rate) as avg_success_rate, AVG(avg_response_time_ms) as avg_response_time')
             ->groupBy('ai_provider_id')
             ->with('provider')
             ->get()
-            ->map(function($item) {
+            ->map(function ($item) {
                 return [
                     'provider_id' => $item->ai_provider_id,
                     'provider_name' => $item->provider->name ?? 'Unknown',
@@ -377,15 +377,15 @@ class AIUsageAnalytics extends Model
     public static function getUserEngagementMetrics(?int $userId = null, ?string $period = null): array
     {
         $query = self::query();
-        
+
         if ($userId) {
             $query->forUser($userId);
         }
-        
+
         if ($period) {
             $query->forPeriod($period);
         }
-        
+
         $metrics = $query->selectRaw('
             SUM(unique_users) as total_unique_users,
             SUM(new_users) as total_new_users,
@@ -394,7 +394,7 @@ class AIUsageAnalytics extends Model
             AVG(avg_conversation_length) as avg_conversation_length,
             AVG(user_satisfaction_score) as avg_satisfaction
         ')->first();
-        
+
         return [
             'total_unique_users' => $metrics->total_unique_users ?? 0,
             'total_new_users' => $metrics->total_new_users ?? 0,

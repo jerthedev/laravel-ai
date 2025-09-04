@@ -189,7 +189,7 @@ class CostBreakdownAnalyticsTest extends TestCase
     public function it_handles_empty_cost_data_gracefully(): void
     {
         // Clear all cost data
-        DB::table('ai_usage_costs')->truncate();
+        DB::table('ai_cost_records')->truncate();
 
         $breakdown = $this->analyticsService->getCostBreakdownByProvider(999, 'month');
 
@@ -312,6 +312,6 @@ class CostBreakdownAnalyticsTest extends TestCase
             ];
         }
 
-        DB::table('ai_usage_costs')->insert($costData);
+        DB::table('ai_cost_records')->insert($costData);
     }
 }

@@ -3,10 +3,9 @@
 namespace JTD\LaravelAI\Services;
 
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use JTD\LaravelAI\Models\AIBudgetAlertConfig;
 use JTD\LaravelAI\Models\AIBudgetAlert;
+use JTD\LaravelAI\Models\AIBudgetAlertConfig;
 use JTD\LaravelAI\Models\User;
 
 /**
@@ -199,6 +198,7 @@ class BudgetAlertService
     {
         try {
             AIBudgetAlert::createAlert($alertData);
+
             return true;
         } catch (\Exception $e) {
             Log::error('Failed to record budget alert', [

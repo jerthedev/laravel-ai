@@ -250,13 +250,13 @@ class MiddlewarePerformanceBenchmarkTest extends TestCase
             $startTime = microtime(true);
 
             // Simulate the most common budget query
-            $budgetLimit = DB::table('ai_budgets')
+            $budgetLimit = DB::table('ai_user_budgets')
                 ->where('user_id', $userId)
                 ->where('type', 'daily')
                 ->where('is_active', true)
                 ->value('limit_amount');
 
-            $dailySpending = DB::table('ai_usage_costs')
+            $dailySpending = DB::table('ai_cost_records')
                 ->where('user_id', $userId)
                 ->whereBetween('created_at', [today()->startOfDay(), today()->endOfDay()])
                 ->sum('total_cost');
@@ -342,7 +342,7 @@ class MiddlewarePerformanceBenchmarkTest extends TestCase
 
         // Create budgets for users
         for ($userId = 1; $userId <= 10; $userId++) {
-            DB::table('ai_budgets')->insert([
+            DB::table('ai_user_budgets')->insert([
                 'user_id' => $userId,
                 'type' => 'daily',
                 'limit_amount' => 10.00,
@@ -354,7 +354,7 @@ class MiddlewarePerformanceBenchmarkTest extends TestCase
                 'updated_at' => now(),
             ]);
 
-            DB::table('ai_budgets')->insert([
+            DB::table('ai_user_budgets')->insert([
                 'user_id' => $userId,
                 'type' => 'monthly',
                 'limit_amount' => 100.00,
@@ -370,7 +370,7 @@ class MiddlewarePerformanceBenchmarkTest extends TestCase
         // Create some usage cost records for realistic testing
         for ($userId = 1; $userId <= 5; $userId++) {
             for ($i = 0; $i < 10; $i++) {
-                DB::table('ai_usage_costs')->insert([
+                DB::table('ai_cost_records')->insert([
                     'user_id' => $userId,
                     'provider' => 'openai',
                     'model' => 'gpt-4o-mini',

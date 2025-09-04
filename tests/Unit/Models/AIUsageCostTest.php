@@ -2,12 +2,10 @@
 
 namespace JTD\LaravelAI\Tests\Unit\Models;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use JTD\LaravelAI\Models\AIUsageCost;
-use JTD\LaravelAI\Models\AIConversation;
-use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\User;
 use JTD\LaravelAI\Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AIUsageCostTest extends TestCase
 {
@@ -16,7 +14,7 @@ class AIUsageCostTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
     }
 
@@ -204,7 +202,7 @@ class AIUsageCostTest extends TestCase
             'total_cost' => 1.50,
             'created_at' => now(),
         ]);
-        
+
         AIUsageCost::factory()->create([
             'user_id' => $this->user->id,
             'total_cost' => 2.25,
@@ -222,7 +220,7 @@ class AIUsageCostTest extends TestCase
             'total_tokens' => 1000,
             'created_at' => now(),
         ]);
-        
+
         AIUsageCost::factory()->create([
             'user_id' => $this->user->id,
             'total_tokens' => 2500,
@@ -241,7 +239,7 @@ class AIUsageCostTest extends TestCase
             'total_cost' => 1.0,
             'total_tokens' => 1000,
         ]);
-        
+
         AIUsageCost::factory()->create([
             'user_id' => $this->user->id,
             'provider' => 'anthropic',
@@ -250,9 +248,9 @@ class AIUsageCostTest extends TestCase
         ]);
 
         $breakdown = AIUsageCost::getProviderBreakdown($this->user->id);
-        
+
         $this->assertCount(2, $breakdown);
-        
+
         $anthropicData = collect($breakdown)->firstWhere('provider', 'anthropic');
         $this->assertEquals(2.0, $anthropicData['total_cost']);
         $this->assertEquals(1500, $anthropicData['total_tokens']);
@@ -267,7 +265,7 @@ class AIUsageCostTest extends TestCase
             'total_cost' => 2.5,
             'total_tokens' => 1000,
         ]);
-        
+
         AIUsageCost::factory()->create([
             'user_id' => $this->user->id,
             'provider' => 'openai',
@@ -277,9 +275,9 @@ class AIUsageCostTest extends TestCase
         ]);
 
         $breakdown = AIUsageCost::getModelBreakdown($this->user->id, 'openai');
-        
+
         $this->assertCount(2, $breakdown);
-        
+
         $gpt4Data = collect($breakdown)->firstWhere('model', 'gpt-4');
         $this->assertEquals(2.5, $gpt4Data['total_cost']);
         $this->assertEquals('openai', $gpt4Data['provider']);

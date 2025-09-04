@@ -332,7 +332,7 @@ class AnalyticsIntegrationTest extends TestCase
         }
 
         // Update budget current_usage to reflect the new costs
-        \DB::table('ai_budgets')
+        \DB::table('ai_user_budgets')
             ->where('user_id', $userId)
             ->increment('current_usage', $totalCost);
 
@@ -404,7 +404,7 @@ class AnalyticsIntegrationTest extends TestCase
             'updated_at' => now(),
         ];
 
-        \DB::table('ai_usage_costs')->insert(array_merge($defaults, $data));
+        \DB::table('ai_cost_records')->insert(array_merge($defaults, $data));
     }
 
     /**

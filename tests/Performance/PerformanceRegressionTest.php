@@ -139,13 +139,13 @@ class PerformanceRegressionTest extends TestCase
             $startTime = microtime(true);
 
             // Execute the most critical budget queries
-            $budgetLimit = DB::table('ai_budgets')
+            $budgetLimit = DB::table('ai_user_budgets')
                 ->where('user_id', $userId)
                 ->where('type', 'daily')
                 ->where('is_active', true)
                 ->value('limit_amount');
 
-            $dailySpending = DB::table('ai_usage_costs')
+            $dailySpending = DB::table('ai_cost_records')
                 ->where('user_id', $userId)
                 ->whereBetween('created_at', [today()->startOfDay(), today()->endOfDay()])
                 ->sum('total_cost');
@@ -328,7 +328,7 @@ class PerformanceRegressionTest extends TestCase
 
             // These will be cache misses and hit database
             Cache::remember("budget_limit_{$userId}_daily", 300, function () use ($userId) {
-                return DB::table('ai_budgets')
+                return DB::table('ai_user_budgets')
                     ->where('user_id', $userId)
                     ->where('type', 'daily')
                     ->where('is_active', true)
@@ -502,7 +502,7 @@ class PerformanceRegressionTest extends TestCase
                 'updated_at' => now(),
             ]);
 
-            DB::table('ai_budgets')->insert([
+            DB::table('ai_user_budgets')->insert([
                 'user_id' => $i,
                 'type' => 'daily',
                 'limit_amount' => 20.00,
@@ -518,7 +518,7 @@ class PerformanceRegressionTest extends TestCase
         // Create baseline usage data
         for ($userId = 1; $userId <= 10; $userId++) {
             for ($i = 0; $i < 3; $i++) {
-                DB::table('ai_usage_costs')->insert([
+                DB::table('ai_cost_records')->insert([
                     'user_id' => $userId,
                     'provider' => 'openai',
                     'model' => 'gpt-4o-mini',

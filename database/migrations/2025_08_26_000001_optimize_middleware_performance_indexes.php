@@ -17,8 +17,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Optimize ai_usage_costs table for budget middleware queries
-        Schema::table('ai_usage_costs', function (Blueprint $table) {
+        // Optimize ai_cost_records table for budget middleware queries
+        Schema::table('ai_cost_records', function (Blueprint $table) {
             // Add indexes for daily budget checking (most common query)
             $table->index(['user_id', 'created_at', 'total_cost'], 'idx_user_daily_cost_lookup');
 
@@ -46,9 +46,9 @@ return new class extends Migration
             $table->index(['user_id', 'provider', 'model', 'created_at'], 'idx_user_provider_model_time');
         });
 
-        // Optimize ai_budgets table for faster budget limit lookups (only if table exists)
-        if (Schema::hasTable('ai_budgets')) {
-            Schema::table('ai_budgets', function (Blueprint $table) {
+        // Optimize ai_user_budgets table for faster budget limit lookups (only if table exists)
+        if (Schema::hasTable('ai_user_budgets')) {
+            Schema::table('ai_user_budgets', function (Blueprint $table) {
                 // Add covering index for budget limit queries (includes commonly selected columns)
                 $table->index(['user_id', 'type', 'is_active', 'limit_amount'], 'idx_budget_limit_lookup');
 
@@ -133,24 +133,24 @@ return new class extends Migration
         // Drop ai_middleware_performance_metrics table
         Schema::dropIfExists('ai_middleware_performance_metrics');
 
-        // Remove performance indexes from ai_usage_costs
-        Schema::table('ai_usage_costs', function (Blueprint $table) {
+        // Remove performance indexes from ai_cost_records
+        Schema::table('ai_cost_records', function (Blueprint $table) {
             $table->dropIndex('idx_user_daily_cost_lookup');
             $table->dropIndex('idx_user_monthly_lookup');
-            
+
             // Only drop JSON-based indexes if not SQLite
             if (Schema::getConnection()->getDriverName() !== 'sqlite') {
                 $table->dropIndex('idx_user_project_cost');
                 $table->dropIndex('idx_user_org_cost');
             }
-            
+
             $table->dropIndex('idx_realtime_cost_aggregation');
             $table->dropIndex('idx_user_provider_model_time');
         });
 
-        // Remove performance indexes from ai_budgets (only if table exists)
-        if (Schema::hasTable('ai_budgets')) {
-            Schema::table('ai_budgets', function (Blueprint $table) {
+        // Remove performance indexes from ai_user_budgets (only if table exists)
+        if (Schema::hasTable('ai_user_budgets')) {
+            Schema::table('ai_user_budgets', function (Blueprint $table) {
                 $table->dropIndex('idx_budget_limit_lookup');
                 $table->dropIndex('idx_project_budget_lookup');
                 $table->dropIndex('idx_org_budget_lookup');

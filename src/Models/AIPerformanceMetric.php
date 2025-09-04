@@ -53,7 +53,7 @@ class AIPerformanceMetric extends Model
         if ($threshold) {
             return $query->where('duration_ms', '>=', $threshold);
         }
-        
+
         return $query->whereRaw('duration_ms >= target_ms');
     }
 
@@ -62,7 +62,7 @@ class AIPerformanceMetric extends Model
         if ($threshold) {
             return $query->where('duration_ms', '<', $threshold);
         }
-        
+
         return $query->whereRaw('duration_ms < target_ms');
     }
 
@@ -75,7 +75,7 @@ class AIPerformanceMetric extends Model
     {
         return $query->whereBetween('created_at', [
             now()->startOfWeek(),
-            now()->endOfWeek()
+            now()->endOfWeek(),
         ]);
     }
 
@@ -95,7 +95,7 @@ class AIPerformanceMetric extends Model
         if ($this->target_ms == 0) {
             return 0;
         }
-        
+
         return $this->duration_ms / $this->target_ms;
     }
 
@@ -104,7 +104,7 @@ class AIPerformanceMetric extends Model
         if ($this->target_ms == 0) {
             return 0;
         }
-        
+
         return (($this->duration_ms - $this->target_ms) / $this->target_ms) * 100;
     }
 
@@ -136,7 +136,7 @@ class AIPerformanceMetric extends Model
     public function getPerformanceStatus(): string
     {
         $ratio = $this->performance_ratio;
-        
+
         if ($ratio >= 2.0) {
             return 'critical';
         } elseif ($ratio >= 1.5) {
@@ -166,13 +166,13 @@ class AIPerformanceMetric extends Model
     public static function getAveragePerformance(string $operation, ?string $provider = null, ?int $hours = 24): array
     {
         $query = self::forOperation($operation)->recent($hours);
-        
+
         if ($provider) {
             $query->forProvider($provider);
         }
-        
+
         $metrics = $query->get();
-        
+
         if ($metrics->isEmpty()) {
             return [
                 'operation' => $operation,
@@ -185,9 +185,9 @@ class AIPerformanceMetric extends Model
                 'slow_percentage' => 0,
             ];
         }
-        
-        $slowCount = $metrics->filter(fn($m) => $m->isSlowPerformance())->count();
-        
+
+        $slowCount = $metrics->filter(fn ($m) => $m->isSlowPerformance())->count();
+
         return [
             'operation' => $operation,
             'provider' => $provider,
@@ -196,7 +196,7 @@ class AIPerformanceMetric extends Model
             'avg_target_ms' => $metrics->avg('target_ms'),
             'min_duration_ms' => $metrics->min('duration_ms'),
             'max_duration_ms' => $metrics->max('duration_ms'),
-            'avg_variance_percent' => $metrics->avg(fn($m) => $m->variance_percent),
+            'avg_variance_percent' => $metrics->avg(fn ($m) => $m->variance_percent),
             'slow_count' => $slowCount,
             'slow_percentage' => ($slowCount / $metrics->count()) * 100,
             'p95_duration_ms' => $metrics->sortBy('duration_ms')->values()->get(intval($metrics->count() * 0.95))?->duration_ms ?? 0,
@@ -210,10 +210,10 @@ class AIPerformanceMetric extends Model
             ->where('created_at', '>=', now()->subDays($days))
             ->orderBy('created_at')
             ->get()
-            ->groupBy(fn($metric) => $metric->created_at->format('Y-m-d'))
-            ->map(function($dayMetrics) {
-                $slowCount = $dayMetrics->filter(fn($m) => $m->isSlowPerformance())->count();
-                
+            ->groupBy(fn ($metric) => $metric->created_at->format('Y-m-d'))
+            ->map(function ($dayMetrics) {
+                $slowCount = $dayMetrics->filter(fn ($m) => $m->isSlowPerformance())->count();
+
                 return [
                     'date' => $dayMetrics->first()->created_at->format('Y-m-d'),
                     'sample_count' => $dayMetrics->count(),
@@ -224,23 +224,23 @@ class AIPerformanceMetric extends Model
             })
             ->values()
             ->toArray();
-        
+
         return $metrics;
     }
 
     public static function getProviderComparison(?string $operation = null, ?int $hours = 24): array
     {
         $query = self::recent($hours);
-        
+
         if ($operation) {
             $query->forOperation($operation);
         }
-        
+
         return $query->get()
             ->groupBy('provider')
-            ->map(function($providerMetrics, $provider) {
-                $slowCount = $providerMetrics->filter(fn($m) => $m->isSlowPerformance())->count();
-                
+            ->map(function ($providerMetrics, $provider) {
+                $slowCount = $providerMetrics->filter(fn ($m) => $m->isSlowPerformance())->count();
+
                 return [
                     'provider' => $provider,
                     'sample_count' => $providerMetrics->count(),
@@ -248,7 +248,7 @@ class AIPerformanceMetric extends Model
                     'avg_target_ms' => $providerMetrics->avg('target_ms'),
                     'slow_count' => $slowCount,
                     'slow_percentage' => $providerMetrics->count() > 0 ? ($slowCount / $providerMetrics->count()) * 100 : 0,
-                    'avg_variance_percent' => $providerMetrics->avg(fn($m) => $m->variance_percent),
+                    'avg_variance_percent' => $providerMetrics->avg(fn ($m) => $m->variance_percent),
                 ];
             })
             ->sortBy('avg_duration_ms')
@@ -259,15 +259,15 @@ class AIPerformanceMetric extends Model
     public static function getSlowOperations(int $limit = 10, ?int $hours = 24): array
     {
         $query = self::slow();
-        
+
         if ($hours) {
             $query->recent($hours);
         }
-        
+
         return $query->orderBy('duration_ms', 'desc')
             ->limit($limit)
             ->get()
-            ->map(function($metric) {
+            ->map(function ($metric) {
                 return [
                     'operation' => $metric->operation,
                     'duration_ms' => $metric->duration_ms,

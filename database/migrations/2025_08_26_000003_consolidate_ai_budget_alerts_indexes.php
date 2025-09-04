@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * Removes redundant single-column indexes that are covered by existing composite indexes:
      * - user_id (covered by ['user_id', 'budget_type', 'sent_at'])
      * - budget_type (covered by ['user_id', 'budget_type', 'sent_at'])

@@ -2,10 +2,10 @@
 
 namespace JTD\LaravelAI\Tests\Unit\Models;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use JTD\LaravelAI\Models\AIBudgetAlertConfig;
 use JTD\LaravelAI\Models\User;
 use JTD\LaravelAI\Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AIBudgetAlertConfigTest extends TestCase
 {
@@ -14,7 +14,7 @@ class AIBudgetAlertConfigTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->user = User::factory()->create();
     }
 
@@ -230,7 +230,7 @@ class AIBudgetAlertConfigTest extends TestCase
         $this->assertIsArray($config->email_severities);
         $this->assertIsArray($config->slack_severities);
         $this->assertIsArray($config->additional_emails);
-        
+
         $this->assertContains('high', $config->email_severities);
         $this->assertContains('admin@example.com', $config->additional_emails);
     }

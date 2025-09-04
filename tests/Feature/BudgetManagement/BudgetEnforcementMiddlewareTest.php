@@ -298,7 +298,7 @@ class BudgetEnforcementMiddlewareTest extends TestCase
 
         // Simulate database error by clearing cache and not setting budget data
         Cache::flush();
-        DB::table('ai_budgets')->truncate();
+        DB::table('ai_user_budgets')->truncate();
 
         // Should not throw exception (fail-open approach)
         $result = $this->middleware->handle($message, function ($msg) use ($response) {

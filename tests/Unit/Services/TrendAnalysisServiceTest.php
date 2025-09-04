@@ -173,7 +173,7 @@ class TrendAnalysisServiceTest extends TestCase
     {
         // Clear all data
         DB::table('ai_usage_analytics')->truncate();
-        DB::table('ai_usage_costs')->truncate();
+        DB::table('ai_cost_records')->truncate();
 
         $userId = 999; // Non-existent user
         $trends = $this->trendAnalysisService->analyzeUsageTrends($userId, 'daily', 30);
@@ -411,6 +411,6 @@ class TrendAnalysisServiceTest extends TestCase
         }
 
         DB::table('ai_usage_analytics')->insert($analyticsData);
-        DB::table('ai_usage_costs')->insert($costData);
+        DB::table('ai_cost_records')->insert($costData);
     }
 }

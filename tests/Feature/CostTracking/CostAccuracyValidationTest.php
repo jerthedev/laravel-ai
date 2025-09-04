@@ -161,7 +161,7 @@ class CostAccuracyValidationTest extends TestCase
 
         $this->costTrackingListener->handle($event);
 
-        $costRecord = DB::table('ai_usage_costs')
+        $costRecord = DB::table('ai_cost_records')
             ->where('conversation_id', 999)
             ->first();
 

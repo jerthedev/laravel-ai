@@ -118,10 +118,10 @@ class AIReportExport extends Model
 
     public function getProcessingTimeAttribute(): ?int
     {
-        if (!$this->started_at || !$this->completed_at) {
+        if (! $this->started_at || ! $this->completed_at) {
             return null;
         }
-        
+
         return $this->started_at->diffInSeconds($this->completed_at);
     }
 
@@ -130,34 +130,34 @@ class AIReportExport extends Model
         if ($this->file_size === null) {
             return 'N/A';
         }
-        
+
         $units = ['B', 'KB', 'MB', 'GB'];
         $size = $this->file_size;
         $unit = 0;
-        
+
         while ($size >= 1024 && $unit < count($units) - 1) {
             $size /= 1024;
             $unit++;
         }
-        
+
         return round($size, 2) . ' ' . $units[$unit];
     }
 
     public function getTimeToExpiryAttribute(): ?int
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return null;
         }
-        
+
         return now()->diffInHours($this->expires_at, false);
     }
 
     public function getDownloadUrlAttribute(): ?string
     {
-        if (!$this->isReadyForDownload()) {
+        if (! $this->isReadyForDownload()) {
             return null;
         }
-        
+
         // This would be a route to the download endpoint
         return route('ai.reports.download', ['export' => $this->export_id]);
     }
@@ -184,13 +184,13 @@ class AIReportExport extends Model
 
     public function isExpired(): bool
     {
-        return $this->status === 'expired' || 
+        return $this->status === 'expired' ||
                ($this->expires_at && $this->expires_at->isPast());
     }
 
     public function isReadyForDownload(): bool
     {
-        return $this->isCompleted() && !$this->isExpired();
+        return $this->isCompleted() && ! $this->isExpired();
     }
 
     public function hasBeenDownloaded(): bool
@@ -200,10 +200,10 @@ class AIReportExport extends Model
 
     public function isNearExpiry(int $hours = 24): bool
     {
-        if (!$this->expires_at) {
+        if (! $this->expires_at) {
             return false;
         }
-        
+
         return $this->expires_at->diffInHours(now()) <= $hours;
     }
 
@@ -212,7 +212,7 @@ class AIReportExport extends Model
         if ($this->status !== 'pending') {
             return false;
         }
-        
+
         return $this->update([
             'status' => 'processing',
             'started_at' => now(),
@@ -224,7 +224,7 @@ class AIReportExport extends Model
         if ($this->status !== 'processing') {
             return false;
         }
-        
+
         return $this->update([
             'status' => 'completed',
             'file_path' => $filePath,
@@ -238,10 +238,10 @@ class AIReportExport extends Model
 
     public function fail(string $errorMessage): bool
     {
-        if (!in_array($this->status, ['pending', 'processing'])) {
+        if (! in_array($this->status, ['pending', 'processing'])) {
             return false;
         }
-        
+
         return $this->update([
             'status' => 'failed',
             'error_message' => $errorMessage,
@@ -253,7 +253,7 @@ class AIReportExport extends Model
         if ($this->status !== 'completed') {
             return false;
         }
-        
+
         return $this->update([
             'status' => 'expired',
         ]);
@@ -261,20 +261,20 @@ class AIReportExport extends Model
 
     public function recordDownload(): bool
     {
-        if (!$this->isReadyForDownload()) {
+        if (! $this->isReadyForDownload()) {
             return false;
         }
-        
-        return $this->increment('download_count') && 
+
+        return $this->increment('download_count') &&
                $this->update(['last_downloaded_at' => now()]);
     }
 
     public function extendExpiry(int $days = 7): bool
     {
-        if (!$this->isCompleted()) {
+        if (! $this->isCompleted()) {
             return false;
         }
-        
+
         return $this->update([
             'expires_at' => now()->addDays($days),
         ]);
@@ -283,7 +283,7 @@ class AIReportExport extends Model
     public static function createExport(int $userId, string $reportType, string $format, array $options = []): self
     {
         $exportId = Str::uuid()->toString();
-        
+
         return self::create([
             'export_id' => $exportId,
             'user_id' => $userId,
@@ -304,27 +304,27 @@ class AIReportExport extends Model
         $expiredExports = self::where('expires_at', '<', now())
             ->where('status', 'completed')
             ->get();
-        
+
         $cleanedCount = 0;
-        
+
         foreach ($expiredExports as $export) {
             // Delete the actual file if it exists
             if ($export->file_path && file_exists($export->file_path)) {
                 unlink($export->file_path);
             }
-            
+
             // Mark as expired
             $export->expire();
             $cleanedCount++;
         }
-        
+
         return $cleanedCount;
     }
 
     public static function getUserExportStats(int $userId, int $days = 30): array
     {
         $exports = self::forUser($userId)->recent($days)->get();
-        
+
         return [
             'total_exports' => $exports->count(),
             'completed_exports' => $exports->where('status', 'completed')->count(),
@@ -333,14 +333,14 @@ class AIReportExport extends Model
             'total_file_size' => $exports->sum('file_size'),
             'by_type' => $exports->groupBy('report_type')->map->count()->toArray(),
             'by_format' => $exports->groupBy('format')->map->count()->toArray(),
-            'avg_processing_time' => $exports->filter(fn($e) => $e->processing_time)->avg('processing_time'),
+            'avg_processing_time' => $exports->filter(fn ($e) => $e->processing_time)->avg('processing_time'),
         ];
     }
 
     public static function getSystemExportStats(int $days = 30): array
     {
         $exports = self::recent($days)->get();
-        
+
         return [
             'total_exports' => $exports->count(),
             'completed_exports' => $exports->where('status', 'completed')->count(),
@@ -352,8 +352,8 @@ class AIReportExport extends Model
             'unique_users' => $exports->pluck('user_id')->unique()->count(),
             'popular_types' => $exports->groupBy('report_type')->map->count()->sortDesc()->toArray(),
             'popular_formats' => $exports->groupBy('format')->map->count()->sortDesc()->toArray(),
-            'avg_processing_time' => $exports->filter(fn($e) => $e->processing_time)->avg('processing_time'),
-            'success_rate' => $exports->count() > 0 ? 
+            'avg_processing_time' => $exports->filter(fn ($e) => $e->processing_time)->avg('processing_time'),
+            'success_rate' => $exports->count() > 0 ?
                 ($exports->where('status', 'completed')->count() / $exports->count()) * 100 : 0,
         ];
     }
@@ -363,7 +363,7 @@ class AIReportExport extends Model
         return self::whereIn('status', ['pending', 'processing'])
             ->orderBy('created_at')
             ->get()
-            ->map(function($export) {
+            ->map(function ($export) {
                 return [
                     'export_id' => $export->export_id,
                     'user_id' => $export->user_id,

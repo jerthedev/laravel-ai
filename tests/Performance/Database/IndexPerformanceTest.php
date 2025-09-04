@@ -5,24 +5,24 @@ namespace JTD\LaravelAI\Tests\Performance\Database;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use JTD\LaravelAI\Models\AIConversation;
-use JTD\LaravelAI\Models\AIUsageCost;
 use JTD\LaravelAI\Models\AIBudgetAlert;
 use JTD\LaravelAI\Models\AICostAnalytics;
+use JTD\LaravelAI\Models\AIUsageCost;
 use JTD\LaravelAI\Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 class IndexPerformanceTest extends TestCase
 {
     use RefreshDatabase;
 
     private const SAMPLE_SIZE = 10000;
+
     private const PERFORMANCE_THRESHOLD_MS = 100;
 
     #[Test]
     #[Group('performance')]
-    public function it_validates_ai_usage_costs_query_performance_after_index_consolidation(): void
+    public function it_validates_ai_cost_records_query_performance_after_index_consolidation(): void
     {
         // Seed test data
         $this->seedAIUsageCosts();
@@ -60,7 +60,7 @@ class IndexPerformanceTest extends TestCase
         $this->assertLessThan(
             self::PERFORMANCE_THRESHOLD_MS,
             $executionTime,
-            "AI Usage Costs queries took {$executionTime}ms, exceeding threshold of " . self::PERFORMANCE_THRESHOLD_MS . "ms"
+            "AI Usage Costs queries took {$executionTime}ms, exceeding threshold of " . self::PERFORMANCE_THRESHOLD_MS . 'ms'
         );
 
         // Verify we got meaningful results
@@ -105,7 +105,7 @@ class IndexPerformanceTest extends TestCase
         $this->assertLessThan(
             self::PERFORMANCE_THRESHOLD_MS,
             $executionTime,
-            "AI Budget Alerts queries took {$executionTime}ms, exceeding threshold of " . self::PERFORMANCE_THRESHOLD_MS . "ms"
+            "AI Budget Alerts queries took {$executionTime}ms, exceeding threshold of " . self::PERFORMANCE_THRESHOLD_MS . 'ms'
         );
 
         $this->assertGreaterThan(0, $results->filter()->count());
@@ -150,7 +150,7 @@ class IndexPerformanceTest extends TestCase
         $this->assertLessThan(
             self::PERFORMANCE_THRESHOLD_MS,
             $executionTime,
-            "AI Cost Analytics queries took {$executionTime}ms, exceeding threshold of " . self::PERFORMANCE_THRESHOLD_MS . "ms"
+            "AI Cost Analytics queries took {$executionTime}ms, exceeding threshold of " . self::PERFORMANCE_THRESHOLD_MS . 'ms'
         );
 
         $this->assertGreaterThan(0, $results->filter()->count());
@@ -192,7 +192,7 @@ class IndexPerformanceTest extends TestCase
     public function it_validates_write_performance_improvements(): void
     {
         $batchSize = 1000;
-        
+
         $startTime = microtime(true);
 
         // Perform batch inserts to test write performance
@@ -215,7 +215,7 @@ class IndexPerformanceTest extends TestCase
             ];
         }
 
-        DB::table('ai_usage_costs')->insert($usageCosts);
+        DB::table('ai_cost_records')->insert($usageCosts);
 
         $endTime = microtime(true);
         $executionTime = ($endTime - $startTime) * 1000;
@@ -228,7 +228,7 @@ class IndexPerformanceTest extends TestCase
         );
 
         // Verify data was inserted correctly
-        $this->assertEquals($batchSize, DB::table('ai_usage_costs')->count());
+        $this->assertEquals($batchSize, DB::table('ai_cost_records')->count());
     }
 
     private function seedAIUsageCosts(): void
@@ -255,13 +255,13 @@ class IndexPerformanceTest extends TestCase
 
             // Insert in batches to avoid memory issues
             if (count($usageCosts) >= 1000) {
-                DB::table('ai_usage_costs')->insert($usageCosts);
+                DB::table('ai_cost_records')->insert($usageCosts);
                 $usageCosts = [];
             }
         }
 
-        if (!empty($usageCosts)) {
-            DB::table('ai_usage_costs')->insert($usageCosts);
+        if (! empty($usageCosts)) {
+            DB::table('ai_cost_records')->insert($usageCosts);
         }
     }
 
@@ -293,7 +293,7 @@ class IndexPerformanceTest extends TestCase
             }
         }
 
-        if (!empty($alerts)) {
+        if (! empty($alerts)) {
             DB::table('ai_budget_alerts')->insert($alerts);
         }
     }
@@ -328,7 +328,7 @@ class IndexPerformanceTest extends TestCase
             }
         }
 
-        if (!empty($analytics)) {
+        if (! empty($analytics)) {
             DB::table('ai_cost_analytics')->insert($analytics);
         }
     }

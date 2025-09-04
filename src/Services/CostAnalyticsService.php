@@ -6,8 +6,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use JTD\LaravelAI\Models\AIUsageCost;
-use JTD\LaravelAI\Models\AICostAnalytics;
-use JTD\LaravelAI\Models\AIUsageAnalytics;
 
 /**
  * Cost Analytics Service
@@ -52,7 +50,7 @@ class CostAnalyticsService
                 $query->forUser($userId);
             }
 
-            if (!empty($dateFilter) && count($dateFilter) === 2) {
+            if (! empty($dateFilter) && count($dateFilter) === 2) {
                 $query->betweenDates($dateFilter[0], $dateFilter[1]);
             } elseif ($dateRange) {
                 $query = $this->applyDateRangeToEloquent($query, $dateRange);
@@ -101,7 +99,7 @@ class CostAnalyticsService
         $cacheKey = "cost_breakdown_model_{$userId}_{$provider}_{$dateRange}_" . md5(json_encode($dateFilter));
 
         return Cache::remember($cacheKey, $this->defaultCacheTtl, function () use ($userId, $provider, $dateRange, $dateFilter) {
-            $query = DB::table('ai_usage_costs')
+            $query = DB::table('ai_cost_records')
                 ->select([
                     'provider',
                     'model',
@@ -172,7 +170,7 @@ class CostAnalyticsService
         $cacheKey = 'cost_breakdown_user_' . md5(json_encode($userIds)) . "_{$dateRange}_" . md5(json_encode($dateFilter));
 
         return Cache::remember($cacheKey, $this->defaultCacheTtl, function () use ($userIds, $dateRange, $dateFilter) {
-            $query = DB::table('ai_usage_costs')
+            $query = DB::table('ai_cost_records')
                 ->select([
                     'user_id',
                     DB::raw('COUNT(*) as request_count'),
@@ -242,7 +240,7 @@ class CostAnalyticsService
         return Cache::remember($cacheKey, $this->defaultCacheTtl, function () use ($userId, $groupBy, $dateRange, $dateFilter) {
             $dateFormatSql = $this->getDateFormatSql($groupBy);
 
-            $query = DB::table('ai_usage_costs')
+            $query = DB::table('ai_cost_records')
                 ->select([
                     DB::raw("{$dateFormatSql} as period"),
                     DB::raw('COUNT(*) as request_count'),
@@ -298,7 +296,7 @@ class CostAnalyticsService
         $cacheKey = "cost_efficiency_{$userId}_{$dateRange}_" . md5(json_encode($dateFilter));
 
         return Cache::remember($cacheKey, $this->defaultCacheTtl, function () use ($userId, $dateRange, $dateFilter) {
-            $query = DB::table('ai_usage_costs')
+            $query = DB::table('ai_cost_records')
                 ->select([
                     'provider',
                     'model',
@@ -362,7 +360,7 @@ class CostAnalyticsService
         $cacheKey = "conversation_analytics_{$userId}_{$dateRange}_" . md5(json_encode($dateFilter));
 
         return Cache::remember($cacheKey, $this->defaultCacheTtl, function () use ($userId, $dateRange, $dateFilter) {
-            $query = DB::table('ai_usage_costs')
+            $query = DB::table('ai_cost_records')
                 ->select([
                     'conversation_id',
                     'user_id',
@@ -617,7 +615,6 @@ class CostAnalyticsService
      * Apply date range filter to Eloquent query.
      *
      * @param  \Illuminate\Database\Eloquent\Builder  $query
-     * @param  string  $dateRange
      * @return \Illuminate\Database\Eloquent\Builder
      */
     protected function applyDateRangeToEloquent($query, string $dateRange)
@@ -638,7 +635,6 @@ class CostAnalyticsService
      * Calculate totals from Eloquent results.
      *
      * @param  \Illuminate\Support\Collection  $results
-     * @return array
      */
     protected function calculateTotalsFromEloquent($results): array
     {

@@ -74,7 +74,7 @@ class AICostAnalytics extends Model
     {
         return $query->whereBetween('created_at', [
             now()->startOfWeek(),
-            now()->endOfWeek()
+            now()->endOfWeek(),
         ]);
     }
 
@@ -119,7 +119,7 @@ class AICostAnalytics extends Model
         if ($this->total_tokens == 0) {
             return 0;
         }
-        
+
         return ($this->total_cost / $this->total_tokens) * 1000;
     }
 
@@ -128,7 +128,7 @@ class AICostAnalytics extends Model
         if ($this->total_cost == 0) {
             return 0;
         }
-        
+
         return ($this->input_cost / $this->total_cost) * 100;
     }
 
@@ -137,7 +137,7 @@ class AICostAnalytics extends Model
         if ($this->total_cost == 0) {
             return 0;
         }
-        
+
         return ($this->output_cost / $this->total_cost) * 100;
     }
 
@@ -146,7 +146,7 @@ class AICostAnalytics extends Model
         if ($this->input_tokens == 0) {
             return 0;
         }
-        
+
         return $this->output_tokens / $this->input_tokens;
     }
 
@@ -168,7 +168,7 @@ class AICostAnalytics extends Model
     public static function aggregateForUser(int $userId, ?string $period = null): array
     {
         $query = self::forUser($userId);
-        
+
         if ($period) {
             $query = match ($period) {
                 'today' => $query->today(),
@@ -178,26 +178,26 @@ class AICostAnalytics extends Model
                 default => $query,
             };
         }
-        
+
         $analytics = $query->get();
-        
+
         return [
             'total_cost' => $analytics->sum('total_cost'),
             'total_tokens' => $analytics->sum('total_tokens'),
             'total_input_tokens' => $analytics->sum('input_tokens'),
             'total_output_tokens' => $analytics->sum('output_tokens'),
             'avg_cost_per_token' => $analytics->avg('cost_per_token'),
-            'avg_cost_per_1k_tokens' => $analytics->avg(function($item) {
+            'avg_cost_per_1k_tokens' => $analytics->avg(function ($item) {
                 return $item->cost_per_1k_tokens;
             }),
-            'provider_breakdown' => $analytics->groupBy('provider')->map(function($group) {
+            'provider_breakdown' => $analytics->groupBy('provider')->map(function ($group) {
                 return [
                     'cost' => $group->sum('total_cost'),
                     'tokens' => $group->sum('total_tokens'),
                     'requests' => $group->count(),
                 ];
             })->toArray(),
-            'model_breakdown' => $analytics->groupBy('model')->map(function($group) {
+            'model_breakdown' => $analytics->groupBy('model')->map(function ($group) {
                 return [
                     'cost' => $group->sum('total_cost'),
                     'tokens' => $group->sum('total_tokens'),
@@ -210,7 +210,7 @@ class AICostAnalytics extends Model
     public static function getTopSpenders(int $limit = 10, ?string $period = null): array
     {
         $query = self::query();
-        
+
         if ($period) {
             $query = match ($period) {
                 'today' => $query->today(),
@@ -220,7 +220,7 @@ class AICostAnalytics extends Model
                 default => $query,
             };
         }
-        
+
         return $query
             ->selectRaw('user_id, SUM(total_cost) as total_cost, SUM(total_tokens) as total_tokens, COUNT(*) as request_count')
             ->groupBy('user_id')
@@ -233,7 +233,7 @@ class AICostAnalytics extends Model
     public static function getProviderComparison(?string $period = null): array
     {
         $query = self::query();
-        
+
         if ($period) {
             $query = match ($period) {
                 'today' => $query->today(),
@@ -243,21 +243,21 @@ class AICostAnalytics extends Model
                 default => $query,
             };
         }
-        
+
         return $query
             ->selectRaw('provider, SUM(total_cost) as total_cost, SUM(total_tokens) as total_tokens, COUNT(*) as request_count, AVG(cost_per_token) as avg_cost_per_token')
             ->groupBy('provider')
             ->orderBy('total_cost', 'desc')
             ->get()
-            ->map(function($item) {
+            ->map(function ($item) {
                 return [
                     'provider' => $item->provider,
                     'total_cost' => (float) $item->total_cost,
                     'total_tokens' => (int) $item->total_tokens,
                     'request_count' => (int) $item->request_count,
                     'avg_cost_per_token' => (float) $item->avg_cost_per_token,
-                    'cost_per_1k_tokens' => $item->total_tokens > 0 
-                        ? ($item->total_cost / $item->total_tokens) * 1000 
+                    'cost_per_1k_tokens' => $item->total_tokens > 0
+                        ? ($item->total_cost / $item->total_tokens) * 1000
                         : 0,
                 ];
             })
@@ -267,11 +267,11 @@ class AICostAnalytics extends Model
     public static function getModelComparison(?string $provider = null, ?string $period = null): array
     {
         $query = self::query();
-        
+
         if ($provider) {
             $query->forProvider($provider);
         }
-        
+
         if ($period) {
             $query = match ($period) {
                 'today' => $query->today(),
@@ -281,13 +281,13 @@ class AICostAnalytics extends Model
                 default => $query,
             };
         }
-        
+
         return $query
             ->selectRaw('provider, model, SUM(total_cost) as total_cost, SUM(total_tokens) as total_tokens, COUNT(*) as request_count, AVG(cost_per_token) as avg_cost_per_token')
             ->groupBy('provider', 'model')
             ->orderBy('total_cost', 'desc')
             ->get()
-            ->map(function($item) {
+            ->map(function ($item) {
                 return [
                     'provider' => $item->provider,
                     'model' => $item->model,
@@ -295,8 +295,8 @@ class AICostAnalytics extends Model
                     'total_tokens' => (int) $item->total_tokens,
                     'request_count' => (int) $item->request_count,
                     'avg_cost_per_token' => (float) $item->avg_cost_per_token,
-                    'cost_per_1k_tokens' => $item->total_tokens > 0 
-                        ? ($item->total_cost / $item->total_tokens) * 1000 
+                    'cost_per_1k_tokens' => $item->total_tokens > 0
+                        ? ($item->total_cost / $item->total_tokens) * 1000
                         : 0,
                 ];
             })

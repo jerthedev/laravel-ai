@@ -472,7 +472,7 @@ class MCPEventDrivenFlowTest extends TestCase
      */
     protected function createTestBudget(int $userId, string $type, float $limit): void
     {
-        \DB::table('ai_budgets')->insert([
+        \DB::table('ai_user_budgets')->insert([
             'user_id' => $userId,
             'type' => $type,
             'limit_amount' => $limit,

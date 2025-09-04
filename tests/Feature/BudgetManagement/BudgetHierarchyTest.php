@@ -445,8 +445,8 @@ class BudgetHierarchyTest extends TestCase
     protected function seedBudgetHierarchyTestData(): void
     {
         // Create test tables if they don't exist (simplified for testing)
-        if (! DB::getSchemaBuilder()->hasTable('ai_budgets')) {
-            DB::statement('CREATE TABLE ai_budgets (
+        if (! DB::getSchemaBuilder()->hasTable('ai_user_budgets')) {
+            DB::statement('CREATE TABLE ai_user_budgets (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,
                 project_id TEXT,

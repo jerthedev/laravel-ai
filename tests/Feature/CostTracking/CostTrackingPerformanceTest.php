@@ -152,7 +152,7 @@ class CostTrackingPerformanceTest extends TestCase
             "High volume cost tracking is too slow: {$avgTimePerEvent}ms per event");
 
         // Verify events were processed (may be less than expected due to test environment)
-        $actualCount = DB::table('ai_usage_costs')->count();
+        $actualCount = DB::table('ai_cost_records')->count();
         $this->assertGreaterThan(0, $actualCount);
         $this->assertLessThanOrEqual($highVolumeCount, $actualCount);
     }
@@ -278,7 +278,7 @@ class CostTrackingPerformanceTest extends TestCase
             "Concurrent processing is too slow: {$avgTimePerEvent}ms per event");
 
         // Verify events were processed correctly (may be less than expected due to test environment)
-        $actualCount = DB::table('ai_usage_costs')->count();
+        $actualCount = DB::table('ai_cost_records')->count();
         $this->assertGreaterThan(0, $actualCount);
         $this->assertLessThanOrEqual($concurrentEvents, $actualCount);
     }
@@ -385,6 +385,6 @@ class CostTrackingPerformanceTest extends TestCase
             ];
         }
 
-        DB::table('ai_usage_costs')->insert($costData);
+        DB::table('ai_cost_records')->insert($costData);
     }
 }

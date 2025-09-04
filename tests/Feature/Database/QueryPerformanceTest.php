@@ -5,9 +5,9 @@ namespace Tests\Feature\Database;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-use JTDSoft\LaravelAI\Models\AIUsageCost;
 use JTDSoft\LaravelAI\Models\AIBudgetAlert;
 use JTDSoft\LaravelAI\Models\AICostAnalytics;
+use JTDSoft\LaravelAI\Models\AIUsageCost;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -17,6 +17,7 @@ class QueryPerformanceTest extends TestCase
     use RefreshDatabase;
 
     private const PERFORMANCE_THRESHOLD_MS = 50;
+
     private const SAMPLE_SIZE = 5000;
 
     protected function setUp(): void
@@ -282,11 +283,11 @@ class QueryPerformanceTest extends TestCase
         $startTime = microtime(true);
 
         // Complex query joining multiple tables - should benefit from optimized indexes
-        $complexAnalysis = DB::table('ai_usage_costs as uc')
+        $complexAnalysis = DB::table('ai_cost_records as uc')
             ->leftJoin('ai_cost_analytics as ca', function ($join) {
                 $join->on('uc.user_id', '=', 'ca.user_id')
-                     ->on('uc.provider', '=', 'ca.provider')
-                     ->on('uc.model', '=', 'ca.model');
+                    ->on('uc.provider', '=', 'ca.provider')
+                    ->on('uc.model', '=', 'ca.model');
             })
             ->leftJoin('ai_budget_alerts as ba', 'uc.user_id', '=', 'ba.user_id')
             ->where('uc.created_at', '>=', Carbon::now()->subDays(7))
@@ -336,15 +337,15 @@ class QueryPerformanceTest extends TestCase
             ];
 
             if (count($usageCosts) >= 500) {
-                DB::table('ai_usage_costs')->insert($usageCosts);
+                DB::table('ai_cost_records')->insert($usageCosts);
                 $usageCosts = [];
             }
         }
-        if (!empty($usageCosts)) {
-            DB::table('ai_usage_costs')->insert($usageCosts);
+        if (! empty($usageCosts)) {
+            DB::table('ai_cost_records')->insert($usageCosts);
         }
 
-        // Seed AI Budget Alerts  
+        // Seed AI Budget Alerts
         $alerts = [];
         for ($i = 0; $i < intval(self::SAMPLE_SIZE * 0.3); $i++) {
             $alerts[] = [
@@ -368,7 +369,7 @@ class QueryPerformanceTest extends TestCase
                 $alerts = [];
             }
         }
-        if (!empty($alerts)) {
+        if (! empty($alerts)) {
             DB::table('ai_budget_alerts')->insert($alerts);
         }
 
@@ -398,7 +399,7 @@ class QueryPerformanceTest extends TestCase
                 $analytics = [];
             }
         }
-        if (!empty($analytics)) {
+        if (! empty($analytics)) {
             DB::table('ai_cost_analytics')->insert($analytics);
         }
     }

@@ -63,7 +63,7 @@ The specification compliance analysis revealed critical table naming mismatches 
 
 ## AI Prompt
 ```
-You are a Laravel AI package development expert. Please read this ticket fully: docs/Planning/Tickets/Budget Cost Tracking/Cleanup/1024-standardize-table-naming-conventions.md, including the title, description, related documentation, files, and tests listed above.
+You are a Laravel AI package development expert. Please read this ticket fully: docs/Planning/Tickets/Budget Cost Tracking/Cleanup/1224-standardize-table-naming-conventions.md, including the title, description, related documentation, files, and tests listed above.
 
 TICKET DIRECTORY STRUCTURE:
 - Template: docs/Planning/Tickets/template.md
@@ -79,6 +79,8 @@ Based on this ticket:
 4. Highlight any potential risks or challenges
 5. If this is an AUDIT ticket, plan the creation of subsequent phase tickets using the template
 6. Pause and wait for my review before proceeding with implementation
+
+Important: Backward compatibility is not necessary since this package has not yet been released. We want consistent patterns throughout the project.
 
 Please be thorough and consider all aspects of Laravel development including code implementation, testing, documentation, and integration.
 ```

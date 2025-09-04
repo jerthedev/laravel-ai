@@ -2,10 +2,10 @@
 
 namespace JTD\LaravelAI\Tests\Unit\Models;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use JTD\LaravelAI\Models\AIBudget;
 use JTD\LaravelAI\Models\User;
 use JTD\LaravelAI\Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AIBudgetTest extends TestCase
 {
@@ -14,7 +14,7 @@ class AIBudgetTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create a test user
         $this->user = User::factory()->create();
     }
@@ -139,12 +139,12 @@ class AIBudgetTest extends TestCase
     {
         $user1 = User::factory()->create();
         $user2 = User::factory()->create();
-        
+
         AIBudget::factory()->create(['user_id' => $user1->id]);
         AIBudget::factory()->create(['user_id' => $user2->id]);
 
         $budgets = AIBudget::forUser($user1->id)->get();
-        
+
         $this->assertCount(1, $budgets);
         $this->assertEquals($user1->id, $budgets->first()->user_id);
     }
@@ -156,7 +156,7 @@ class AIBudgetTest extends TestCase
         AIBudget::factory()->create(['type' => 'yearly']);
 
         $monthlyBudgets = AIBudget::byType('monthly')->get();
-        
+
         $this->assertCount(1, $monthlyBudgets);
         $this->assertEquals('monthly', $monthlyBudgets->first()->type);
     }
@@ -167,7 +167,7 @@ class AIBudgetTest extends TestCase
         AIBudget::factory()->create(['is_active' => false]);
 
         $activeBudgets = AIBudget::active()->get();
-        
+
         $this->assertCount(1, $activeBudgets);
         $this->assertTrue($activeBudgets->first()->is_active);
     }
@@ -175,13 +175,13 @@ class AIBudgetTest extends TestCase
     public function test_scope_current_period()
     {
         $now = now();
-        
+
         // Budget within current period
         AIBudget::factory()->create([
             'period_start' => $now->copy()->subHour(),
             'period_end' => $now->copy()->addHour(),
         ]);
-        
+
         // Budget outside current period
         AIBudget::factory()->create([
             'period_start' => $now->copy()->subDays(2),
@@ -189,7 +189,7 @@ class AIBudgetTest extends TestCase
         ]);
 
         $currentBudgets = AIBudget::currentPeriod()->get();
-        
+
         $this->assertCount(1, $currentBudgets);
         $this->assertTrue($currentBudgets->first()->isCurrentPeriod());
     }
@@ -197,12 +197,12 @@ class AIBudgetTest extends TestCase
     public function test_is_current_period()
     {
         $now = now();
-        
+
         $currentBudget = AIBudget::factory()->create([
             'period_start' => $now->copy()->subHour(),
             'period_end' => $now->copy()->addHour(),
         ]);
-        
+
         $pastBudget = AIBudget::factory()->create([
             'period_start' => $now->copy()->subDays(2),
             'period_end' => $now->copy()->subDays(1),
@@ -225,7 +225,7 @@ class AIBudgetTest extends TestCase
     {
         $startOfMonth = now()->startOfMonth();
         $endOfMonth = now()->endOfMonth();
-        
+
         $budget = AIBudget::createForUser($this->user->id, 'monthly');
 
         $this->assertEquals($startOfMonth->format('Y-m-d'), $budget->period_start->format('Y-m-d'));

@@ -65,7 +65,7 @@ class BudgetCacheService
         $limit = Cache::remember($cacheKey, $this->cacheTtls['budget_limits'], function () use ($userId, $type) {
             $this->trackDbQuery();
 
-            return DB::table('ai_budgets')
+            return DB::table('ai_user_budgets')
                 ->where('user_id', $userId)
                 ->where('type', $type)
                 ->where('is_active', true)
@@ -99,7 +99,7 @@ class BudgetCacheService
         $spending = Cache::remember($cacheKey, $this->cacheTtls['daily_spending'], function () use ($userId, $date) {
             $this->trackDbQuery();
 
-            return (float) DB::table('ai_usage_costs')
+            return (float) DB::table('ai_cost_records')
                 ->where('user_id', $userId)
                 ->whereBetween('created_at', [$date->startOfDay(), $date->copy()->endOfDay()])
                 ->sum('total_cost');
@@ -127,7 +127,7 @@ class BudgetCacheService
             $startOfMonth = $date->copy()->startOfMonth();
             $endOfMonth = $date->copy()->endOfMonth();
 
-            return (float) DB::table('ai_usage_costs')
+            return (float) DB::table('ai_cost_records')
                 ->where('user_id', $userId)
                 ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
                 ->sum('total_cost');
@@ -152,7 +152,7 @@ class BudgetCacheService
         $spending = Cache::remember($cacheKey, $this->cacheTtls['project_spending'], function () use ($projectId, $period) {
             $this->trackDbQuery();
 
-            $query = DB::table('ai_usage_costs')
+            $query = DB::table('ai_cost_records')
                 ->whereJsonContains('metadata->context->project_id', $projectId);
 
             if ($period === 'daily') {
@@ -184,7 +184,7 @@ class BudgetCacheService
         $spending = Cache::remember($cacheKey, $this->cacheTtls['organization_spending'], function () use ($organizationId, $period) {
             $this->trackDbQuery();
 
-            $query = DB::table('ai_usage_costs')
+            $query = DB::table('ai_cost_records')
                 ->whereJsonContains('metadata->context->organization_id', $organizationId);
 
             if ($period === 'daily') {
@@ -214,7 +214,7 @@ class BudgetCacheService
         $limit = Cache::remember($cacheKey, $this->cacheTtls['budget_limits'], function () use ($projectId, $type) {
             $this->trackDbQuery();
 
-            return DB::table('ai_budgets')
+            return DB::table('ai_user_budgets')
                 ->where('project_id', $projectId)
                 ->where('type', $type)
                 ->where('is_active', true)
@@ -238,7 +238,7 @@ class BudgetCacheService
         $limit = Cache::remember($cacheKey, $this->cacheTtls['budget_limits'], function () use ($organizationId, $type) {
             $this->trackDbQuery();
 
-            return DB::table('ai_budgets')
+            return DB::table('ai_user_budgets')
                 ->where('organization_id', $organizationId)
                 ->where('type', $type)
                 ->where('is_active', true)

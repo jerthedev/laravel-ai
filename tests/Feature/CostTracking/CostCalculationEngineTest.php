@@ -138,7 +138,7 @@ class CostCalculationEngineTest extends TestCase
         $this->costTrackingListener->handle($event);
 
         // Verify cost was calculated and stored
-        $this->assertDatabaseHas('ai_usage_costs', [
+        $this->assertDatabaseHas('ai_cost_records', [
             'user_id' => 1,
             'conversation_id' => 123,
             'provider' => 'openai',
@@ -149,7 +149,7 @@ class CostCalculationEngineTest extends TestCase
         ]);
 
         // Verify cost is greater than 0
-        $costRecord = DB::table('ai_usage_costs')->where('conversation_id', 123)->first();
+        $costRecord = DB::table('ai_cost_records')->where('conversation_id', 123)->first();
         $this->assertGreaterThan(0, $costRecord->total_cost);
     }
 

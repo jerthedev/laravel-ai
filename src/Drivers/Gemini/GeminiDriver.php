@@ -427,17 +427,17 @@ class GeminiDriver extends AbstractAIProvider
 
     /**
      * Actually send the message to the provider.
-     * 
+     *
      * This is the abstract method implementation required by AbstractAIProvider.
      */
     protected function doSendMessage(array $messages, array $options): AIResponse
     {
         $startTime = microtime(true);
-        
+
         // For now, return a mock response for testing purposes
         // This should be replaced with actual Gemini API implementation
         $responseTime = (microtime(true) - $startTime) * 1000;
-        
+
         return new AIResponse(
             content: 'Mock Gemini response for testing',
             model: $options['model'] ?? $this->getCurrentModel(),
@@ -472,7 +472,7 @@ class GeminiDriver extends AbstractAIProvider
 
         return $this->doSendMessage($formattedMessages, $options);
     }
-    
+
     /**
      * Format a single message for Gemini API (placeholder).
      */
@@ -480,7 +480,7 @@ class GeminiDriver extends AbstractAIProvider
     {
         return [
             'role' => $message->role,
-            'parts' => [['text' => $message->content]]
+            'parts' => [['text' => $message->content]],
         ];
     }
 

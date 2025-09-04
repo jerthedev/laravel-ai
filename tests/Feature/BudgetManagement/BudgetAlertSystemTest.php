@@ -52,7 +52,6 @@ class BudgetAlertSystemTest extends TestCase
                 $notification = new \JTD\LaravelAI\Notifications\BudgetThresholdNotification($event, 'warning', 'email');
                 \Illuminate\Support\Facades\Notification::send($user, $notification);
             }
-
         });
 
         $this->seedBudgetAlertTestData();

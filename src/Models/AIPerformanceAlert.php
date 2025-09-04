@@ -118,25 +118,26 @@ class AIPerformanceAlert extends Model
 
     public function getTimeToAcknowledgeAttribute(): ?int
     {
-        if (!$this->acknowledged_at) {
+        if (! $this->acknowledged_at) {
             return null;
         }
-        
+
         return $this->created_at->diffInMinutes($this->acknowledged_at);
     }
 
     public function getTimeToResolveAttribute(): ?int
     {
-        if (!$this->resolved_at) {
+        if (! $this->resolved_at) {
             return null;
         }
-        
+
         return $this->created_at->diffInMinutes($this->resolved_at);
     }
 
     public function getActiveTimeAttribute(): int
     {
         $endTime = $this->resolved_at ?? now();
+
         return $this->created_at->diffInMinutes($endTime);
     }
 
@@ -223,7 +224,7 @@ class AIPerformanceAlert extends Model
     public static function createAlert(array $data): self
     {
         $severity = self::determineSeverity($data);
-        
+
         return self::create(array_merge($data, [
             'severity' => $severity,
             'status' => 'active',
@@ -235,7 +236,7 @@ class AIPerformanceAlert extends Model
     protected static function determineSeverity(array $data): string
     {
         $thresholdExceeded = $data['threshold_exceeded_percentage'] ?? 0;
-        
+
         if ($thresholdExceeded >= 200) {
             return 'critical';
         } elseif ($thresholdExceeded >= 150) {
@@ -283,10 +284,10 @@ class AIPerformanceAlert extends Model
     public static function getResolutionMetrics(int $days = 30): array
     {
         $alerts = self::where('created_at', '>=', now()->subDays($days))->get();
-        
-        $resolvedAlerts = $alerts->filter(fn($alert) => $alert->isResolved());
-        $acknowledgedAlerts = $alerts->filter(fn($alert) => $alert->isAcknowledged() || $alert->isResolved());
-        
+
+        $resolvedAlerts = $alerts->filter(fn ($alert) => $alert->isResolved());
+        $acknowledgedAlerts = $alerts->filter(fn ($alert) => $alert->isAcknowledged() || $alert->isResolved());
+
         return [
             'total_alerts' => $alerts->count(),
             'resolved_alerts' => $resolvedAlerts->count(),
@@ -295,8 +296,8 @@ class AIPerformanceAlert extends Model
             'acknowledgment_rate' => $alerts->count() > 0 ? ($acknowledgedAlerts->count() / $alerts->count()) * 100 : 0,
             'avg_time_to_acknowledge' => $acknowledgedAlerts->avg('time_to_acknowledge'),
             'avg_time_to_resolve' => $resolvedAlerts->avg('time_to_resolve'),
-            'escalated_alerts' => $alerts->filter(fn($alert) => $alert->isEscalated())->count(),
-            'frequent_alerts' => $alerts->filter(fn($alert) => $alert->isFrequent())->count(),
+            'escalated_alerts' => $alerts->filter(fn ($alert) => $alert->isEscalated())->count(),
+            'frequent_alerts' => $alerts->filter(fn ($alert) => $alert->isFrequent())->count(),
         ];
     }
 

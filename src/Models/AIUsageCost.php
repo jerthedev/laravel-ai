@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class AIUsageCost extends Model
 {
-    protected $table = 'ai_usage_costs';
+    protected $table = 'ai_cost_records';
 
     protected $fillable = [
         'user_id',
@@ -101,7 +101,7 @@ class AIUsageCost extends Model
     {
         return $query->whereBetween('created_at', [
             now()->startOfWeek(),
-            now()->endOfWeek()
+            now()->endOfWeek(),
         ]);
     }
 
@@ -136,7 +136,7 @@ class AIUsageCost extends Model
         if ($this->total_tokens == 0) {
             return 0;
         }
-        
+
         return ($this->total_cost / $this->total_tokens) * 1000;
     }
 
@@ -145,7 +145,7 @@ class AIUsageCost extends Model
         if ($this->total_cost == 0) {
             return 0;
         }
-        
+
         return $this->total_tokens / $this->total_cost;
     }
 
@@ -159,7 +159,7 @@ class AIUsageCost extends Model
         if ($this->processing_time_ms == 0) {
             return 0;
         }
-        
+
         return ($this->total_tokens / $this->processing_time_ms) * 1000;
     }
 
@@ -167,7 +167,7 @@ class AIUsageCost extends Model
     {
         $costEfficiency = $this->cost_per_1k_tokens > 0 ? 1000 / $this->cost_per_1k_tokens : 0;
         $speedEfficiency = $this->tokens_per_second;
-        
+
         return ($costEfficiency + $speedEfficiency) / 2;
     }
 
@@ -189,7 +189,7 @@ class AIUsageCost extends Model
     public static function getTotalCostForUser(int $userId, ?string $period = null): float
     {
         $query = self::forUser($userId);
-        
+
         if ($period) {
             $query = match ($period) {
                 'today' => $query->today(),
@@ -199,14 +199,14 @@ class AIUsageCost extends Model
                 default => $query,
             };
         }
-        
+
         return $query->sum('total_cost');
     }
 
     public static function getTotalTokensForUser(int $userId, ?string $period = null): int
     {
         $query = self::forUser($userId);
-        
+
         if ($period) {
             $query = match ($period) {
                 'today' => $query->today(),
@@ -216,14 +216,14 @@ class AIUsageCost extends Model
                 default => $query,
             };
         }
-        
+
         return $query->sum('total_tokens');
     }
 
     public static function getProviderBreakdown(int $userId, ?string $period = null): array
     {
         $query = self::forUser($userId);
-        
+
         if ($period) {
             $query = match ($period) {
                 'today' => $query->today(),
@@ -233,7 +233,7 @@ class AIUsageCost extends Model
                 default => $query,
             };
         }
-        
+
         return $query
             ->selectRaw('provider, COUNT(*) as request_count, SUM(total_cost) as total_cost, SUM(total_tokens) as total_tokens')
             ->groupBy('provider')
@@ -245,11 +245,11 @@ class AIUsageCost extends Model
     public static function getModelBreakdown(int $userId, ?string $provider = null, ?string $period = null): array
     {
         $query = self::forUser($userId);
-        
+
         if ($provider) {
             $query->forProvider($provider);
         }
-        
+
         if ($period) {
             $query = match ($period) {
                 'today' => $query->today(),
@@ -259,7 +259,7 @@ class AIUsageCost extends Model
                 default => $query,
             };
         }
-        
+
         return $query
             ->selectRaw('provider, model, COUNT(*) as request_count, SUM(total_cost) as total_cost, SUM(total_tokens) as total_tokens')
             ->groupBy('provider', 'model')

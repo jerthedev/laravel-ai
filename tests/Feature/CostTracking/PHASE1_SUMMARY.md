@@ -125,7 +125,7 @@ Successfully implemented comprehensive test coverage for Sprint4b Story 1: Real-
 3. **Background Processing** → **Analytics Updates** → **Real-time Availability**
 
 ### ✅ Database Integration:
-- **ai_usage_costs** table properly populated
+- **ai_cost_records** table properly populated
 - **Accurate cost tracking** with metadata
 - **Historical data preservation** across time periods
 - **Performance optimized** queries and indexes

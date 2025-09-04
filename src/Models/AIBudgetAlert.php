@@ -200,7 +200,7 @@ class AIBudgetAlert extends Model
             'total_alerts' => $alerts->count(),
             'by_budget_type' => $alerts->groupBy('budget_type')->map->count()->toArray(),
             'by_severity' => $alerts->groupBy('severity')->map->count()->toArray(),
-            'by_channel' => $alerts->flatMap(fn($alert) => $alert->channels ?? [])
+            'by_channel' => $alerts->flatMap(fn ($alert) => $alert->channels ?? [])
                 ->countBy()
                 ->toArray(),
             'recent_alerts' => $alerts->sortByDesc('sent_at')->take(10)->values()->toArray(),

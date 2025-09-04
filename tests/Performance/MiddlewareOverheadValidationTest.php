@@ -526,7 +526,7 @@ class MiddlewareOverheadValidationTest extends TestCase
             ]);
 
             // Create budgets
-            DB::table('ai_budgets')->insert([
+            DB::table('ai_user_budgets')->insert([
                 'user_id' => $i,
                 'type' => 'daily',
                 'limit_amount' => 25.00,
@@ -538,7 +538,7 @@ class MiddlewareOverheadValidationTest extends TestCase
                 'updated_at' => now(),
             ]);
 
-            DB::table('ai_budgets')->insert([
+            DB::table('ai_user_budgets')->insert([
                 'user_id' => $i,
                 'type' => 'monthly',
                 'limit_amount' => 500.00,
@@ -554,7 +554,7 @@ class MiddlewareOverheadValidationTest extends TestCase
         // Create some usage history
         for ($userId = 1; $userId <= 10; $userId++) {
             for ($i = 0; $i < 5; $i++) {
-                DB::table('ai_usage_costs')->insert([
+                DB::table('ai_cost_records')->insert([
                     'user_id' => $userId,
                     'provider' => 'openai',
                     'model' => 'gpt-4o-mini',

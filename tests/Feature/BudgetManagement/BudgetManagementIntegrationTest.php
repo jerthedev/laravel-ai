@@ -298,7 +298,7 @@ class BudgetManagementIntegrationTest extends TestCase
     {
         // Simulate database failure by clearing all cache and budget data
         Cache::flush();
-        DB::table('ai_budgets')->truncate();
+        DB::table('ai_user_budgets')->truncate();
 
         $message = $this->createTestMessage();
         $response = $this->createTestAIResponse();
@@ -542,8 +542,8 @@ class BudgetManagementIntegrationTest extends TestCase
             )');
         }
 
-        if (! DB::getSchemaBuilder()->hasTable('ai_budgets')) {
-            DB::statement('CREATE TABLE ai_budgets (
+        if (! DB::getSchemaBuilder()->hasTable('ai_user_budgets')) {
+            DB::statement('CREATE TABLE ai_user_budgets (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,
                 budget_type TEXT,

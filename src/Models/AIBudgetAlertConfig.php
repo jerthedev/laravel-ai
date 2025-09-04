@@ -86,24 +86,24 @@ class AIBudgetAlertConfig extends Model
 
     public function shouldSendEmail(string $severity): bool
     {
-        return $this->email_enabled && 
-               is_array($this->email_severities) && 
+        return $this->email_enabled &&
+               is_array($this->email_severities) &&
                in_array($severity, $this->email_severities);
     }
 
     public function shouldSendSlack(string $severity): bool
     {
-        return $this->slack_enabled && 
-               !empty($this->slack_webhook) &&
-               is_array($this->slack_severities) && 
+        return $this->slack_enabled &&
+               ! empty($this->slack_webhook) &&
+               is_array($this->slack_severities) &&
                in_array($severity, $this->slack_severities);
     }
 
     public function shouldSendSms(string $severity): bool
     {
-        return $this->sms_enabled && 
-               !empty($this->sms_phone) &&
-               is_array($this->sms_severities) && 
+        return $this->sms_enabled &&
+               ! empty($this->sms_phone) &&
+               is_array($this->sms_severities) &&
                in_array($severity, $this->sms_severities);
     }
 
@@ -128,8 +128,8 @@ class AIBudgetAlertConfig extends Model
 
     public function shouldAlert(float $thresholdPercentage): bool
     {
-        return $this->enabled && 
-               $this->is_active && 
+        return $this->enabled &&
+               $this->is_active &&
                $thresholdPercentage >= $this->min_threshold_percentage;
     }
 
@@ -142,7 +142,7 @@ class AIBudgetAlertConfig extends Model
         } elseif ($thresholdPercentage >= 75) {
             return 'medium';
         }
-        
+
         return 'low';
     }
 

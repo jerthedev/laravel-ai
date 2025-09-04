@@ -16,11 +16,11 @@ use PHPUnit\Framework\Attributes\Test;
  *
  * Tests the CostAnalyticsService which provides analytics on cost data
  * stored by the event-driven cost tracking system. The service queries
- * the ai_usage_costs table that is populated by CostTrackingListener
+ * the ai_cost_records table that is populated by CostTrackingListener
  * when ResponseGenerated events are processed.
  *
  * Integration with event system:
- * - CostTrackingListener stores cost data in ai_usage_costs table
+ * - CostTrackingListener stores cost data in ai_cost_records table
  * - CostAnalyticsService queries this table for analytics
  * - Tests use the same data structure as the event system
  */
@@ -249,7 +249,7 @@ class CostAnalyticsServiceTest extends TestCase
     public function it_handles_empty_cost_data_gracefully(): void
     {
         // Clear all cost data
-        DB::table('ai_usage_costs')->truncate();
+        DB::table('ai_cost_records')->truncate();
 
         $userId = 999; // Non-existent user
         $breakdown = $this->costAnalyticsService->getCostBreakdownByProvider($userId, 'month');
@@ -309,9 +309,9 @@ class CostAnalyticsServiceTest extends TestCase
     protected function seedTestData(): void
     {
         // Clear existing data
-        DB::table('ai_usage_costs')->truncate();
+        DB::table('ai_cost_records')->truncate();
 
-        // Create test cost data in ai_usage_costs table (the table CostAnalyticsService actually queries)
+        // Create test cost data in ai_cost_records table (the table CostAnalyticsService actually queries)
         $costData = [];
         $providers = ['openai', 'anthropic', 'google'];
         $models = ['gpt-4o-mini', 'claude-3-haiku', 'gemini-2.0-flash'];
@@ -348,6 +348,6 @@ class CostAnalyticsServiceTest extends TestCase
             ];
         }
 
-        DB::table('ai_usage_costs')->insert($costData);
+        DB::table('ai_cost_records')->insert($costData);
     }
 }

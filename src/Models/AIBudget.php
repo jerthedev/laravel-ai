@@ -3,13 +3,12 @@
 namespace JTD\LaravelAI\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AIBudget extends Model
 {
-    protected $table = 'ai_budgets';
+    protected $table = 'ai_user_budgets';
 
     protected $fillable = [
         'user_id',
@@ -69,6 +68,7 @@ class AIBudget extends Model
     public function scopeCurrentPeriod($query)
     {
         $now = now();
+
         return $query->where('period_start', '<=', $now)
             ->where('period_end', '>=', $now);
     }
@@ -78,7 +78,7 @@ class AIBudget extends Model
         if ($this->limit_amount == 0) {
             return 0;
         }
-        
+
         return ($this->current_usage / $this->limit_amount) * 100;
     }
 
@@ -90,13 +90,13 @@ class AIBudget extends Model
     public function getStatusAttribute(): string
     {
         $percentage = $this->usage_percentage;
-        
+
         if ($percentage >= $this->critical_threshold) {
             return 'critical';
         } elseif ($percentage >= $this->warning_threshold) {
             return 'warning';
         }
-        
+
         return 'normal';
     }
 
@@ -118,6 +118,7 @@ class AIBudget extends Model
     public function isCurrentPeriod(): bool
     {
         $now = now();
+
         return $this->period_start <= $now && $this->period_end >= $now;
     }
 
@@ -129,7 +130,7 @@ class AIBudget extends Model
     public static function createForUser(int $userId, string $type, array $data = []): self
     {
         $periodDates = self::calculatePeriodDates($type);
-        
+
         return self::create(array_merge([
             'user_id' => $userId,
             'type' => $type,
@@ -147,7 +148,7 @@ class AIBudget extends Model
     protected static function calculatePeriodDates(string $type): array
     {
         $now = now();
-        
+
         return match ($type) {
             'daily' => [
                 'start' => $now->copy()->startOfDay(),
@@ -175,7 +176,7 @@ class AIBudget extends Model
     public function resetPeriod(): void
     {
         $periodDates = self::calculatePeriodDates($this->type);
-        
+
         $this->update([
             'current_usage' => 0,
             'period_start' => $periodDates['start'],

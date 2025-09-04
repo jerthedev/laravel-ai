@@ -349,7 +349,7 @@ class CostTrackingListener implements ShouldQueue
             ];
 
             // Insert into database (will create table in next step)
-            DB::table('ai_usage_costs')->insert($costRecord);
+            DB::table('ai_cost_records')->insert($costRecord);
 
             return $costRecord;
         } catch (\Exception $e) {
@@ -643,7 +643,7 @@ class CostTrackingListener implements ShouldQueue
     // Helper methods for budget checking
     protected function getDailySpending(int $userId): float
     {
-        return (float) DB::table('ai_usage_costs')
+        return (float) DB::table('ai_cost_records')
             ->where('user_id', $userId)
             ->whereDate('created_at', today())
             ->sum('total_cost');
@@ -651,7 +651,7 @@ class CostTrackingListener implements ShouldQueue
 
     protected function getMonthlySpending(int $userId): float
     {
-        return (float) DB::table('ai_usage_costs')
+        return (float) DB::table('ai_cost_records')
             ->where('user_id', $userId)
             ->whereYear('created_at', now()->year)
             ->whereMonth('created_at', now()->month)
@@ -660,7 +660,7 @@ class CostTrackingListener implements ShouldQueue
 
     protected function getProjectSpending(string $projectId): float
     {
-        return (float) DB::table('ai_usage_costs')
+        return (float) DB::table('ai_cost_records')
             ->whereJsonContains('metadata->context->project_id', $projectId)
             ->sum('total_cost');
     }
@@ -668,7 +668,7 @@ class CostTrackingListener implements ShouldQueue
     protected function getDailyBudget(int $userId): ?float
     {
         return Cache::remember("daily_budget_{$userId}", 3600, function () use ($userId) {
-            return DB::table('ai_budgets')
+            return DB::table('ai_user_budgets')
                 ->where('user_id', $userId)
                 ->where('type', 'daily')
                 ->where('is_active', true)
@@ -679,7 +679,7 @@ class CostTrackingListener implements ShouldQueue
     protected function getMonthlyBudget(int $userId): ?float
     {
         return Cache::remember("monthly_budget_{$userId}", 3600, function () use ($userId) {
-            return DB::table('ai_budgets')
+            return DB::table('ai_user_budgets')
                 ->where('user_id', $userId)
                 ->where('type', 'monthly')
                 ->where('is_active', true)
@@ -690,7 +690,7 @@ class CostTrackingListener implements ShouldQueue
     protected function getProjectBudget(string $projectId): ?float
     {
         return Cache::remember("project_budget_{$projectId}", 3600, function () use ($projectId) {
-            return DB::table('ai_budgets')
+            return DB::table('ai_user_budgets')
                 ->where('project_id', $projectId)
                 ->where('type', 'project')
                 ->where('is_active', true)
@@ -701,7 +701,7 @@ class CostTrackingListener implements ShouldQueue
     protected function getUserAverageCost(int $userId): float
     {
         return Cache::remember("avg_cost_{$userId}", 1800, function () use ($userId) {
-            return (float) DB::table('ai_usage_costs')
+            return (float) DB::table('ai_cost_records')
                 ->where('user_id', $userId)
                 ->where('created_at', '>=', now()->subDays(30))
                 ->avg('total_cost') ?? 0.0;

@@ -2,9 +2,9 @@
 
 namespace JTD\LaravelAI\Database\Factories;
 
+use Illuminate\Database\Eloquent\Factories\Factory;
 use JTD\LaravelAI\Models\AIBudget;
 use JTD\LaravelAI\Models\User;
-use Illuminate\Database\Eloquent\Factories\Factory;
 
 class AIBudgetFactory extends Factory
 {
@@ -14,7 +14,7 @@ class AIBudgetFactory extends Factory
     {
         $type = $this->faker->randomElement(['daily', 'weekly', 'monthly', 'yearly']);
         $periodDates = $this->calculatePeriodDates($type);
-        
+
         return [
             'user_id' => User::factory(),
             'type' => $type,
@@ -31,7 +31,7 @@ class AIBudgetFactory extends Factory
 
     public function inactive(): static
     {
-        return $this->state(fn() => [
+        return $this->state(fn () => [
             'is_active' => false,
         ]);
     }
@@ -39,8 +39,8 @@ class AIBudgetFactory extends Factory
     public function daily(): static
     {
         $periodDates = $this->calculatePeriodDates('daily');
-        
-        return $this->state(fn() => [
+
+        return $this->state(fn () => [
             'type' => 'daily',
             'period_start' => $periodDates['start'],
             'period_end' => $periodDates['end'],
@@ -50,8 +50,8 @@ class AIBudgetFactory extends Factory
     public function monthly(): static
     {
         $periodDates = $this->calculatePeriodDates('monthly');
-        
-        return $this->state(fn() => [
+
+        return $this->state(fn () => [
             'type' => 'monthly',
             'period_start' => $periodDates['start'],
             'period_end' => $periodDates['end'],
@@ -60,14 +60,14 @@ class AIBudgetFactory extends Factory
 
     public function exceeded(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'current_usage' => ($attributes['limit_amount'] ?? 100) * 1.1,
         ]);
     }
 
     public function warning(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'current_usage' => ($attributes['limit_amount'] ?? 100) * 0.8,
             'warning_threshold' => 75.0,
         ]);
@@ -75,7 +75,7 @@ class AIBudgetFactory extends Factory
 
     public function critical(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'current_usage' => ($attributes['limit_amount'] ?? 100) * 0.92,
             'critical_threshold' => 90.0,
         ]);
@@ -84,7 +84,7 @@ class AIBudgetFactory extends Factory
     protected function calculatePeriodDates(string $type): array
     {
         $now = now();
-        
+
         return match ($type) {
             'daily' => [
                 'start' => $now->copy()->startOfDay(),

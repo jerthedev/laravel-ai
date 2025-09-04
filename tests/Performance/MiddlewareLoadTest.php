@@ -357,7 +357,7 @@ class MiddlewareLoadTest extends TestCase
             ]);
 
             // Create budgets for each user
-            DB::table('ai_budgets')->insert([
+            DB::table('ai_user_budgets')->insert([
                 'user_id' => $i,
                 'type' => 'daily',
                 'limit_amount' => 50.00,
@@ -373,7 +373,7 @@ class MiddlewareLoadTest extends TestCase
         // Create some baseline usage data
         for ($userId = 1; $userId <= 10; $userId++) {
             for ($i = 0; $i < 5; $i++) {
-                DB::table('ai_usage_costs')->insert([
+                DB::table('ai_cost_records')->insert([
                     'user_id' => $userId,
                     'provider' => 'openai',
                     'model' => 'gpt-4o-mini',

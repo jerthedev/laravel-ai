@@ -69,7 +69,7 @@ class CostTrackingListenerTest extends TestCase
         $this->listener->handle($event);
 
         // Verify cost record was stored
-        $this->assertDatabaseHas('ai_usage_costs', [
+        $this->assertDatabaseHas('ai_cost_records', [
             'user_id' => 1,
             'conversation_id' => 123,
             'message_id' => 1,
@@ -113,7 +113,7 @@ class CostTrackingListenerTest extends TestCase
         // Queue::assertPushed(ProcessCostCalculation::class);
 
         // For now, verify the processing completed
-        $this->assertDatabaseHas('ai_usage_costs', [
+        $this->assertDatabaseHas('ai_cost_records', [
             'conversation_id' => 123,
             'provider' => 'openai',
         ]);
@@ -140,7 +140,7 @@ class CostTrackingListenerTest extends TestCase
 
         $this->listener->handle($event);
 
-        $costRecord = DB::table('ai_usage_costs')
+        $costRecord = DB::table('ai_cost_records')
             ->where('conversation_id', 123)
             ->first();
 
@@ -177,7 +177,7 @@ class CostTrackingListenerTest extends TestCase
             $this->listener->handle($event);
 
             // Verify each provider's cost was tracked
-            $this->assertDatabaseHas('ai_usage_costs', [
+            $this->assertDatabaseHas('ai_cost_records', [
                 'message_id' => $index + 1,
                 'provider' => $providerData['provider'],
                 'model' => $providerData['model'],
@@ -222,7 +222,7 @@ class CostTrackingListenerTest extends TestCase
         $this->assertTrue(true, 'Error was handled gracefully');
 
         // Verify fallback cost was still recorded
-        $this->assertDatabaseHas('ai_usage_costs', [
+        $this->assertDatabaseHas('ai_cost_records', [
             'conversation_id' => 123,
             'provider' => 'openai',
         ]);
@@ -248,7 +248,7 @@ class CostTrackingListenerTest extends TestCase
 
         $this->listener->handle($event);
 
-        $costRecord = DB::table('ai_usage_costs')
+        $costRecord = DB::table('ai_cost_records')
             ->where('conversation_id', 123)
             ->first();
 
@@ -287,7 +287,7 @@ class CostTrackingListenerTest extends TestCase
         $this->assertLessThan(10000, $totalTime, 'Cost tracking performance is too slow');
 
         // Verify all events were processed
-        $this->assertEquals($eventCount, DB::table('ai_usage_costs')->count());
+        $this->assertEquals($eventCount, DB::table('ai_cost_records')->count());
     }
 
     #[Test]
@@ -312,7 +312,7 @@ class CostTrackingListenerTest extends TestCase
         }
 
         // Verify all messages in conversation were tracked
-        $costRecords = DB::table('ai_usage_costs')
+        $costRecords = DB::table('ai_cost_records')
             ->where('conversation_id', 123)
             ->get();
 

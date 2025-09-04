@@ -76,7 +76,7 @@ class AICostValidation extends Model
         if ($this->total_records == 0) {
             return 0;
         }
-        
+
         return ($this->validated_records / $this->total_records) * 100;
     }
 
@@ -85,7 +85,7 @@ class AICostValidation extends Model
         if ($this->validated_records == 0) {
             return 0;
         }
-        
+
         return ($this->validation_errors / $this->validated_records) * 100;
     }
 
@@ -94,7 +94,7 @@ class AICostValidation extends Model
         if ($this->validated_records == 0) {
             return 0;
         }
-        
+
         return ($this->discrepant_records / $this->validated_records) * 100;
     }
 
@@ -144,23 +144,23 @@ class AICostValidation extends Model
     public function getRecommendationsAttribute(): array
     {
         $recommendations = [];
-        
-        if (!$this->isAccurate()) {
+
+        if (! $this->isAccurate()) {
             $recommendations[] = 'Review pricing calculation methodology';
         }
-        
+
         if ($this->hasSignificantCostDifference()) {
             $recommendations[] = 'Investigate pricing discrepancies with provider';
         }
-        
+
         if ($this->error_rate > 10) {
             $recommendations[] = 'Improve validation error handling';
         }
-        
+
         if ($this->validation_rate < 80) {
             $recommendations[] = 'Increase validation coverage';
         }
-        
+
         return $recommendations;
     }
 
@@ -169,18 +169,18 @@ class AICostValidation extends Model
         $totalRecords = $validationData['total_records'] ?? 0;
         $validatedRecords = $validationData['validated_records'] ?? 0;
         $accurateRecords = $validationData['accurate_records'] ?? 0;
-        
-        $overallAccuracy = $validatedRecords > 0 
-            ? ($accurateRecords / $validatedRecords) * 100 
+
+        $overallAccuracy = $validatedRecords > 0
+            ? ($accurateRecords / $validatedRecords) * 100
             : 0;
-            
+
         $totalCalculated = $validationData['total_calculated_cost'] ?? 0;
         $totalProvider = $validationData['total_provider_cost'] ?? 0;
         $costDifference = $totalCalculated - $totalProvider;
-        $costDifferencePercent = $totalProvider > 0 
-            ? ($costDifference / $totalProvider) * 100 
+        $costDifferencePercent = $totalProvider > 0
+            ? ($costDifference / $totalProvider) * 100
             : 0;
-        
+
         return self::create([
             'provider' => $provider,
             'total_records' => $totalRecords,
