@@ -28,29 +28,21 @@ class MCPManager implements MCPManagerInterface
 
     /**
      * MCP configuration data.
-     *
-     * @var array
      */
     protected array $config = [];
 
     /**
      * Cached tools data.
-     *
-     * @var array
      */
     protected array $tools = [];
 
     /**
      * Configuration file path.
-     *
-     * @var string
      */
     protected string $configPath;
 
     /**
      * Tools file path.
-     *
-     * @var string
      */
     protected string $toolsPath;
 
@@ -108,7 +100,7 @@ class MCPManager implements MCPManagerInterface
     protected function registerServersFromConfig(): void
     {
         foreach ($this->config['servers'] ?? [] as $name => $serverConfig) {
-            if (!($serverConfig['enabled'] ?? false)) {
+            if (! ($serverConfig['enabled'] ?? false)) {
                 continue;
             }
 
@@ -200,11 +192,12 @@ class MCPManager implements MCPManagerInterface
         $processedMessage = $message;
 
         foreach ($enabledServers as $serverName) {
-            if (!$this->hasServer($serverName)) {
+            if (! $this->hasServer($serverName)) {
                 Log::warning('Attempted to use unavailable MCP server', [
                     'server' => $serverName,
                     'available_servers' => array_keys($this->getEnabledServers()),
                 ]);
+
                 continue;
             }
 
@@ -242,7 +235,7 @@ class MCPManager implements MCPManagerInterface
         $processedResponse = $response;
 
         foreach ($enabledServers as $serverName) {
-            if (!$this->hasServer($serverName)) {
+            if (! $this->hasServer($serverName)) {
                 continue;
             }
 
@@ -275,7 +268,7 @@ class MCPManager implements MCPManagerInterface
     /**
      * Get all available tools from specified servers.
      */
-    public function getAvailableTools(string $serverName = null): array
+    public function getAvailableTools(?string $serverName = null): array
     {
         if ($serverName) {
             return $this->tools[$serverName]['tools'] ?? [];
@@ -294,7 +287,7 @@ class MCPManager implements MCPManagerInterface
      */
     public function executeTool(string $serverName, string $toolName, array $parameters = []): array
     {
-        if (!$this->hasServer($serverName)) {
+        if (! $this->hasServer($serverName)) {
             throw new MCPException("MCP server '{$serverName}' is not available");
         }
 
@@ -333,7 +326,7 @@ class MCPManager implements MCPManagerInterface
         $cacheKey = 'mcp_tools_discovery';
         $cacheTtl = config('ai.mcp.tool_discovery_cache_ttl', 3600);
 
-        if (!$forceRefresh && Cache::has($cacheKey)) {
+        if (! $forceRefresh && Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 
@@ -383,7 +376,7 @@ class MCPManager implements MCPManagerInterface
     /**
      * Test connectivity for all or specific MCP servers.
      */
-    public function testServers(string $serverName = null): array
+    public function testServers(?string $serverName = null): array
     {
         $serversToTest = $serverName
             ? [$serverName => $this->getServer($serverName)]
@@ -392,12 +385,13 @@ class MCPManager implements MCPManagerInterface
         $results = [];
 
         foreach ($serversToTest as $name => $server) {
-            if (!$server) {
+            if (! $server) {
                 $results[$name] = [
                     'status' => 'error',
                     'message' => 'Server not found or not enabled',
                     'tested_at' => now()->toISOString(),
                 ];
+
                 continue;
             }
 
@@ -425,7 +419,7 @@ class MCPManager implements MCPManagerInterface
     /**
      * Get performance metrics for all or specific MCP servers.
      */
-    public function getMetrics(string $serverName = null): array
+    public function getMetrics(?string $serverName = null): array
     {
         $serversToCheck = $serverName
             ? [$serverName => $this->getServer($serverName)]
@@ -434,7 +428,7 @@ class MCPManager implements MCPManagerInterface
         $metrics = [];
 
         foreach ($serversToCheck as $name => $server) {
-            if (!$server) {
+            if (! $server) {
                 continue;
             }
 
@@ -461,7 +455,7 @@ class MCPManager implements MCPManagerInterface
      */
     public function enableServer(string $name): bool
     {
-        if (!isset($this->config['servers'][$name])) {
+        if (! isset($this->config['servers'][$name])) {
             return false;
         }
 
@@ -481,7 +475,7 @@ class MCPManager implements MCPManagerInterface
      */
     public function disableServer(string $name): bool
     {
-        if (!isset($this->config['servers'][$name])) {
+        if (! isset($this->config['servers'][$name])) {
             return false;
         }
 
@@ -509,7 +503,7 @@ class MCPManager implements MCPManagerInterface
     {
         $validation = $this->validateConfiguration($config);
 
-        if (!empty($validation['errors'])) {
+        if (! empty($validation['errors'])) {
             return false;
         }
 
@@ -529,28 +523,30 @@ class MCPManager implements MCPManagerInterface
         $warnings = [];
 
         // Validate structure
-        if (!isset($config['servers']) || !is_array($config['servers'])) {
+        if (! isset($config['servers']) || ! is_array($config['servers'])) {
             $errors[] = 'Configuration must contain a "servers" array';
+
             return ['errors' => $errors, 'warnings' => $warnings];
         }
 
         // Validate each server configuration
         foreach ($config['servers'] as $name => $serverConfig) {
-            if (!is_array($serverConfig)) {
+            if (! is_array($serverConfig)) {
                 $errors[] = "Server '{$name}' configuration must be an array";
+
                 continue;
             }
 
             // Required fields
             $requiredFields = ['type', 'enabled'];
             foreach ($requiredFields as $field) {
-                if (!isset($serverConfig[$field])) {
+                if (! isset($serverConfig[$field])) {
                     $errors[] = "Server '{$name}' missing required field: {$field}";
                 }
             }
 
             // Validate server type
-            if (isset($serverConfig['type']) && !in_array($serverConfig['type'], ['external'])) {
+            if (isset($serverConfig['type']) && ! in_array($serverConfig['type'], ['external'])) {
                 $errors[] = "Server '{$name}' has invalid type: {$serverConfig['type']}";
             }
 

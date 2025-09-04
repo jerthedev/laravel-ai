@@ -2,11 +2,11 @@
 
 namespace JTD\LaravelAI\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 /**
  * Cost Accuracy Validation Service
@@ -43,7 +43,7 @@ class CostAccuracyValidationService
     {
         $cacheKey = "cost_validation_{$provider}_" . md5(json_encode($costRecords));
 
-        if (!$forceRefresh && Cache::has($cacheKey)) {
+        if (! $forceRefresh && Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 
@@ -66,7 +66,7 @@ class CostAccuracyValidationService
 
         try {
             // Check validation rate limits
-            if (!$this->canPerformValidation($provider)) {
+            if (! $this->canPerformValidation($provider)) {
                 throw new \Exception("Validation rate limit exceeded for provider: {$provider}");
             }
 
@@ -93,7 +93,6 @@ class CostAccuracyValidationService
                         'difference_percent' => $validation['difference_percent'],
                         'is_accurate' => $validation['is_accurate'],
                     ];
-
                 } catch (\Exception $e) {
                     $validationResults['validation_errors']++;
                     Log::warning('Cost validation failed for single record', [
@@ -122,7 +121,6 @@ class CostAccuracyValidationService
 
             // Update validation rate limiting
             $this->recordValidationAttempt($provider, $validationResults['validated_records']);
-
         } catch (\Exception $e) {
             Log::error('Cost accuracy validation failed', [
                 'provider' => $provider,
@@ -204,6 +202,7 @@ class CostAccuracyValidationService
 
             if ($response->successful()) {
                 $usage = $response->json();
+
                 // Match usage record by timestamp and model
                 return $this->findMatchingUsageCost($usage, $record);
             }

@@ -158,8 +158,8 @@ class EventProcessingPerformanceTest extends TestCase
                     userId: 1,
                     provider: 'mock',
                     model: 'gpt-4',
-                    inputTokens: 100,
-                    outputTokens: 50,
+                    input_tokens: 100,
+                    output_tokens: 50,
                     cost: 0.001,
                     metadata: ['test' => true]
                 ));
@@ -258,8 +258,8 @@ class EventProcessingPerformanceTest extends TestCase
                 event(new BudgetThresholdReached(
                     userId: 1,
                     currentSpend: 50.00,
-                    budgetLimit: 100.00,
-                    thresholdPercentage: 50,
+                    budget_limit: 100.00,
+                    threshold_percentage: 50,
                     metadata: ['test' => true]
                 ));
 
@@ -322,8 +322,8 @@ class EventProcessingPerformanceTest extends TestCase
                     userId: 1,
                     provider: 'mock',
                     model: 'gpt-4',
-                    inputTokens: 100,
-                    outputTokens: 50,
+                    input_tokens: 100,
+                    output_tokens: 50,
                     cost: 0.001,
                     metadata: ['concurrent' => true]
                 ));

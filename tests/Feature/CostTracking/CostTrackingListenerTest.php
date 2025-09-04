@@ -2,23 +2,23 @@
 
 namespace JTD\LaravelAI\Tests\Feature\CostTracking;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Listeners\CostTrackingListener;
-use JTD\LaravelAI\Events\ResponseGenerated;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Queue;
 use JTD\LaravelAI\Events\CostCalculated;
+use JTD\LaravelAI\Events\ResponseGenerated;
+use JTD\LaravelAI\Listeners\CostTrackingListener;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Models\TokenUsage;
+use JTD\LaravelAI\Services\DriverManager;
 use JTD\LaravelAI\Services\PricingService;
 use JTD\LaravelAI\Services\PricingValidator;
-use JTD\LaravelAI\Services\DriverManager;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Tests\TestCase;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * CostTrackingListener Tests
@@ -31,6 +31,7 @@ class CostTrackingListenerTest extends TestCase
     use RefreshDatabase;
 
     protected CostTrackingListener $listener;
+
     protected PricingService $pricingService;
 
     protected function setUp(): void
@@ -83,8 +84,8 @@ class CostTrackingListenerTest extends TestCase
         Event::assertDispatched(CostCalculated::class, function ($event) {
             return $event->provider === 'openai' &&
                    $event->model === 'gpt-4o-mini' &&
-                   $event->inputTokens === 1000 &&
-                   $event->outputTokens === 500 &&
+                   $event->input_tokens === 1000 &&
+                   $event->output_tokens === 500 &&
                    $event->conversationId === 123;
         });
     }
@@ -353,8 +354,8 @@ class CostTrackingListenerTest extends TestCase
     protected function createTestAIResponse(): AIResponse
     {
         $tokenUsage = new TokenUsage(
-            inputTokens: 1000,
-            outputTokens: 500,
+            input_tokens: 1000,
+            output_tokens: 500,
             totalTokens: 1500,
             totalCost: 0.0
         );
@@ -362,7 +363,6 @@ class CostTrackingListenerTest extends TestCase
         return new AIResponse(
             content: 'Test response for cost tracking',
             tokenUsage: $tokenUsage, model: 'gpt-4o-mini', provider: 'openai',
-
 
             finishReason: 'stop'
         );

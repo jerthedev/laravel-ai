@@ -14,7 +14,9 @@ use Illuminate\Queue\SerializesModels;
  */
 class PerformanceThresholdExceeded
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     /**
      * Component that exceeded threshold.
@@ -45,10 +47,10 @@ class PerformanceThresholdExceeded
      */
     public function getComponentName(): string
     {
-        return $this->performanceData['listener_name'] 
-            ?? $this->performanceData['event_name'] 
-            ?? $this->performanceData['job_name'] 
-            ?? $this->performanceData['middleware_name'] 
+        return $this->performanceData['listener_name']
+            ?? $this->performanceData['event_name']
+            ?? $this->performanceData['job_name']
+            ?? $this->performanceData['middleware_name']
             ?? 'unknown';
     }
 
@@ -83,7 +85,7 @@ class PerformanceThresholdExceeded
         if ($threshold == 0) {
             return 0;
         }
-        
+
         return (($this->getDuration() - $threshold) / $threshold) * 100;
     }
 
@@ -95,10 +97,17 @@ class PerformanceThresholdExceeded
     public function getSeverity(): string
     {
         $exceededPercentage = $this->getThresholdExceededPercentage();
-        
-        if ($exceededPercentage >= 200) return 'critical';
-        if ($exceededPercentage >= 100) return 'high';
-        if ($exceededPercentage >= 50) return 'medium';
+
+        if ($exceededPercentage >= 200) {
+            return 'critical';
+        }
+        if ($exceededPercentage >= 100) {
+            return 'high';
+        }
+        if ($exceededPercentage >= 50) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
@@ -152,7 +161,7 @@ class PerformanceThresholdExceeded
         $duration = round($this->getDuration(), 1);
         $threshold = round($this->getThreshold(), 1);
         $severity = strtoupper($this->getSeverity());
-        
+
         return "[{$severity}] Performance threshold exceeded: {$componentName} took {$duration}ms (threshold: {$threshold}ms)";
     }
 
@@ -165,14 +174,14 @@ class PerformanceThresholdExceeded
     {
         $exceededPercentage = round($this->getThresholdExceededPercentage(), 1);
         $context = $this->getContext();
-        
+
         $description = $this->getAlertMessage() . "\n";
         $description .= "Exceeded threshold by {$exceededPercentage}%\n";
-        
-        if (!empty($context)) {
-            $description .= "Context: " . json_encode($context, JSON_PRETTY_PRINT);
+
+        if (! empty($context)) {
+            $description .= 'Context: ' . json_encode($context, JSON_PRETTY_PRINT);
         }
-        
+
         return $description;
     }
 
@@ -196,7 +205,7 @@ class PerformanceThresholdExceeded
     {
         $component = $this->component;
         $severity = $this->getSeverity();
-        
+
         $actions = [
             'event_processing' => [
                 'critical' => [

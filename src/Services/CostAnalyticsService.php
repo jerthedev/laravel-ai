@@ -2,9 +2,12 @@
 
 namespace JTD\LaravelAI\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use JTD\LaravelAI\Models\AIUsageCost;
+use JTD\LaravelAI\Models\AICostAnalytics;
+use JTD\LaravelAI\Models\AIUsageAnalytics;
 
 /**
  * Cost Analytics Service
@@ -32,20 +35,28 @@ class CostAnalyticsService
         $cacheKey = "cost_breakdown_provider_{$userId}_{$dateRange}_" . md5(json_encode($dateFilter));
 
         return Cache::remember($cacheKey, $this->defaultCacheTtl, function () use ($userId, $dateRange, $dateFilter) {
-            $query = DB::table('ai_usage_costs')
-                ->select([
-                    'provider',
-                    DB::raw('COUNT(*) as request_count'),
-                    DB::raw('SUM(total_cost) as total_cost'),
-                    DB::raw('SUM(input_tokens) as total_input_tokens'),
-                    DB::raw('SUM(output_tokens) as total_output_tokens'),
-                    DB::raw('SUM(total_tokens) as total_tokens'),
-                    DB::raw('AVG(total_cost) as avg_cost_per_request'),
-                    DB::raw('AVG(processing_time_ms) as avg_processing_time'),
-                ])
+            $query = AIUsageCost::query()
+                ->selectRaw('
+                    provider,
+                    COUNT(*) as request_count,
+                    SUM(total_cost) as total_cost,
+                    SUM(input_tokens) as total_input_tokens,
+                    SUM(output_tokens) as total_output_tokens,
+                    SUM(total_tokens) as total_tokens,
+                    AVG(total_cost) as avg_cost_per_request,
+                    AVG(processing_time_ms) as avg_processing_time
+                ')
                 ->groupBy('provider');
 
-            $this->applyFilters($query, $userId, $dateRange, $dateFilter);
+            if ($userId) {
+                $query->forUser($userId);
+            }
+
+            if (!empty($dateFilter) && count($dateFilter) === 2) {
+                $query->betweenDates($dateFilter[0], $dateFilter[1]);
+            } elseif ($dateRange) {
+                $query = $this->applyDateRangeToEloquent($query, $dateRange);
+            }
 
             $results = $query->orderBy('total_cost', 'desc')->get();
 
@@ -65,7 +76,7 @@ class CostAnalyticsService
                             : 0,
                     ];
                 })->toArray(),
-                'totals' => $this->calculateTotals($results),
+                'totals' => $this->calculateTotalsFromEloquent($results),
                 'metadata' => [
                     'user_id' => $userId,
                     'date_range' => $dateRange,
@@ -158,7 +169,7 @@ class CostAnalyticsService
      */
     public function getCostBreakdownByUser(array $userIds = [], ?string $dateRange = 'month', array $dateFilter = []): array
     {
-        $cacheKey = "cost_breakdown_user_" . md5(json_encode($userIds)) . "_{$dateRange}_" . md5(json_encode($dateFilter));
+        $cacheKey = 'cost_breakdown_user_' . md5(json_encode($userIds)) . "_{$dateRange}_" . md5(json_encode($dateFilter));
 
         return Cache::remember($cacheKey, $this->defaultCacheTtl, function () use ($userIds, $dateRange, $dateFilter) {
             $query = DB::table('ai_usage_costs')
@@ -177,7 +188,7 @@ class CostAnalyticsService
                 ])
                 ->groupBy('user_id');
 
-            if (!empty($userIds)) {
+            if (! empty($userIds)) {
                 $query->whereIn('user_id', $userIds);
             }
 
@@ -415,7 +426,7 @@ class CostAnalyticsService
             $query->where('user_id', $userId);
         }
 
-        if (!empty($dateFilter) && count($dateFilter) === 2) {
+        if (! empty($dateFilter) && count($dateFilter) === 2) {
             $query->whereBetween('created_at', $dateFilter);
         } elseif ($dateRange) {
             $this->applyDateRangeFilter($query, $dateRange);
@@ -461,7 +472,7 @@ class CostAnalyticsService
                 ? "strftime('%Y-%m-%d %H:00:00', created_at)"
                 : "DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00')",
             'day' => $driver === 'sqlite'
-                ? "date(created_at)"
+                ? 'date(created_at)'
                 : "DATE_FORMAT(created_at, '%Y-%m-%d')",
             'week' => $driver === 'sqlite'
                 ? "strftime('%Y-%W', created_at)"
@@ -473,7 +484,7 @@ class CostAnalyticsService
                 ? "strftime('%Y', created_at)"
                 : "DATE_FORMAT(created_at, '%Y')",
             default => $driver === 'sqlite'
-                ? "date(created_at)"
+                ? 'date(created_at)'
                 : "DATE_FORMAT(created_at, '%Y-%m-%d')",
         };
     }
@@ -599,6 +610,44 @@ class CostAnalyticsService
                 'id' => $results->sortByDesc('duration_minutes')->first()->conversation_id ?? null,
                 'duration_minutes' => (int) $results->max('duration_minutes'),
             ],
+        ];
+    }
+
+    /**
+     * Apply date range filter to Eloquent query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $dateRange
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    protected function applyDateRangeToEloquent($query, string $dateRange)
+    {
+        return match ($dateRange) {
+            'today' => $query->today(),
+            'week' => $query->thisWeek(),
+            'month' => $query->thisMonth(),
+            'year' => $query->thisYear(),
+            'last_7_days' => $query->where('created_at', '>=', now()->subDays(7)),
+            'last_30_days' => $query->where('created_at', '>=', now()->subDays(30)),
+            'last_90_days' => $query->where('created_at', '>=', now()->subDays(90)),
+            default => $query->thisMonth(),
+        };
+    }
+
+    /**
+     * Calculate totals from Eloquent results.
+     *
+     * @param  \Illuminate\Support\Collection  $results
+     * @return array
+     */
+    protected function calculateTotalsFromEloquent($results): array
+    {
+        return [
+            'total_requests' => $results->sum('request_count'),
+            'total_cost' => (float) $results->sum('total_cost'),
+            'total_tokens' => $results->sum('total_input_tokens') + $results->sum('total_output_tokens'),
+            'avg_cost_per_request' => $results->count() > 0 ? $results->avg('avg_cost_per_request') : 0,
+            'unique_providers' => $results->pluck('provider')->unique()->count(),
         ];
     }
 

@@ -58,7 +58,7 @@ class MCPRemoveCommand extends Command
         MCPServerInstaller $installer
     ) {
         parent::__construct();
-        
+
         $this->mcpManager = $mcpManager;
         $this->configService = $configService;
         $this->installer = $installer;
@@ -82,6 +82,7 @@ class MCPRemoveCommand extends Command
             }
         } catch (\Exception $e) {
             error("Failed to remove server: {$e->getMessage()}");
+
             return 1;
         }
     }
@@ -96,6 +97,7 @@ class MCPRemoveCommand extends Command
 
         if (empty($servers)) {
             warning('No MCP servers configured.');
+
             return 0;
         }
 
@@ -125,8 +127,9 @@ class MCPRemoveCommand extends Command
         $config = $this->configService->loadConfiguration();
         $serverConfig = $config['servers'][$serverName] ?? null;
 
-        if (!$serverConfig) {
+        if (! $serverConfig) {
             error("Server '{$serverName}' not found in configuration.");
+
             return 1;
         }
 
@@ -136,10 +139,11 @@ class MCPRemoveCommand extends Command
         $this->displayServerInfo($serverName, $serverConfig);
 
         // Confirmation
-        if (!$force) {
+        if (! $force) {
             $action = $keepConfig ? 'disable' : 'remove';
-            if (!confirm("Are you sure you want to {$action} this server?")) {
+            if (! confirm("Are you sure you want to {$action} this server?")) {
                 info('Operation cancelled.');
+
                 return 0;
             }
         }
@@ -153,8 +157,9 @@ class MCPRemoveCommand extends Command
             $action = 'removed';
         }
 
-        if (!$success) {
+        if (! $success) {
             error("Failed to {$action} server configuration.");
+
             return 1;
         }
 
@@ -179,16 +184,16 @@ class MCPRemoveCommand extends Command
         info('');
         info('📋 Server Information:');
         info("   Name: {$serverName}");
-        info("   Type: " . ($serverConfig['type'] ?? 'unknown'));
-        info("   Enabled: " . ($serverConfig['enabled'] ? 'Yes' : 'No'));
-        
+        info('   Type: ' . ($serverConfig['type'] ?? 'unknown'));
+        info('   Enabled: ' . ($serverConfig['enabled'] ? 'Yes' : 'No'));
+
         if (isset($serverConfig['command'])) {
             info("   Command: {$serverConfig['command']}");
         }
-        
-        if (!empty($serverConfig['env'])) {
+
+        if (! empty($serverConfig['env'])) {
             $envVars = array_keys($serverConfig['env']);
-            info("   Environment Variables: " . implode(', ', $envVars));
+            info('   Environment Variables: ' . implode(', ', $envVars));
         }
 
         // Check if package is installed
@@ -197,7 +202,7 @@ class MCPRemoveCommand extends Command
             $installStatus = $this->installer->isServerInstalled($serverName);
             $packageStatus = $installStatus['installed'] ? 'Installed' : 'Not installed';
             info("   Package Status: {$packageStatus}");
-            
+
             if ($installStatus['installed'] && isset($installStatus['version'])) {
                 info("   Package Version: {$installStatus['version']}");
             }
@@ -228,25 +233,28 @@ class MCPRemoveCommand extends Command
     protected function uninstallServerPackage(string $serverName, bool $force): int
     {
         $template = $this->installer->getServerTemplate($serverName);
-        
-        if (!$template) {
+
+        if (! $template) {
             warning("No installation template found for '{$serverName}'. Cannot uninstall package.");
+
             return 0;
         }
 
         $installStatus = $this->installer->isServerInstalled($serverName);
-        
-        if (!$installStatus['installed']) {
+
+        if (! $installStatus['installed']) {
             info("Package for '{$serverName}' is not installed.");
+
             return 0;
         }
 
         info("Uninstalling package '{$template['package']}'...");
 
         // Confirmation for package uninstall
-        if (!$force) {
-            if (!confirm("This will uninstall the npm package '{$template['package']}'. Continue?")) {
+        if (! $force) {
+            if (! confirm("This will uninstall the npm package '{$template['package']}'. Continue?")) {
                 info('Package uninstall cancelled.');
+
                 return 0;
             }
         }
@@ -255,9 +263,11 @@ class MCPRemoveCommand extends Command
 
         if ($result['success']) {
             info("✅ Package '{$template['package']}' uninstalled successfully.");
+
             return 0;
         } else {
             error("❌ Failed to uninstall package: {$result['error']}");
+
             return 1;
         }
     }
@@ -272,13 +282,13 @@ class MCPRemoveCommand extends Command
 
         if ($keepConfig) {
             info("• Server '{$serverName}' has been disabled but configuration is preserved");
-            info("• To re-enable: Update .mcp.json or run setup again");
+            info('• To re-enable: Update .mcp.json or run setup again');
         } else {
             info("• Server '{$serverName}' has been completely removed from configuration");
-            info("• Configuration file .mcp.json has been updated");
+            info('• Configuration file .mcp.json has been updated');
         }
 
-        if (!$uninstall) {
+        if (! $uninstall) {
             $template = $this->installer->getServerTemplate($serverName);
             if ($template) {
                 $installStatus = $this->installer->isServerInstalled($serverName);
@@ -306,7 +316,7 @@ class MCPRemoveCommand extends Command
         foreach ($servers as $name => $serverConfig) {
             $enabled = $serverConfig['enabled'] ? 'enabled' : 'disabled';
             $type = $serverConfig['type'] ?? 'unknown';
-            
+
             $serverList[] = [
                 'name' => $name,
                 'display' => "{$name} ({$type}, {$enabled})",

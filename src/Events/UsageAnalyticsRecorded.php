@@ -14,7 +14,9 @@ use Illuminate\Queue\SerializesModels;
  */
 class UsageAnalyticsRecorded
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     /**
      * Analytics data.
@@ -156,11 +158,11 @@ class UsageAnalyticsRecorded
     {
         $processingTime = $this->getProcessingTime();
         $totalTokens = $this->getTotalTokens();
-        
+
         if ($processingTime > 0 && $totalTokens > 0) {
             return ($totalTokens / $processingTime) * 1000; // Convert ms to seconds
         }
-        
+
         return 0;
     }
 
@@ -173,15 +175,15 @@ class UsageAnalyticsRecorded
     {
         $tokensPerSecond = $this->calculateTokensPerSecond();
         $processingTime = $this->getProcessingTime();
-        
+
         // Simple efficiency calculation based on tokens/second and processing time
         if ($tokensPerSecond > 0 && $processingTime > 0) {
             $timeScore = max(0, 100 - ($processingTime / 100)); // Penalty for slow processing
             $throughputScore = min(100, $tokensPerSecond); // Reward for high throughput
-            
+
             return ($timeScore + $throughputScore) / 2;
         }
-        
+
         return 0;
     }
 
@@ -239,13 +241,13 @@ class UsageAnalyticsRecorded
      */
     public function getErrorInfo(): ?array
     {
-        if (!$this->isSuccessful()) {
+        if (! $this->isSuccessful()) {
             return [
                 'error_type' => $this->analyticsData['error_type'] ?? 'unknown',
                 'has_error' => true,
             ];
         }
-        
+
         return null;
     }
 

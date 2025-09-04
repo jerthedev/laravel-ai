@@ -91,8 +91,8 @@ trait HandlesApiCommunication
 
         // Create token usage
         $tokenUsage = new TokenUsage(
-            inputTokens: $usage['prompt_tokens'] ?? 0,
-            outputTokens: $usage['completion_tokens'] ?? 0,
+            input_tokens: $usage['prompt_tokens'] ?? 0,
+            output_tokens: $usage['completion_tokens'] ?? 0,
             totalTokens: $usage['total_tokens'] ?? 0
         );
 

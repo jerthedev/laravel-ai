@@ -7,8 +7,8 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use JTD\LaravelAI\Events\ResponseGenerated;
 use JTD\LaravelAI\Events\CostCalculated;
+use JTD\LaravelAI\Events\ResponseGenerated;
 use JTD\LaravelAI\Events\UsageAnalyticsRecorded;
 
 /**
@@ -65,7 +65,6 @@ class AnalyticsListener implements ShouldQueue
 
             // Track performance against target
             $this->trackEnhancedPerformance('handle', microtime(true) - $startTime, $event);
-
         } catch (\Exception $e) {
             // Enhanced error handling with context
             $this->handleAnalyticsError($e, $event, microtime(true) - $startTime);
@@ -108,7 +107,6 @@ class AnalyticsListener implements ShouldQueue
 
             // Track performance
             $this->trackEnhancedPerformance('handleCostCalculated', microtime(true) - $startTime, $event);
-
         } catch (\Exception $e) {
             Log::error('Enhanced cost analytics tracking failed', [
                 'event' => class_basename($event),
@@ -149,7 +147,7 @@ class AnalyticsListener implements ShouldQueue
     {
         $message = $event->message;
         $response = $event->response;
-        $metadata = $event->providerMetadata;
+        $metadata = $event->provider_metadata;
 
         return [
             'user_id' => $message->user_id,
@@ -208,7 +206,6 @@ class AnalyticsListener implements ShouldQueue
                 'created_at' => $analyticsData['timestamp'],
                 'updated_at' => $analyticsData['timestamp'],
             ]);
-
         } catch (\Exception $e) {
             Log::warning('Failed to store real-time analytics', [
                 'error' => $e->getMessage(),
@@ -225,13 +222,13 @@ class AnalyticsListener implements ShouldQueue
     protected function trackPerformanceMetrics(ResponseGenerated $event): void
     {
         // Foundation implementation - will be expanded in Sprint 4b
-        $processingTime = $event->totalProcessingTime;
+        $processingTime = $event->total_processing_time;
 
         if ($processingTime > 10.0) { // Log slow responses (>10 seconds)
             logger()->warning('Slow AI response detected', [
                 'processing_time' => $processingTime,
-                'provider' => $event->providerMetadata['provider'] ?? 'unknown',
-                'model' => $event->providerMetadata['model'] ?? 'unknown',
+                'provider' => $event->provider_metadata['provider'] ?? 'unknown',
+                'model' => $event->provider_metadata['model'] ?? 'unknown',
                 'user_id' => $event->message->user_id ?? 0,
             ]);
         }
@@ -246,7 +243,7 @@ class AnalyticsListener implements ShouldQueue
     {
         // Foundation implementation - will be expanded in Sprint 4b
         logger()->debug('Provider usage tracked', [
-            'provider' => $event->providerMetadata['provider'] ?? 'unknown',
+            'provider' => $event->provider_metadata['provider'] ?? 'unknown',
             'success' => true,
             'timestamp' => now()->toISOString(),
         ]);
@@ -261,9 +258,9 @@ class AnalyticsListener implements ShouldQueue
     {
         // Foundation implementation - will be expanded in Sprint 4b
         logger()->debug('Model usage tracked', [
-            'model' => $event->providerMetadata['model'] ?? 'unknown',
-            'provider' => $event->providerMetadata['provider'] ?? 'unknown',
-            'tokens' => $event->providerMetadata['tokens_used'] ?? 0,
+            'model' => $event->provider_metadata['model'] ?? 'unknown',
+            'provider' => $event->provider_metadata['provider'] ?? 'unknown',
+            'tokens' => $event->provider_metadata['tokens_used'] ?? 0,
             'timestamp' => now()->toISOString(),
         ]);
     }
@@ -281,8 +278,8 @@ class AnalyticsListener implements ShouldQueue
             'provider' => $event->provider,
             'model' => $event->model,
             'cost' => $event->cost,
-            'input_tokens' => $event->inputTokens,
-            'output_tokens' => $event->outputTokens,
+            'input_tokens' => $event->input_tokens,
+            'output_tokens' => $event->output_tokens,
             'timestamp' => now()->toISOString(),
         ]);
     }
@@ -393,8 +390,8 @@ class AnalyticsListener implements ShouldQueue
             'user_id' => $event->userId,
             'provider' => $event->provider,
             'model' => $event->model,
-            'input_tokens' => $event->inputTokens,
-            'output_tokens' => $event->outputTokens,
+            'input_tokens' => $event->input_tokens,
+            'output_tokens' => $event->output_tokens,
             'total_tokens' => $event->totalTokens,
             'input_cost' => $event->inputCost,
             'output_cost' => $event->outputCost,
@@ -432,7 +429,6 @@ class AnalyticsListener implements ShouldQueue
                 'created_at' => $costData['timestamp'],
                 'updated_at' => $costData['timestamp'],
             ]);
-
         } catch (\Exception $e) {
             Log::warning('Failed to store cost analytics', [
                 'error' => $e->getMessage(),
@@ -655,8 +651,8 @@ class AnalyticsListener implements ShouldQueue
         }
 
         // Track performance metrics
-        Cache::increment("analytics_operations_total");
-        Cache::increment("analytics_duration_total", $durationMs);
+        Cache::increment('analytics_operations_total');
+        Cache::increment('analytics_duration_total', $durationMs);
         Cache::increment("analytics_operation_{$operation}");
     }
 
@@ -680,8 +676,8 @@ class AnalyticsListener implements ShouldQueue
         Log::error('Enhanced analytics processing failed', $context);
 
         // Track error metrics
-        Cache::increment("analytics_errors_total");
-        Cache::increment("analytics_error_" . class_basename($e));
+        Cache::increment('analytics_errors_total');
+        Cache::increment('analytics_error_' . class_basename($e));
     }
 
     /**
@@ -711,8 +707,8 @@ class AnalyticsListener implements ShouldQueue
      */
     protected function getProviderFromEvent($event): ?string
     {
-        if (isset($event->providerMetadata['provider'])) {
-            return $event->providerMetadata['provider'];
+        if (isset($event->provider_metadata['provider'])) {
+            return $event->provider_metadata['provider'];
         }
 
         if (isset($event->provider)) {

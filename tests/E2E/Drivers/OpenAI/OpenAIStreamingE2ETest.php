@@ -302,7 +302,7 @@ class OpenAIStreamingE2ETest extends TestCase
             $this->logTestStep('📊 Token usage: {tokens} total', [
                 'tokens' => $finalChunk->tokenUsage->totalTokens,
             ]);
-            $this->assertGreaterThan(0, $finalChunk->tokenUsage->inputTokens);
+            $this->assertGreaterThan(0, $finalChunk->tokenUsage->input_tokens);
         }
     }
 

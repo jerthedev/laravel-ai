@@ -2,7 +2,7 @@
 
 /**
  * Manual validation script for tool execution routing
- * 
+ *
  * This script demonstrates and validates that the UnifiedToolExecutor
  * properly routes MCP tools to immediate execution and Function Events
  * to background processing.
@@ -10,9 +10,8 @@
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-use JTD\LaravelAI\Services\UnifiedToolExecutor;
-use JTD\LaravelAI\Services\UnifiedToolRegistry;
 use JTD\LaravelAI\Services\AIFunctionEvent;
+use JTD\LaravelAI\Services\UnifiedToolExecutor;
 use JTD\LaravelAI\Tests\Support\TestBackgroundEmailListener;
 
 echo "🧪 Tool Execution Routing Validation\n";
@@ -47,10 +46,9 @@ try {
     $stats = $toolExecutor->getExecutionStats();
     echo "   ✅ UnifiedToolExecutor accessible\n";
     echo "   ✅ Execution statistics available\n";
-    echo "   ✅ Total executions: " . $stats['total_executions'] . "\n";
-    
+    echo '   ✅ Total executions: ' . $stats['total_executions'] . "\n";
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n2. Testing Function Event routing to background processing:\n";
@@ -74,27 +72,26 @@ try {
     ];
 
     $results = $toolExecutor->processToolCalls($toolCalls, $context);
-    
+
     echo "   ✅ Function Event processed successfully\n";
-    echo "   ✅ Results count: " . count($results) . "\n";
-    
-    if (!empty($results)) {
+    echo '   ✅ Results count: ' . count($results) . "\n";
+
+    if (! empty($results)) {
         $result = $results[0];
-        echo "   ✅ Tool name: " . $result['name'] . "\n";
-        echo "   ✅ Status: " . $result['status'] . "\n";
-        
+        echo '   ✅ Tool name: ' . $result['name'] . "\n";
+        echo '   ✅ Status: ' . $result['status'] . "\n";
+
         if (isset($result['result']['type'])) {
-            echo "   ✅ Result type: " . $result['result']['type'] . "\n";
-            
+            echo '   ✅ Result type: ' . $result['result']['type'] . "\n";
+
             if ($result['result']['type'] === 'function_event_queued') {
                 echo "   ✅ Function Event correctly routed to background processing\n";
-                echo "   ✅ Execution mode: " . $result['result']['execution_mode'] . "\n";
+                echo '   ✅ Execution mode: ' . $result['result']['execution_mode'] . "\n";
             }
         }
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n3. Testing single tool call execution:\n";
@@ -111,17 +108,16 @@ try {
             'conversation_id' => 101,
         ]
     );
-    
+
     echo "   ✅ Single tool call executed successfully\n";
-    echo "   ✅ Result type: " . $result['type'] . "\n";
-    echo "   ✅ Execution mode: " . $result['execution_mode'] . "\n";
-    
+    echo '   ✅ Result type: ' . $result['type'] . "\n";
+    echo '   ✅ Execution mode: ' . $result['execution_mode'] . "\n";
+
     if ($result['type'] === 'function_event_queued') {
         echo "   ✅ Single Function Event correctly queued for background processing\n";
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n4. Testing error handling for non-existent tools:\n";
@@ -136,21 +132,20 @@ try {
 
     $context = ['user_id' => 123];
     $results = $toolExecutor->processToolCalls($toolCalls, $context);
-    
+
     echo "   ✅ Error handling working correctly\n";
-    
-    if (!empty($results)) {
+
+    if (! empty($results)) {
         $result = $results[0];
-        echo "   ✅ Error status: " . $result['status'] . "\n";
-        
+        echo '   ✅ Error status: ' . $result['status'] . "\n";
+
         if ($result['status'] === 'error') {
-            echo "   ✅ Error message: " . $result['error'] . "\n";
+            echo '   ✅ Error message: ' . $result['error'] . "\n";
             echo "   ✅ Non-existent tools properly handled\n";
         }
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n5. Testing context propagation:\n";
@@ -177,33 +172,31 @@ try {
     ];
 
     $results = $toolExecutor->processToolCalls($toolCalls, $context);
-    
+
     echo "   ✅ Context propagation successful\n";
-    echo "   ✅ Context keys provided: " . implode(', ', array_keys($context)) . "\n";
-    
-    if (!empty($results)) {
+    echo '   ✅ Context keys provided: ' . implode(', ', array_keys($context)) . "\n";
+
+    if (! empty($results)) {
         $result = $results[0];
-        echo "   ✅ Tool executed with context: " . $result['status'] . "\n";
+        echo '   ✅ Tool executed with context: ' . $result['status'] . "\n";
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n6. Testing execution statistics:\n";
 try {
     $stats = $toolExecutor->getExecutionStats();
-    
+
     echo "   ✅ Statistics generated successfully\n";
-    echo "   ✅ Total executions: " . $stats['total_executions'] . "\n";
-    echo "   ✅ MCP executions: " . $stats['mcp_executions'] . "\n";
-    echo "   ✅ Function Event executions: " . $stats['function_event_executions'] . "\n";
-    echo "   ✅ Successful executions: " . $stats['successful_executions'] . "\n";
-    echo "   ✅ Failed executions: " . $stats['failed_executions'] . "\n";
-    echo "   ✅ Average execution time: " . $stats['average_execution_time'] . "ms\n";
-    
+    echo '   ✅ Total executions: ' . $stats['total_executions'] . "\n";
+    echo '   ✅ MCP executions: ' . $stats['mcp_executions'] . "\n";
+    echo '   ✅ Function Event executions: ' . $stats['function_event_executions'] . "\n";
+    echo '   ✅ Successful executions: ' . $stats['successful_executions'] . "\n";
+    echo '   ✅ Failed executions: ' . $stats['failed_executions'] . "\n";
+    echo '   ✅ Average execution time: ' . $stats['average_execution_time'] . "ms\n";
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n7. Testing tool type routing validation:\n";
@@ -211,21 +204,20 @@ try {
     $allTools = $toolRegistry->getAllTools();
     $mcpTools = $toolRegistry->getToolsByType('mcp_tool');
     $functionEvents = $toolRegistry->getToolsByType('function_event');
-    
-    echo "   ✅ Total tools available: " . count($allTools) . "\n";
-    echo "   ✅ MCP tools (immediate execution): " . count($mcpTools) . "\n";
-    echo "   ✅ Function Events (background execution): " . count($functionEvents) . "\n";
-    
+
+    echo '   ✅ Total tools available: ' . count($allTools) . "\n";
+    echo '   ✅ MCP tools (immediate execution): ' . count($mcpTools) . "\n";
+    echo '   ✅ Function Events (background execution): ' . count($functionEvents) . "\n";
+
     // Validate that our test function is properly categorized
     if (isset($functionEvents['test_routing_function'])) {
         $testTool = $functionEvents['test_routing_function'];
         echo "   ✅ Test function properly categorized as Function Event\n";
-        echo "   ✅ Execution mode: " . $testTool['execution_mode'] . "\n";
-        echo "   ✅ Source: " . $testTool['source'] . "\n";
+        echo '   ✅ Execution mode: ' . $testTool['execution_mode'] . "\n";
+        echo '   ✅ Source: ' . $testTool['source'] . "\n";
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n🎉 Tool Execution Routing validation complete!\n";

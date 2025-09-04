@@ -69,8 +69,8 @@ class OpenAISuccessfulCallsTest extends E2ETestCase
             $this->logTestStep('Finish reason: ' . $response->finishReason);
 
             // Check token usage (debug the 0 tokens issue)
-            $this->logTestStep('Input tokens: ' . $response->tokenUsage->inputTokens);
-            $this->logTestStep('Output tokens: ' . $response->tokenUsage->outputTokens);
+            $this->logTestStep('Input tokens: ' . $response->tokenUsage->input_tokens);
+            $this->logTestStep('Output tokens: ' . $response->tokenUsage->output_tokens);
             $this->logTestStep('Total tokens: ' . $response->tokenUsage->totalTokens);
 
             // Only assert token usage if it's available (some models might not report it immediately)
@@ -124,8 +124,8 @@ class OpenAISuccessfulCallsTest extends E2ETestCase
             $this->logTestStep('Response finish reason: ' . $response->finishReason);
 
             // Compare estimated vs actual
-            $actualInputTokens = $response->tokenUsage->inputTokens;
-            $actualOutputTokens = $response->tokenUsage->outputTokens;
+            $actualInputTokens = $response->tokenUsage->input_tokens;
+            $actualOutputTokens = $response->tokenUsage->output_tokens;
             $actualTotalTokens = $response->tokenUsage->totalTokens;
             $estimatedTokens = $estimatedCost['input_tokens'] + $estimatedCost['estimated_output_tokens'];
 

@@ -83,7 +83,6 @@ class ReportExportController extends Controller
                     'message' => $result['message'],
                 ], 500);
             }
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -130,7 +129,6 @@ class ReportExportController extends Controller
                 'error' => $result['success'] ? null : $result['error'],
                 'message' => $result['success'] ? 'Cost breakdown exported successfully' : $result['message'],
             ], $result['success'] ? 200 : 500);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -176,7 +174,6 @@ class ReportExportController extends Controller
                 'error' => $result['success'] ? null : $result['error'],
                 'message' => $result['success'] ? 'Usage trends exported successfully' : $result['message'],
             ], $result['success'] ? 200 : 500);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -197,8 +194,8 @@ class ReportExportController extends Controller
     {
         try {
             $filePath = "exports/{$fileName}";
-            
-            if (!Storage::disk('local')->exists($filePath)) {
+
+            if (! Storage::disk('local')->exists($filePath)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'File not found',
@@ -206,7 +203,7 @@ class ReportExportController extends Controller
             }
 
             // Verify user has access to this file
-            if (!$this->canAccessFile($request, $fileName)) {
+            if (! $this->canAccessFile($request, $fileName)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized access',
@@ -215,14 +212,13 @@ class ReportExportController extends Controller
 
             $fileContent = Storage::disk('local')->get($filePath);
             $mimeType = $this->getMimeType($fileName);
-            
+
             return response($fileContent)
                 ->header('Content-Type', $mimeType)
                 ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"')
                 ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 ->header('Pragma', 'no-cache')
                 ->header('Expires', '0');
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -272,7 +268,6 @@ class ReportExportController extends Controller
                 'error' => $result['success'] ? null : $result['error'],
                 'message' => $result['success'] ? 'Report scheduled successfully' : $result['message'],
             ], $result['success'] ? 201 : 500);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -308,14 +303,13 @@ class ReportExportController extends Controller
         try {
             $userId = $request->user()->id;
             $filters = $validator->validated();
-            
+
             $history = $this->getExportHistory($userId, $filters);
 
             return response()->json([
                 'success' => true,
                 'data' => $history,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -336,8 +330,8 @@ class ReportExportController extends Controller
     {
         try {
             $filePath = "exports/{$fileName}";
-            
-            if (!Storage::disk('local')->exists($filePath)) {
+
+            if (! Storage::disk('local')->exists($filePath)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'File not found',
@@ -345,7 +339,7 @@ class ReportExportController extends Controller
             }
 
             // Verify user has access to this file
-            if (!$this->canAccessFile($request, $fileName)) {
+            if (! $this->canAccessFile($request, $fileName)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized access',
@@ -358,7 +352,6 @@ class ReportExportController extends Controller
                 'success' => true,
                 'message' => 'Report deleted successfully',
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -391,7 +384,7 @@ class ReportExportController extends Controller
     protected function getMimeType(string $fileName): string
     {
         $extension = pathinfo($fileName, PATHINFO_EXTENSION);
-        
+
         return match ($extension) {
             'pdf' => 'application/pdf',
             'csv' => 'text/csv',

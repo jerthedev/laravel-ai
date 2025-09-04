@@ -4,7 +4,7 @@ namespace JTD\LaravelAI\Enums;
 
 /**
  * Pricing unit enumeration for standardizing cost calculations across AI providers.
- * 
+ *
  * This enum provides consistent pricing units and conversion methods to normalize
  * different provider pricing models into a unified system.
  */
@@ -14,21 +14,21 @@ enum PricingUnit: string
     case PER_TOKEN = 'per_token';
     case PER_1K_TOKENS = '1k_tokens';
     case PER_1M_TOKENS = '1m_tokens';
-    
-    // Character-based pricing  
+
+    // Character-based pricing
     case PER_CHARACTER = 'per_character';
     case PER_1K_CHARACTERS = '1k_characters';
-    
+
     // Time-based pricing
     case PER_SECOND = 'per_second';
     case PER_MINUTE = 'per_minute';
     case PER_HOUR = 'per_hour';
-    
+
     // Request-based pricing
     case PER_REQUEST = 'per_request';
     case PER_IMAGE = 'per_image';
     case PER_AUDIO_FILE = 'per_audio_file';
-    
+
     // Data-based pricing
     case PER_MB = 'per_mb';
     case PER_GB = 'per_gb';
@@ -38,7 +38,7 @@ enum PricingUnit: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::PER_TOKEN => 'Per Token',
             self::PER_1K_TOKENS => 'Per 1,000 Tokens',
             self::PER_1M_TOKENS => 'Per 1,000,000 Tokens',
@@ -57,12 +57,12 @@ enum PricingUnit: string
 
     /**
      * Get the base unit for normalization purposes.
-     * 
+     *
      * For example, PER_1K_TOKENS and PER_1M_TOKENS both normalize to PER_TOKEN.
      */
     public function getBaseUnit(): self
     {
-        return match($this) {
+        return match ($this) {
             self::PER_1K_TOKENS, self::PER_1M_TOKENS => self::PER_TOKEN,
             self::PER_1K_CHARACTERS => self::PER_CHARACTER,
             default => $this,
@@ -71,12 +71,12 @@ enum PricingUnit: string
 
     /**
      * Get the multiplier to convert from this unit to the base unit.
-     * 
+     *
      * For example, PER_1K_TOKENS has a multiplier of 1000 to convert to PER_TOKEN.
      */
     public function getMultiplier(): float
     {
-        return match($this) {
+        return match ($this) {
             self::PER_1K_TOKENS => 1000.0,
             self::PER_1M_TOKENS => 1000000.0,
             self::PER_1K_CHARACTERS => 1000.0,
@@ -89,8 +89,8 @@ enum PricingUnit: string
 
     /**
      * Convert a cost from this unit to the base unit.
-     * 
-     * @param float $cost The cost in this unit
+     *
+     * @param  float  $cost  The cost in this unit
      * @return float The cost converted to the base unit
      */
     public function convertToBaseUnit(float $cost): float
@@ -100,8 +100,8 @@ enum PricingUnit: string
 
     /**
      * Convert a cost from the base unit to this unit.
-     * 
-     * @param float $cost The cost in the base unit
+     *
+     * @param  float  $cost  The cost in the base unit
      * @return float The cost converted to this unit
      */
     public function convertFromBaseUnit(float $cost): float
@@ -169,7 +169,7 @@ enum PricingUnit: string
 
     /**
      * Get all token-based pricing units.
-     * 
+     *
      * @return array<self>
      */
     public static function getTokenBasedUnits(): array
@@ -183,7 +183,7 @@ enum PricingUnit: string
 
     /**
      * Get all character-based pricing units.
-     * 
+     *
      * @return array<self>
      */
     public static function getCharacterBasedUnits(): array
@@ -196,7 +196,7 @@ enum PricingUnit: string
 
     /**
      * Get all time-based pricing units.
-     * 
+     *
      * @return array<self>
      */
     public static function getTimeBasedUnits(): array
@@ -210,7 +210,7 @@ enum PricingUnit: string
 
     /**
      * Get all request-based pricing units.
-     * 
+     *
      * @return array<self>
      */
     public static function getRequestBasedUnits(): array
@@ -224,7 +224,7 @@ enum PricingUnit: string
 
     /**
      * Get all data-based pricing units.
-     * 
+     *
      * @return array<self>
      */
     public static function getDataBasedUnits(): array
@@ -237,7 +237,7 @@ enum PricingUnit: string
 
     /**
      * Get all available pricing units grouped by category.
-     * 
+     *
      * @return array<string, array<self>>
      */
     public static function getAllGrouped(): array

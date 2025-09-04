@@ -69,14 +69,14 @@ class MCPConfigurationService
      */
     public function loadConfiguration(): array
     {
-        if (!File::exists($this->configPath)) {
+        if (! File::exists($this->configPath)) {
             return $this->defaultConfig;
         }
 
         try {
             $content = File::get($this->configPath);
             $config = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
-            
+
             // Merge with defaults to ensure all required keys exist
             return array_merge_recursive($this->defaultConfig, $config);
         } catch (\JsonException $e) {
@@ -84,7 +84,7 @@ class MCPConfigurationService
                 'file' => $this->configPath,
                 'error' => $e->getMessage(),
             ]);
-            
+
             throw new MCPException("Invalid MCP configuration file: {$e->getMessage()}");
         }
     }
@@ -96,23 +96,23 @@ class MCPConfigurationService
     {
         try {
             $validation = $this->validateConfiguration($config);
-            
-            if (!empty($validation['errors'])) {
+
+            if (! empty($validation['errors'])) {
                 throw new MCPException('Configuration validation failed: ' . implode(', ', $validation['errors']));
             }
 
             $json = json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             File::put($this->configPath, $json);
-            
+
             Log::info('MCP configuration saved', ['file' => $this->configPath]);
-            
+
             return true;
         } catch (\Exception $e) {
             Log::error('Failed to save MCP configuration', [
                 'file' => $this->configPath,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return false;
         }
     }
@@ -127,7 +127,7 @@ class MCPConfigurationService
 
         // Use Laravel validator for basic structure validation
         $validator = Validator::make($config, $this->validationRules);
-        
+
         if ($validator->fails()) {
             $errors = array_merge($errors, $validator->errors()->all());
         }
@@ -157,7 +157,7 @@ class MCPConfigurationService
         $warnings = [];
 
         // Validate server name
-        if (!preg_match('/^[a-z0-9\-_]+$/', $name)) {
+        if (! preg_match('/^[a-z0-9\-_]+$/', $name)) {
             $errors[] = "Server name '{$name}' must contain only lowercase letters, numbers, hyphens, and underscores";
         }
 
@@ -167,7 +167,7 @@ class MCPConfigurationService
             $command = $config['command'] ?? '';
             if (empty($command)) {
                 $errors[] = "External server '{$name}' requires a command";
-            } elseif (!str_contains($command, 'npx') && !str_contains($command, 'node')) {
+            } elseif (! str_contains($command, 'npx') && ! str_contains($command, 'node')) {
                 $warnings[] = "Server '{$name}' command doesn't appear to be a Node.js command";
             }
 
@@ -198,19 +198,20 @@ class MCPConfigurationService
      */
     public function loadToolsConfiguration(): array
     {
-        if (!File::exists($this->toolsPath)) {
+        if (! File::exists($this->toolsPath)) {
             return [];
         }
 
         try {
             $content = File::get($this->toolsPath);
+
             return json_decode($content, true, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException $e) {
             Log::error('Failed to parse MCP tools configuration', [
                 'file' => $this->toolsPath,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return [];
         }
     }
@@ -223,16 +224,16 @@ class MCPConfigurationService
         try {
             $json = json_encode($tools, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             File::put($this->toolsPath, $json);
-            
+
             Log::info('MCP tools configuration saved', ['file' => $this->toolsPath]);
-            
+
             return true;
         } catch (\Exception $e) {
             Log::error('Failed to save MCP tools configuration', [
                 'file' => $this->toolsPath,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return false;
         }
     }
@@ -256,7 +257,7 @@ class MCPConfigurationService
     {
         $config = $this->loadConfiguration();
         $config['servers'][$name] = $serverConfig;
-        
+
         return $this->saveConfiguration($config);
     }
 
@@ -266,13 +267,13 @@ class MCPConfigurationService
     public function removeServer(string $name): bool
     {
         $config = $this->loadConfiguration();
-        
-        if (!isset($config['servers'][$name])) {
+
+        if (! isset($config['servers'][$name])) {
             return false;
         }
-        
+
         unset($config['servers'][$name]);
-        
+
         return $this->saveConfiguration($config);
     }
 
@@ -282,13 +283,13 @@ class MCPConfigurationService
     public function updateServer(string $name, array $serverConfig): bool
     {
         $config = $this->loadConfiguration();
-        
-        if (!isset($config['servers'][$name])) {
+
+        if (! isset($config['servers'][$name])) {
             return false;
         }
-        
+
         $config['servers'][$name] = array_merge($config['servers'][$name], $serverConfig);
-        
+
         return $this->saveConfiguration($config);
     }
 

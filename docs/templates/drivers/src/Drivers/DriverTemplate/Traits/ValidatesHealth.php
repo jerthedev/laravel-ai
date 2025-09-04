@@ -2,9 +2,6 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate\Traits;
 
-use JTD\LaravelAI\Exceptions\DriverTemplate\DriverTemplateInvalidCredentialsException;
-use JTD\LaravelAI\Exceptions\DriverTemplate\DriverTemplateQuotaExceededException;
-
 /**
  * Validates Health and Credentials
  *
@@ -124,5 +121,4 @@ trait ValidatesHealth
     {
         // TODO: Implement checkCompletionsAccess
     }
-
 }

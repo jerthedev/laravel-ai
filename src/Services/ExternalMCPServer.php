@@ -90,7 +90,7 @@ class ExternalMCPServer implements MCPServerInterface
         }
 
         // Check if required environment variables are set
-        if (!empty($this->config['env'])) {
+        if (! empty($this->config['env'])) {
             foreach ($this->config['env'] as $key => $value) {
                 // Skip if value is a placeholder
                 if (str_starts_with($value, '${') && str_ends_with($value, '}')) {
@@ -126,7 +126,7 @@ class ExternalMCPServer implements MCPServerInterface
      */
     public function processMessage(AIMessage $message): AIMessage
     {
-        if (!$this->isConfigured() || !$this->isEnabled()) {
+        if (! $this->isConfigured() || ! $this->isEnabled()) {
             return $message;
         }
 
@@ -151,7 +151,7 @@ class ExternalMCPServer implements MCPServerInterface
      */
     public function processResponse(AIResponse $response): AIResponse
     {
-        if (!$this->isConfigured() || !$this->isEnabled()) {
+        if (! $this->isConfigured() || ! $this->isEnabled()) {
             return $response;
         }
 
@@ -181,7 +181,7 @@ class ExternalMCPServer implements MCPServerInterface
      */
     public function getAvailableTools(): array
     {
-        if (!$this->isConfigured() || !$this->isEnabled()) {
+        if (! $this->isConfigured() || ! $this->isEnabled()) {
             return [];
         }
 
@@ -201,6 +201,7 @@ class ExternalMCPServer implements MCPServerInterface
                 Log::error("Failed to get tools from MCP server {$this->name}", [
                     'error' => $e->getMessage(),
                 ]);
+
                 return [];
             }
         });
@@ -211,7 +212,7 @@ class ExternalMCPServer implements MCPServerInterface
      */
     public function executeTool(string $toolName, array $parameters = []): array
     {
-        if (!$this->isConfigured() || !$this->isEnabled()) {
+        if (! $this->isConfigured() || ! $this->isEnabled()) {
             throw new MCPToolException("MCP server {$this->name} is not configured or enabled");
         }
 
@@ -220,7 +221,7 @@ class ExternalMCPServer implements MCPServerInterface
 
             $command = [
                 '--tool', $toolName,
-                '--params', json_encode($parameters)
+                '--params', json_encode($parameters),
             ];
 
             $result = $this->executeCommand($command);
@@ -228,7 +229,7 @@ class ExternalMCPServer implements MCPServerInterface
             $executionTime = microtime(true) - $startTime;
             $this->recordMetric('tool_execution_time', $executionTime);
 
-            if (!$result['success']) {
+            if (! $result['success']) {
                 $this->recordMetric('tool_execution_errors', 1);
                 throw new MCPToolException("Tool execution failed: {$result['error']}");
             }
@@ -249,14 +250,14 @@ class ExternalMCPServer implements MCPServerInterface
      */
     public function testConnection(): array
     {
-        if (!$this->isConfigured()) {
+        if (! $this->isConfigured()) {
             return [
                 'status' => 'error',
                 'message' => 'Server is not properly configured',
             ];
         }
 
-        if (!$this->isEnabled()) {
+        if (! $this->isEnabled()) {
             return [
                 'status' => 'disabled',
                 'message' => 'Server is disabled',
@@ -332,7 +333,7 @@ class ExternalMCPServer implements MCPServerInterface
 
         // Prepare environment variables
         $env = [];
-        if (!empty($this->config['env'])) {
+        if (! empty($this->config['env'])) {
             foreach ($this->config['env'] as $key => $value) {
                 // Resolve environment variable placeholders
                 if (str_starts_with($value, '${') && str_ends_with($value, '}')) {
@@ -354,7 +355,7 @@ class ExternalMCPServer implements MCPServerInterface
 
                 // Try to parse JSON output
                 $parsedOutput = null;
-                if (!empty($output)) {
+                if (! empty($output)) {
                     try {
                         $parsedOutput = json_decode($output, true, 512, JSON_THROW_ON_ERROR);
                     } catch (\JsonException $e) {
@@ -389,7 +390,7 @@ class ExternalMCPServer implements MCPServerInterface
      */
     protected function recordMetric(string $key, float $value): void
     {
-        if (!isset($this->metrics[$key])) {
+        if (! isset($this->metrics[$key])) {
             $this->metrics[$key] = [
                 'count' => 0,
                 'total' => 0,

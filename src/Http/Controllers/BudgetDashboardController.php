@@ -50,13 +50,12 @@ class BudgetDashboardController extends Controller
 
         try {
             $dashboardData = $this->getDashboardData($userId, $projectId, $organizationId);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $dashboardData,
                 'generated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -80,13 +79,12 @@ class BudgetDashboardController extends Controller
 
         try {
             $status = $this->getBudgetStatus($userId, $projectId, $organizationId);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $status,
                 'updated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -110,13 +108,12 @@ class BudgetDashboardController extends Controller
 
         try {
             $trends = $this->analyticsService->getHistoricalTrends($userId, $groupBy, $dateRange);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $trends,
                 'generated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -145,13 +142,12 @@ class BudgetDashboardController extends Controller
                 'user' => $this->analyticsService->getCostBreakdownByUser([$userId], $dateRange),
                 default => $this->analyticsService->getCostBreakdownByProvider($userId, $dateRange),
             };
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $breakdown,
                 'generated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -174,13 +170,12 @@ class BudgetDashboardController extends Controller
 
         try {
             $alerts = $this->getRecentAlerts($userId, $limit);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $alerts,
                 'updated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -202,13 +197,12 @@ class BudgetDashboardController extends Controller
 
         try {
             $recommendations = $this->getBudgetRecommendations($userId);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $recommendations,
                 'generated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -229,7 +223,7 @@ class BudgetDashboardController extends Controller
     protected function getDashboardData(int $userId, ?string $projectId = null, ?string $organizationId = null): array
     {
         $cacheKey = "budget_dashboard_{$userId}_{$projectId}_{$organizationId}";
-        
+
         return Cache::remember($cacheKey, 300, function () use ($userId, $projectId, $organizationId) {
             return [
                 'budget_status' => $this->getBudgetStatus($userId, $projectId, $organizationId),
@@ -255,23 +249,23 @@ class BudgetDashboardController extends Controller
     protected function getBudgetStatus(int $userId, ?string $projectId = null, ?string $organizationId = null): array
     {
         $budgetTypes = ['daily', 'monthly', 'per_request'];
-        
+
         if ($projectId) {
             $budgetTypes[] = 'project';
         }
-        
+
         if ($organizationId) {
             $budgetTypes[] = 'organization';
         }
 
         $status = [];
-        
+
         foreach ($budgetTypes as $type) {
             $budgetData = $this->budgetService->getBudgetStatus($userId, $type, [
                 'project_id' => $projectId,
                 'organization_id' => $organizationId,
             ]);
-            
+
             $status[$type] = [
                 'limit' => $budgetData['limit'] ?? null,
                 'spent' => $budgetData['spent'] ?? 0,
@@ -316,7 +310,7 @@ class BudgetDashboardController extends Controller
     protected function getSpendingForPeriod(int $userId, string $period, ?string $projectId = null, ?string $organizationId = null): array
     {
         $breakdown = $this->analyticsService->getCostBreakdownByProvider($userId, $period);
-        
+
         return [
             'total_cost' => $breakdown['totals']['total_cost'] ?? 0,
             'total_requests' => $breakdown['totals']['total_requests'] ?? 0,
@@ -368,7 +362,7 @@ class BudgetDashboardController extends Controller
     protected function getBudgetRecommendations(int $userId): array
     {
         $efficiency = $this->analyticsService->getCostEfficiencyMetrics($userId, 'month');
-        
+
         return [
             'recommendations' => $efficiency['recommendations'] ?? [],
             'optimization_opportunities' => $this->getOptimizationOpportunities($userId),

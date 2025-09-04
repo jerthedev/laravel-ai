@@ -26,7 +26,7 @@ class MiddlewareSystemTest extends TestCase
 
     public function test_middleware_manager_registration()
     {
-        $manager = new MiddlewareManager();
+        $manager = new MiddlewareManager;
 
         // Test middleware registration
         $manager->register('test', TestMiddleware::class);
@@ -38,7 +38,7 @@ class MiddlewareSystemTest extends TestCase
 
     public function test_middleware_manager_global_middleware()
     {
-        $manager = new MiddlewareManager();
+        $manager = new MiddlewareManager;
 
         // Test global middleware registration
         $manager->registerGlobal('test');
@@ -62,7 +62,7 @@ class MiddlewareSystemTest extends TestCase
 
         $this->app->instance('laravel-ai', $mockAIManager);
 
-        $manager = new MiddlewareManager();
+        $manager = new MiddlewareManager;
         $manager->register('test', TestMiddleware::class);
 
         $message = AIMessage::user('Test message');
@@ -159,7 +159,7 @@ class MiddlewareSystemTest extends TestCase
 
     public function test_middleware_performance_tracking()
     {
-        $manager = new MiddlewareManager();
+        $manager = new MiddlewareManager;
         $manager->register('slow', SlowTestMiddleware::class);
 
         $message = AIMessage::user('Test message');
@@ -176,7 +176,7 @@ class MiddlewareSystemTest extends TestCase
 
     public function test_middleware_error_handling()
     {
-        $manager = new MiddlewareManager();
+        $manager = new MiddlewareManager;
         $manager->register('error', ErrorTestMiddleware::class);
 
         $message = AIMessage::user('Test message');
@@ -203,7 +203,7 @@ class MiddlewareSystemTest extends TestCase
 
         $this->app->instance('laravel-ai', $mockAIManager);
 
-        $manager = new MiddlewareManager();
+        $manager = new MiddlewareManager;
         $manager->register('first', FirstTestMiddleware::class);
         $manager->register('second', SecondTestMiddleware::class);
 

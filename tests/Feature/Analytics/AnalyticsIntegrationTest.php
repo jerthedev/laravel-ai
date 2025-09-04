@@ -14,8 +14,8 @@ use JTD\LaravelAI\Services\BudgetService;
 use JTD\LaravelAI\Services\CostAnalyticsService;
 use JTD\LaravelAI\Services\TrendAnalysisService;
 use JTD\LaravelAI\Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Analytics Integration Tests
@@ -30,7 +30,9 @@ class AnalyticsIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected BudgetService $budgetService;
+
     protected CostAnalyticsService $costAnalyticsService;
+
     protected TrendAnalysisService $trendAnalysisService;
 
     protected function setUp(): void
@@ -85,7 +87,7 @@ class AnalyticsIntegrationTest extends TestCase
         Event::assertDispatched(BudgetThresholdReached::class, function ($event) use ($userId) {
             return $event->userId === $userId
                 && $event->budgetType === 'monthly'
-                && $event->percentage >= 75.0;
+                && $event->threshold_percentage >= 75.0;
         });
     }
 
@@ -128,8 +130,8 @@ class AnalyticsIntegrationTest extends TestCase
             provider: $provider,
             model: $model,
             cost: 0.003,
-            inputTokens: 100,
-            outputTokens: 50
+            input_tokens: 100,
+            output_tokens: 50
         );
         event($costEvent);
 
@@ -138,7 +140,7 @@ class AnalyticsIntegrationTest extends TestCase
         Event::assertDispatched(CostCalculated::class);
 
         // Process events through listener
-        $listener = new AnalyticsListener();
+        $listener = new AnalyticsListener;
         $listener->handle($responseEvent);
         $listener->handleCostCalculated($costEvent);
 
@@ -183,7 +185,7 @@ class AnalyticsIntegrationTest extends TestCase
         $this->budgetService->checkBudgetCompliance($userId, 'monthly', 0.00);
 
         Event::assertDispatched(BudgetThresholdReached::class, function ($event) {
-            return $event->percentage >= 50.0 && $event->percentage < 75.0;
+            return $event->threshold_percentage >= 50.0 && $event->threshold_percentage < 75.0;
         });
 
         // Simulate additional usage that triggers critical threshold
@@ -191,7 +193,7 @@ class AnalyticsIntegrationTest extends TestCase
         $this->budgetService->checkBudgetCompliance($userId, 'monthly', 0.00);
 
         Event::assertDispatched(BudgetThresholdReached::class, function ($event) {
-            return $event->percentage >= 75.0;
+            return $event->threshold_percentage >= 75.0;
         });
     }
 
@@ -271,11 +273,11 @@ class AnalyticsIntegrationTest extends TestCase
 
         // Simulate concurrent operations
         $operations = [
-            fn() => $this->costAnalyticsService->getCostBreakdownByProvider($userId, 'month'),
-            fn() => $this->budgetService->getBudgetStatus($userId, 'monthly'),
-            fn() => $this->trendAnalysisService->analyzeUsageTrends($userId, 'daily', 20),
-            fn() => $this->costAnalyticsService->getCostEfficiencyMetrics($userId, 'month'),
-            fn() => $this->trendAnalysisService->compareProviderPerformance($userId, 20),
+            fn () => $this->costAnalyticsService->getCostBreakdownByProvider($userId, 'month'),
+            fn () => $this->budgetService->getBudgetStatus($userId, 'monthly'),
+            fn () => $this->trendAnalysisService->analyzeUsageTrends($userId, 'daily', 20),
+            fn () => $this->costAnalyticsService->getCostEfficiencyMetrics($userId, 'month'),
+            fn () => $this->trendAnalysisService->compareProviderPerformance($userId, 20),
         ];
 
         // Execute operations concurrently (simulated)

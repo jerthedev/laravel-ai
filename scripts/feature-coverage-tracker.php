@@ -2,11 +2,10 @@
 
 /**
  * Feature Coverage Tracker
- * 
+ *
  * Tracks test coverage progress for each Sprint4b feature area
  * and provides detailed reporting on coverage gaps.
  */
-
 class FeatureCoverageTracker
 {
     private array $features = [
@@ -85,17 +84,17 @@ class FeatureCoverageTracker
 
             // Run coverage for this feature
             $coverageData = $this->runFeatureCoverage($featureName);
-            
+
             if ($coverageData) {
                 $currentCoverage = $coverageData['coverage_percentage'];
                 $testCount = $coverageData['test_count'];
-                
+
                 echo "Current Coverage: {$currentCoverage}%\n";
                 echo "Tests: {$testCount}\n";
-                
+
                 $status = $currentCoverage >= $featureConfig['target_coverage'] ? '✅' : '❌';
                 echo "Status: {$status}\n";
-                
+
                 $overallProgress[$featureName] = [
                     'current' => $currentCoverage,
                     'target' => $featureConfig['target_coverage'],
@@ -106,7 +105,7 @@ class FeatureCoverageTracker
                 echo "Current Coverage: No tests found\n";
                 echo "Tests: 0\n";
                 echo "Status: ❌\n";
-                
+
                 $overallProgress[$featureName] = [
                     'current' => 0,
                     'target' => $featureConfig['target_coverage'],
@@ -114,7 +113,7 @@ class FeatureCoverageTracker
                     'status' => '❌',
                 ];
             }
-            
+
             echo "\n";
         }
 
@@ -124,8 +123,8 @@ class FeatureCoverageTracker
     private function runFeatureCoverage(string $featureName): ?array
     {
         $testDir = "tests/Feature/{$featureName}";
-        
-        if (!is_dir($testDir)) {
+
+        if (! is_dir($testDir)) {
             return null;
         }
 
@@ -166,7 +165,7 @@ class FeatureCoverageTracker
 
         echo "Features Completed: {$completedFeatures}/{$totalFeatures} ({$completionRate}%)\n";
         echo "Average Coverage: {$averageCoverage}%\n";
-        echo "Sprint4b Status: " . ($completionRate >= 100 ? '✅ Complete' : '🚧 In Progress') . "\n\n";
+        echo 'Sprint4b Status: ' . ($completionRate >= 100 ? '✅ Complete' : '🚧 In Progress') . "\n\n";
 
         echo "🎯 Next Steps:\n";
         foreach ($progress as $featureName => $data) {
@@ -180,6 +179,6 @@ class FeatureCoverageTracker
 
 // Run the tracker
 if (php_sapi_name() === 'cli') {
-    $tracker = new FeatureCoverageTracker();
+    $tracker = new FeatureCoverageTracker;
     $tracker->generateCoverageReport();
 }

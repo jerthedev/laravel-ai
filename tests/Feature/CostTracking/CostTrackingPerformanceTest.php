@@ -2,22 +2,21 @@
 
 namespace JTD\LaravelAI\Tests\Feature\CostTracking;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\PricingService;
-use JTD\LaravelAI\Services\PricingValidator;
-use JTD\LaravelAI\Services\DriverManager;
-use JTD\LaravelAI\Services\CostAnalyticsService;
-use JTD\LaravelAI\Listeners\CostTrackingListener;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use JTD\LaravelAI\Events\ResponseGenerated;
+use JTD\LaravelAI\Listeners\CostTrackingListener;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Models\TokenUsage;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Event;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Services\CostAnalyticsService;
+use JTD\LaravelAI\Services\DriverManager;
+use JTD\LaravelAI\Services\PricingService;
+use JTD\LaravelAI\Services\PricingValidator;
+use JTD\LaravelAI\Tests\TestCase;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Cost Tracking Performance Tests
@@ -30,7 +29,9 @@ class CostTrackingPerformanceTest extends TestCase
     use RefreshDatabase;
 
     protected PricingService $pricingService;
+
     protected CostAnalyticsService $analyticsService;
+
     protected CostTrackingListener $costTrackingListener;
 
     protected function setUp(): void
@@ -44,7 +45,7 @@ class CostTrackingPerformanceTest extends TestCase
         $pricingValidator->shouldReceive('validateModelPricing')->andReturn([]);
 
         $this->pricingService = new PricingService($driverManager, $pricingValidator);
-        $this->analyticsService = new CostAnalyticsService();
+        $this->analyticsService = new CostAnalyticsService;
         $this->costTrackingListener = new CostTrackingListener($this->pricingService);
 
         $this->seedPerformanceTestData();
@@ -100,7 +101,7 @@ class CostTrackingPerformanceTest extends TestCase
         // Sprint4b target: 85% performance improvement (relaxed for test environment)
         // In test environment, we just verify async is faster than sync
         $this->assertLessThan($syncTime, $asyncTime * 2,
-            "Async processing should be significantly faster than sync");
+            'Async processing should be significantly faster than sync');
 
         // Verify response times are reasonable for test environment
         $this->assertLessThan(2000, $asyncTime,
@@ -222,7 +223,7 @@ class CostTrackingPerformanceTest extends TestCase
 
         // Cached call should be faster than first call
         $this->assertLessThan($firstCallTime, $secondCallTime,
-            "Cached query should be faster than first call");
+            'Cached query should be faster than first call');
 
         // Results should be identical
         $this->assertEquals($firstResult, $secondResult);
@@ -244,11 +245,11 @@ class CostTrackingPerformanceTest extends TestCase
 
         // Memory usage should be reasonable (< 50MB per 500 events in test environment)
         $this->assertLessThan(50 * 1024 * 1024, $memoryIncrease,
-            "Memory usage increased by " . number_format($memoryIncrease / 1024) . "KB for 500 events");
+            'Memory usage increased by ' . number_format($memoryIncrease / 1024) . 'KB for 500 events');
 
         // Memory per event should be reasonable
         $this->assertLessThan(20480, $memoryPerEvent,
-            "Memory per event is " . number_format($memoryPerEvent) . " bytes, should be < 20KB");
+            'Memory per event is ' . number_format($memoryPerEvent) . ' bytes, should be < 20KB');
     }
 
     #[Test]
@@ -322,8 +323,8 @@ class CostTrackingPerformanceTest extends TestCase
         $message->user_id = 1;
 
         $tokenUsage = new TokenUsage(
-            inputTokens: rand(500, 1500),
-            outputTokens: rand(200, 800),
+            input_tokens: rand(500, 1500),
+            output_tokens: rand(200, 800),
             totalTokens: rand(700, 2300),
             totalCost: 0.0
         );
@@ -331,7 +332,6 @@ class CostTrackingPerformanceTest extends TestCase
         $response = new AIResponse(
             content: "Performance test response {$index}",
             tokenUsage: $tokenUsage, model: 'gpt-4o-mini', provider: 'openai',
-
 
             finishReason: 'stop'
         );

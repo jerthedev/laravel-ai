@@ -15,7 +15,7 @@ $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
 // Load credentials
 $credentialsPath = __DIR__ . '/tests/credentials/e2e-credentials.json';
-if (!file_exists($credentialsPath)) {
+if (! file_exists($credentialsPath)) {
     echo "E2E credentials file not found\n";
     exit(1);
 }
@@ -68,41 +68,40 @@ echo "🧪 Testing OpenAI event firing...\n\n";
 try {
     $message = AIMessage::user('Say "Hello" in exactly one word.');
     $message->user_id = 123;
-    
+
     echo "📤 Sending message to OpenAI...\n";
     $response = AI::sendMessage($message, [
         'model' => 'gpt-3.5-turbo',
         'max_tokens' => 10,
         'temperature' => 0.0,
     ]);
-    
+
     echo "\n📥 Response received:\n";
     echo "  Content: {$response->content}\n";
     echo "  Provider: {$response->provider}\n";
     echo "  Model: {$response->model}\n";
     echo "  Total Cost: {$response->getTotalCost()}\n";
-    
+
     if ($response->tokenUsage) {
         echo "  Input Tokens: {$response->tokenUsage->inputTokens}\n";
         echo "  Output Tokens: {$response->tokenUsage->outputTokens}\n";
         echo "  Total Tokens: {$response->tokenUsage->totalTokens}\n";
         echo "  Token Usage Total Cost: {$response->tokenUsage->totalCost}\n";
     }
-    
+
     echo "\n📊 Event Summary:\n";
-    echo "  MessageSent events: " . count($firedEvents['MessageSent'] ?? []) . "\n";
-    echo "  ResponseGenerated events: " . count($firedEvents['ResponseGenerated'] ?? []) . "\n";
-    echo "  CostCalculated events: " . count($firedEvents['CostCalculated'] ?? []) . "\n";
-    
+    echo '  MessageSent events: ' . count($firedEvents['MessageSent'] ?? []) . "\n";
+    echo '  ResponseGenerated events: ' . count($firedEvents['ResponseGenerated'] ?? []) . "\n";
+    echo '  CostCalculated events: ' . count($firedEvents['CostCalculated'] ?? []) . "\n";
 } catch (Exception $e) {
     echo "\n❌ Error occurred:\n";
     echo "  Message: {$e->getMessage()}\n";
     echo "  File: {$e->getFile()}:{$e->getLine()}\n";
-    
+
     echo "\n📊 Event Summary (after error):\n";
-    echo "  MessageSent events: " . count($firedEvents['MessageSent'] ?? []) . "\n";
-    echo "  ResponseGenerated events: " . count($firedEvents['ResponseGenerated'] ?? []) . "\n";
-    echo "  CostCalculated events: " . count($firedEvents['CostCalculated'] ?? []) . "\n";
+    echo '  MessageSent events: ' . count($firedEvents['MessageSent'] ?? []) . "\n";
+    echo '  ResponseGenerated events: ' . count($firedEvents['ResponseGenerated'] ?? []) . "\n";
+    echo '  CostCalculated events: ' . count($firedEvents['CostCalculated'] ?? []) . "\n";
 }
 
 echo "\n✅ Test completed\n";

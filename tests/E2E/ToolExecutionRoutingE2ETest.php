@@ -2,15 +2,13 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use Illuminate\Support\Facades\Queue;
 use JTD\LaravelAI\Facades\AI;
-use JTD\LaravelAI\Jobs\ProcessFunctionCallJob;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Services\AIFunctionEvent;
 use JTD\LaravelAI\Services\UnifiedToolExecutor;
 use JTD\LaravelAI\Services\UnifiedToolRegistry;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Tool Execution Routing E2E Test
@@ -25,6 +23,7 @@ use PHPUnit\Framework\Attributes\Group;
 class ToolExecutionRoutingE2ETest extends E2ETestCase
 {
     protected UnifiedToolRegistry $toolRegistry;
+
     protected UnifiedToolExecutor $toolExecutor;
 
     protected function setUp(): void
@@ -44,33 +43,33 @@ class ToolExecutionRoutingE2ETest extends E2ETestCase
             'test_background_email',
             \JTD\LaravelAI\Tests\Support\TestBackgroundEmailListener::class,
             [
-            'description' => 'Send email in background',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'to' => ['type' => 'string'],
-                    'subject' => ['type' => 'string'],
-                    'body' => ['type' => 'string'],
+                'description' => 'Send email in background',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'to' => ['type' => 'string'],
+                        'subject' => ['type' => 'string'],
+                        'body' => ['type' => 'string'],
+                    ],
+                    'required' => ['to', 'subject', 'body'],
                 ],
-                'required' => ['to', 'subject', 'body'],
-            ],
-        ]);
+            ]);
 
         AIFunctionEvent::listen(
             'test_background_notification',
             \JTD\LaravelAI\Tests\Support\TestBackgroundNotificationListener::class,
             [
-            'description' => 'Send notification in background',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'type' => ['type' => 'string', 'enum' => ['info', 'warning', 'error']],
-                    'message' => ['type' => 'string'],
-                    'recipient' => ['type' => 'string'],
+                'description' => 'Send notification in background',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'type' => ['type' => 'string', 'enum' => ['info', 'warning', 'error']],
+                        'message' => ['type' => 'string'],
+                        'recipient' => ['type' => 'string'],
+                    ],
+                    'required' => ['message'],
                 ],
-                'required' => ['message'],
-            ],
-        ]);
+            ]);
 
         // Refresh registry to pick up new functions
         $this->toolRegistry->refreshCache();

@@ -228,8 +228,8 @@ class OpenAIStreamingTest extends TestCase
 
         $this->assertNotNull($finalChunk);
         $this->assertEquals(15, $finalChunk->tokenUsage->totalTokens);
-        $this->assertEquals(10, $finalChunk->tokenUsage->inputTokens);
-        $this->assertEquals(5, $finalChunk->tokenUsage->outputTokens);
+        $this->assertEquals(10, $finalChunk->tokenUsage->input_tokens);
+        $this->assertEquals(5, $finalChunk->tokenUsage->output_tokens);
     }
 
     #[Test]

@@ -54,9 +54,10 @@ class MCPToolDiscoveryService
         $cacheKey = "{$this->cachePrefix}_all";
         $cacheTtl = config('ai.mcp.tool_discovery_cache_ttl', $this->defaultCacheTtl);
 
-        if (!$forceRefresh && Cache::has($cacheKey)) {
+        if (! $forceRefresh && Cache::has($cacheKey)) {
             $cached = Cache::get($cacheKey);
             Log::debug('Retrieved tools from cache', ['servers' => array_keys($cached['tools'])]);
+
             return $cached;
         }
 
@@ -70,18 +71,18 @@ class MCPToolDiscoveryService
         ];
 
         $enabledServers = $this->mcpManager->getEnabledServers();
-        
+
         foreach ($enabledServers as $name => $server) {
             $stats['servers_checked']++;
-            
+
             try {
                 $serverTools = $this->discoverServerTools($name, $forceRefresh);
-                
-                if (!empty($serverTools['tools'])) {
+
+                if (! empty($serverTools['tools'])) {
                     $discoveredTools[$name] = $serverTools;
                     $stats['servers_successful']++;
                     $stats['tools_found'] += count($serverTools['tools']);
-                    
+
                     Log::info('Discovered tools from MCP server', [
                         'server' => $name,
                         'tool_count' => count($serverTools['tools']),
@@ -93,7 +94,7 @@ class MCPToolDiscoveryService
             } catch (\Exception $e) {
                 $stats['servers_failed']++;
                 $stats['errors'][] = "Failed to discover tools from {$name}: {$e->getMessage()}";
-                
+
                 Log::error('Tool discovery failed for MCP server', [
                     'server' => $name,
                     'error' => $e->getMessage(),
@@ -129,19 +130,19 @@ class MCPToolDiscoveryService
     public function discoverServerTools(string $serverName, bool $forceRefresh = false): array
     {
         $server = $this->mcpManager->getServer($serverName);
-        
-        if (!$server) {
+
+        if (! $server) {
             throw new MCPException("MCP server '{$serverName}' not found");
         }
 
-        if (!$server->isEnabled() || !$server->isConfigured()) {
+        if (! $server->isEnabled() || ! $server->isConfigured()) {
             throw new MCPException("MCP server '{$serverName}' is not enabled or configured");
         }
 
         $cacheKey = "{$this->cachePrefix}_server_{$serverName}";
         $cacheTtl = config('ai.mcp.tool_discovery_cache_ttl', $this->defaultCacheTtl);
 
-        if (!$forceRefresh && Cache::has($cacheKey)) {
+        if (! $forceRefresh && Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
 
@@ -210,7 +211,7 @@ class MCPToolDiscoveryService
         // Required fields
         $requiredFields = ['name', 'description'];
         foreach ($requiredFields as $field) {
-            if (!isset($tool[$field]) || empty($tool[$field])) {
+            if (! isset($tool[$field]) || empty($tool[$field])) {
                 throw new \InvalidArgumentException("Tool missing required field: {$field}");
             }
         }
@@ -226,7 +227,7 @@ class MCPToolDiscoveryService
         // Add optional fields if present
         $optionalFields = [
             'category', 'version', 'examples', 'requires_auth',
-            'estimated_execution_time', 'supports_batch'
+            'estimated_execution_time', 'supports_batch',
         ];
 
         foreach ($optionalFields as $field) {
@@ -236,7 +237,7 @@ class MCPToolDiscoveryService
         }
 
         // Validate input schema if present
-        if (!empty($normalized['inputSchema'])) {
+        if (! empty($normalized['inputSchema'])) {
             $this->validateJsonSchema($normalized['inputSchema'], "Tool '{$normalized['name']}' input schema");
         }
 
@@ -248,18 +249,18 @@ class MCPToolDiscoveryService
      */
     protected function validateJsonSchema(array $schema, string $context): void
     {
-        if (!isset($schema['type'])) {
+        if (! isset($schema['type'])) {
             throw new \InvalidArgumentException("{$context} must have a 'type' field");
         }
 
         $validTypes = ['object', 'array', 'string', 'number', 'integer', 'boolean', 'null'];
-        if (!in_array($schema['type'], $validTypes)) {
+        if (! in_array($schema['type'], $validTypes)) {
             throw new \InvalidArgumentException("{$context} has invalid type: {$schema['type']}");
         }
 
         // Additional validation for object types
         if ($schema['type'] === 'object' && isset($schema['properties'])) {
-            if (!is_array($schema['properties'])) {
+            if (! is_array($schema['properties'])) {
                 throw new \InvalidArgumentException("{$context} properties must be an array");
             }
         }
@@ -271,16 +272,18 @@ class MCPToolDiscoveryService
     public function getCachedServerTools(string $serverName): ?array
     {
         $cacheKey = "{$this->cachePrefix}_server_{$serverName}";
+
         return Cache::get($cacheKey);
     }
 
     /**
      * Clear tool discovery cache.
      */
-    public function clearCache(string $serverName = null): bool
+    public function clearCache(?string $serverName = null): bool
     {
         if ($serverName) {
             $cacheKey = "{$this->cachePrefix}_server_{$serverName}";
+
             return Cache::forget($cacheKey);
         }
 
@@ -306,7 +309,7 @@ class MCPToolDiscoveryService
         $cacheKey = "{$this->cachePrefix}_all";
         $cached = Cache::get($cacheKey);
 
-        if (!$cached) {
+        if (! $cached) {
             return [
                 'status' => 'no_discovery_data',
                 'message' => 'No tool discovery data available. Run discovery first.',
@@ -325,7 +328,7 @@ class MCPToolDiscoveryService
     /**
      * Search for tools by name or description.
      */
-    public function searchTools(string $query, string $serverName = null): array
+    public function searchTools(string $query, ?string $serverName = null): array
     {
         $allTools = $this->configService->loadToolsConfiguration();
         $results = [];
@@ -334,11 +337,11 @@ class MCPToolDiscoveryService
 
         foreach ($serversToSearch as $server => $serverData) {
             $tools = $serverData['tools'] ?? [];
-            
+
             foreach ($tools as $tool) {
                 $name = $tool['name'] ?? '';
                 $description = $tool['description'] ?? '';
-                
+
                 if (str_contains(strtolower($name), strtolower($query)) ||
                     str_contains(strtolower($description), strtolower($query))) {
                     $results[] = array_merge($tool, ['server' => $server]);

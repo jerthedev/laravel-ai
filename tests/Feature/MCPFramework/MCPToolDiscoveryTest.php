@@ -2,15 +2,15 @@
 
 namespace JTD\LaravelAI\Tests\Feature\MCPFramework;
 
-use JTD\LaravelAI\Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
+use JTD\LaravelAI\Exceptions\MCPException;
 use JTD\LaravelAI\Services\MCPManager;
 use JTD\LaravelAI\Services\MCPToolDiscoveryService;
-use JTD\LaravelAI\Exceptions\MCPException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Cache;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Tool Discovery and Registration Tests
@@ -26,8 +26,11 @@ class MCPToolDiscoveryTest extends TestCase
     use RefreshDatabase;
 
     protected MCPManager $mcpManager;
+
     protected ?MCPToolDiscoveryService $toolDiscoveryService;
+
     protected string $configPath;
+
     protected string $toolsPath;
 
     protected function setUp(): void
@@ -322,7 +325,7 @@ class MCPToolDiscoveryTest extends TestCase
             // Simulate cache freshness validation
             $cacheData = json_decode(File::get($this->toolsPath), true);
             $cachedAt = new \DateTime($cacheData['cached_at']);
-            $now = new \DateTime();
+            $now = new \DateTime;
             $hoursDiff = $now->diff($cachedAt)->h + ($now->diff($cachedAt)->days * 24);
 
             $isFresh = $hoursDiff < 24; // 24 hour cache TTL
@@ -492,13 +495,13 @@ class MCPToolDiscoveryTest extends TestCase
             $allTools = json_decode(File::get($this->toolsPath), true)['tools'];
 
             // Simulate category filtering
-            $searchTools = array_filter($allTools, function($tool) {
+            $searchTools = array_filter($allTools, function ($tool) {
                 return isset($tool['category']) && $tool['category'] === 'search';
             });
             $this->assertNotEmpty($searchTools);
 
             // Simulate description search
-            $thinkingTools = array_filter($allTools, function($tool) {
+            $thinkingTools = array_filter($allTools, function ($tool) {
                 return stripos($tool['description'], 'thinking') !== false;
             });
             $this->assertNotEmpty($thinkingTools);

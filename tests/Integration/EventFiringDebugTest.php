@@ -3,9 +3,6 @@
 namespace JTD\LaravelAI\Tests\Integration;
 
 use Illuminate\Support\Facades\Event;
-use JTD\LaravelAI\Events\CostCalculated;
-use JTD\LaravelAI\Events\MessageSent;
-use JTD\LaravelAI\Events\ResponseGenerated;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
@@ -18,7 +15,7 @@ class EventFiringDebugTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         config([
             'ai.default_provider' => 'mock',
             'ai.providers.mock.enabled' => true,
@@ -40,9 +37,9 @@ class EventFiringDebugTest extends TestCase
     {
         $provider = app('laravel-ai')->driver('mock');
         $message = AIMessage::user('Debug test');
-        
+
         $response = $provider->sendMessage($message, ['model' => 'mock-gpt-4']);
-        
+
         $this->assertNotNull($response);
         $this->assertEquals('Debug response', $response->content);
         $this->assertEquals('mock', $response->provider);
@@ -53,22 +50,22 @@ class EventFiringDebugTest extends TestCase
     {
         // Don't fake events, let them fire naturally and capture them
         $firedEvents = [];
-        
+
         Event::listen('*', function ($eventName, $data) use (&$firedEvents) {
             $firedEvents[] = $eventName;
         });
-        
+
         $provider = app('laravel-ai')->driver('mock');
         $message = AIMessage::user('Debug test');
         $message->user_id = 123;
-        
+
         $response = $provider->sendMessage($message, ['model' => 'mock-gpt-4']);
-        
+
         // Debug output
         dump('Events fired:', $firedEvents);
         dump('Config ai.events.enabled:', config('ai.events.enabled'));
         dump('Response has token usage:', $response->tokenUsage !== null);
-        
+
         $this->assertNotNull($response);
     }
 

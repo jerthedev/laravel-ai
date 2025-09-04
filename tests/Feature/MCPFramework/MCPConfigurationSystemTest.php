@@ -2,15 +2,15 @@
 
 namespace JTD\LaravelAI\Tests\Feature\MCPFramework;
 
-use JTD\LaravelAI\Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
+use JTD\LaravelAI\Exceptions\MCPException;
 use JTD\LaravelAI\Services\MCPConfigurationService;
 use JTD\LaravelAI\Services\MCPManager;
-use JTD\LaravelAI\Exceptions\MCPException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Cache;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Configuration System Tests
@@ -26,8 +26,11 @@ class MCPConfigurationSystemTest extends TestCase
     use RefreshDatabase;
 
     protected MCPConfigurationService $configService;
+
     protected MCPManager $mcpManager;
+
     protected string $configPath;
+
     protected string $toolsPath;
 
     protected function setUp(): void
@@ -353,7 +356,7 @@ class MCPConfigurationSystemTest extends TestCase
                 'type' => 'external',
                 'enabled' => ($i % 2 === 0), // Half enabled, half disabled
                 'command' => 'npx', // Use Node.js command to avoid warnings
-                'args' => ["arg1", "arg2", "arg{$i}"],
+                'args' => ['arg1', 'arg2', "arg{$i}"],
             ];
         }
 

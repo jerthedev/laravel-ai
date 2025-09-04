@@ -15,7 +15,7 @@ class TestCalculatorListener
         $a = $event->parameters['a'] ?? 0;
         $b = $event->parameters['b'] ?? 0;
 
-        $result = match($operation) {
+        $result = match ($operation) {
             'add' => $a + $b,
             'subtract' => $a - $b,
             'multiply' => $a * $b,

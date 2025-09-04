@@ -261,6 +261,7 @@ class FeatureCoverageValidationTest extends TestCase
     {
         // Get the actual package root directory
         $packageRoot = dirname(dirname(dirname(__DIR__)));
+
         return $packageRoot . '/tests/Feature/' . $featureArea;
     }
 

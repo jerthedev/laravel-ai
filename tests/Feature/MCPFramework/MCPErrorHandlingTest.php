@@ -5,13 +5,11 @@ namespace JTD\LaravelAI\Tests\Feature\MCPFramework;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Process;
-use JTD\LaravelAI\Exceptions\MCPServerException;
-use JTD\LaravelAI\Exceptions\MCPTimeoutException;
 use JTD\LaravelAI\Services\MCPManager;
 use JTD\LaravelAI\Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Error Handling and Fallback Tests
@@ -116,6 +114,7 @@ class MCPErrorHandlingTest extends TestCase
                 if ($attemptCount <= 2) {
                     return Process::result('', 'Connection refused', 1);
                 }
+
                 return Process::result('{"success": true, "result": "retry_success"}', '', 0);
             },
         ]);
@@ -186,7 +185,7 @@ class MCPErrorHandlingTest extends TestCase
     {
         config(['ai.mcp.servers.test_server' => $serverConfig]);
 
-        if (!empty($processResponse)) {
+        if (! empty($processResponse)) {
             Process::fake(['test-command' => Process::result(
                 $processResponse['stdout'] ?? '',
                 $processResponse['stderr'] ?? '',
@@ -199,7 +198,7 @@ class MCPErrorHandlingTest extends TestCase
         $this->assertIsArray($result);
         $this->assertEquals($expectedResult['success'], $result['success']);
 
-        if (!$expectedResult['success']) {
+        if (! $expectedResult['success']) {
             $this->assertArrayHasKey('error', $result);
             $this->assertArrayHasKey('error_type', $result);
             $this->assertEquals($expectedResult['error_type'], $result['error_type']);
@@ -339,6 +338,7 @@ class MCPErrorHandlingTest extends TestCase
             'resource-heavy-server' => function () {
                 // Simulate slow response to test concurrency limits
                 usleep(100000); // 100ms
+
                 return Process::result('{"success": true, "result": "resource_success"}', '', 0);
             },
         ]);
@@ -352,13 +352,12 @@ class MCPErrorHandlingTest extends TestCase
         }
 
         $startTime = microtime(true);
-        $results = array_map(fn($promise) => $promise(), $promises);
+        $results = array_map(fn ($promise) => $promise(), $promises);
         $totalTime = (microtime(true) - $startTime) * 1000;
 
         // Some requests should succeed, others should be rate limited
-        $successCount = count(array_filter($results, fn($r) => $r['success']));
-        $rateLimitedCount = count(array_filter($results, fn($r) =>
-            !$r['success'] && $r['error_type'] === 'rate_limited'
+        $successCount = count(array_filter($results, fn ($r) => $r['success']));
+        $rateLimitedCount = count(array_filter($results, fn ($r) => ! $r['success'] && $r['error_type'] === 'rate_limited'
         ));
 
         $this->assertGreaterThan(0, $successCount, 'Some requests should succeed');

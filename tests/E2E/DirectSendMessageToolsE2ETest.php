@@ -6,8 +6,8 @@ use JTD\LaravelAI\Facades\AI;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Services\AIFunctionEvent;
 use JTD\LaravelAI\Services\UnifiedToolRegistry;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Direct SendMessage Tools E2E Test
@@ -39,38 +39,38 @@ class DirectSendMessageToolsE2ETest extends E2ETestCase
             'test_weather_service',
             \JTD\LaravelAI\Tests\Support\TestWeatherServiceListener::class,
             [
-            'description' => 'Get weather information for a location',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'location' => ['type' => 'string', 'description' => 'City or location name'],
+                'description' => 'Get weather information for a location',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'location' => ['type' => 'string', 'description' => 'City or location name'],
+                    ],
+                    'required' => ['location'],
                 ],
-                'required' => ['location'],
-            ],
-        ]);
+            ]);
 
         AIFunctionEvent::listen(
             'test_task_manager',
             \JTD\LaravelAI\Tests\Support\TestTaskManagerListener::class,
             [
-            'description' => 'Manage tasks and to-do items',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'action' => ['type' => 'string', 'enum' => ['create', 'update', 'delete', 'list']],
-                    'title' => ['type' => 'string', 'description' => 'Task title'],
-                    'description' => ['type' => 'string', 'description' => 'Task description'],
+                'description' => 'Manage tasks and to-do items',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'action' => ['type' => 'string', 'enum' => ['create', 'update', 'delete', 'list']],
+                        'title' => ['type' => 'string', 'description' => 'Task title'],
+                        'description' => ['type' => 'string', 'description' => 'Task description'],
+                    ],
+                    'required' => ['action'],
                 ],
-                'required' => ['action'],
-            ],
-        ]);
+            ]);
 
         // Refresh registry to pick up new functions
         $this->toolRegistry->refreshCache();
     }
 
     #[Test]
-    public function it_can_use_withTools_option_in_default_sendMessage()
+    public function it_can_use_with_tools_option_in_default_send_message()
     {
         $allTools = $this->toolRegistry->getAllTools();
         $availableToolNames = array_keys($allTools);
@@ -100,7 +100,7 @@ class DirectSendMessageToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_can_use_allTools_option_in_default_sendMessage()
+    public function it_can_use_all_tools_option_in_default_send_message()
     {
         // Test allTools option with default provider
         $response = AI::sendMessage(
@@ -120,7 +120,7 @@ class DirectSendMessageToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_can_use_withTools_option_in_provider_specific_sendMessage()
+    public function it_can_use_with_tools_option_in_provider_specific_send_message()
     {
         $allTools = $this->toolRegistry->getAllTools();
         $availableToolNames = array_keys($allTools);
@@ -151,7 +151,7 @@ class DirectSendMessageToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_can_use_allTools_option_in_provider_specific_sendMessage()
+    public function it_can_use_all_tools_option_in_provider_specific_send_message()
     {
         // Test allTools option with specific provider
         $response = AI::provider('mock')->sendMessage(
@@ -172,7 +172,7 @@ class DirectSendMessageToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_validates_tool_names_in_withTools_option()
+    public function it_validates_tool_names_in_with_tools_option()
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Unknown tools: non_existent_tool');
@@ -236,7 +236,7 @@ class DirectSendMessageToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_combines_withTools_and_other_options()
+    public function it_combines_with_tools_and_other_options()
     {
         $allTools = $this->toolRegistry->getAllTools();
         $toolNames = array_slice(array_keys($allTools), 0, 1);
@@ -266,7 +266,7 @@ class DirectSendMessageToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_combines_allTools_and_other_options()
+    public function it_combines_all_tools_and_other_options()
     {
         // Test allTools combined with other options
         $response = AI::sendMessage(
@@ -288,7 +288,7 @@ class DirectSendMessageToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_handles_empty_withTools_array_in_options()
+    public function it_handles_empty_with_tools_array_in_options()
     {
         // Test with empty withTools array (should work fine)
         $response = AI::provider('mock')->sendMessage(
@@ -306,7 +306,7 @@ class DirectSendMessageToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_handles_false_allTools_option()
+    public function it_handles_false_all_tools_option()
     {
         // Test with allTools set to false (should work like no tools)
         $response = AI::sendMessage(
@@ -324,7 +324,7 @@ class DirectSendMessageToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_prioritizes_withTools_over_allTools_in_options()
+    public function it_prioritizes_with_tools_over_all_tools_in_options()
     {
         $allTools = $this->toolRegistry->getAllTools();
         $toolNames = array_slice(array_keys($allTools), 0, 1);

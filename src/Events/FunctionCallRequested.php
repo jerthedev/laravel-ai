@@ -7,13 +7,14 @@ use Illuminate\Queue\SerializesModels;
 
 /**
  * Event fired when an AI function call is requested for background processing.
- * 
+ *
  * This event enables AI function calls to trigger background actions without
  * returning values to the AI, allowing for agent-like capabilities.
  */
 class FunctionCallRequested
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
+    use SerializesModels;
 
     /**
      * Create a new event instance.

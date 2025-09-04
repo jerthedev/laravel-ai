@@ -58,8 +58,8 @@ trait CalculatesCosts
     protected function calculateActualCost(TokenUsage $tokenUsage, string $modelId): array
     {
         return $this->calculateCostFromTokens(
-            $tokenUsage->inputTokens,
-            $tokenUsage->outputTokens,
+            $tokenUsage->input_tokens,
+            $tokenUsage->output_tokens,
             $modelId
         );
     }
@@ -145,8 +145,8 @@ trait CalculatesCosts
             if ($request instanceof AIResponse) {
                 // Actual response with token usage
                 $cost = $this->calculateResponseCost($request);
-                $totalInputTokens += $request->tokenUsage->inputTokens;
-                $totalOutputTokens += $request->tokenUsage->outputTokens;
+                $totalInputTokens += $request->tokenUsage->input_tokens;
+                $totalOutputTokens += $request->tokenUsage->output_tokens;
             } else {
                 // Estimate from message
                 $estimatedTokens = $this->estimateTokens($request, $model);

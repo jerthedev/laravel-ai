@@ -5,7 +5,6 @@ namespace JTD\LaravelAI\Tests\Unit\Drivers\DriverTemplate\Traits;
 use Illuminate\Support\Facades\Cache;
 use JTD\LaravelAI\Drivers\DriverTemplate\DriverTemplateDriver;
 use JTD\LaravelAI\Tests\TestCase;
-use Mockery;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -38,70 +37,60 @@ class ManagesModelsSyncTest extends TestCase
     #[Test]
     public function it_syncs_models_successfully(): void
     {
-
         // TODO: Implement test
     }
 
     #[Test]
     public function it_skips_sync_when_cache_is_valid(): void
     {
-
         // TODO: Implement test
     }
 
     #[Test]
     public function it_forces_sync_when_force_refresh_is_true(): void
     {
-
         // TODO: Implement test
     }
 
     #[Test]
     public function it_handles_sync_errors_gracefully(): void
     {
-
         // TODO: Implement test
     }
 
     #[Test]
     public function it_checks_valid_credentials(): void
     {
-
         // TODO: Implement test
     }
 
     #[Test]
     public function it_returns_false_for_invalid_credentials(): void
     {
-
         // TODO: Implement test
     }
 
     #[Test]
     public function it_gets_last_sync_time(): void
     {
-
         // TODO: Implement test
     }
 
     #[Test]
     public function it_returns_null_when_never_synced(): void
     {
-
         // TODO: Implement test
     }
 
     #[Test]
     public function it_gets_syncable_models(): void
     {
-
         // TODO: Implement test
     }
 
     #[Test]
     public function it_stores_model_statistics(): void
     {
-
         // TODO: Implement test
     }
 

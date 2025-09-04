@@ -16,7 +16,8 @@ use JTD\LaravelAI\Models\AIResponse;
  */
 class ResponseGenerated
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
+    use SerializesModels;
 
     /**
      * Create a new event instance.
@@ -25,7 +26,7 @@ class ResponseGenerated
         public AIMessage $message,
         public AIResponse $response,
         public array $context = [],
-        public float $totalProcessingTime = 0,
-        public array $providerMetadata = []
+        public float $total_processing_time = 0,
+        public array $provider_metadata = []
     ) {}
 }

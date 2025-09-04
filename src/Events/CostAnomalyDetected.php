@@ -14,7 +14,9 @@ use Illuminate\Queue\SerializesModels;
  */
 class CostAnomalyDetected
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     /**
      * Create a new event instance.
@@ -42,13 +44,11 @@ class CostAnomalyDetected
 
     /**
      * Get the anomaly type based on cost difference.
-     *
-     * @return string
      */
     protected function getAnomalyType(): string
     {
         $multiplier = $this->getMultiplier();
-        
+
         return match (true) {
             $multiplier >= 10 => 'extreme',
             $multiplier >= 5 => 'high',
@@ -59,13 +59,11 @@ class CostAnomalyDetected
 
     /**
      * Get the severity level.
-     *
-     * @return string
      */
     protected function getSeverity(): string
     {
         $multiplier = $this->getMultiplier();
-        
+
         return match (true) {
             $multiplier >= 10 => 'critical',
             $multiplier >= 5 => 'high',
@@ -76,8 +74,6 @@ class CostAnomalyDetected
 
     /**
      * Get the cost multiplier compared to average.
-     *
-     * @return float
      */
     public function getMultiplier(): float
     {
@@ -86,8 +82,6 @@ class CostAnomalyDetected
 
     /**
      * Get formatted anomaly information.
-     *
-     * @return array
      */
     public function getAnomalyInfo(): array
     {
@@ -107,8 +101,6 @@ class CostAnomalyDetected
 
     /**
      * Check if this is a critical anomaly requiring immediate attention.
-     *
-     * @return bool
      */
     public function isCritical(): bool
     {
@@ -117,27 +109,25 @@ class CostAnomalyDetected
 
     /**
      * Get potential causes for the anomaly.
-     *
-     * @return array
      */
     public function getPotentialCauses(): array
     {
         $causes = [];
-        
+
         if ($this->getMultiplier() >= 10) {
             $causes[] = 'Possible API pricing change or billing error';
             $causes[] = 'Unusually large input or complex request';
         }
-        
+
         if ($this->getMultiplier() >= 5) {
             $causes[] = 'Model change to more expensive option';
             $causes[] = 'Increased token usage or longer conversations';
         }
-        
+
         if (($this->costData['total_tokens'] ?? 0) > 10000) {
             $causes[] = 'High token usage detected';
         }
-        
+
         return $causes;
     }
 }

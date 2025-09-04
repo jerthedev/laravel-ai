@@ -18,9 +18,9 @@ return new class extends Migration
             $table->decimal('target_ms', 8, 2);
             $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->string('provider', 50)->nullable()->index();
-            
+
             $table->timestamps();
-            
+
             // Indexes for performance analysis
             $table->index(['operation', 'created_at']);
             $table->index(['duration_ms', 'created_at']);

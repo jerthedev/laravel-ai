@@ -6,6 +6,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use JTD\LaravelAI\Events\BudgetThresholdReached;
 use JTD\LaravelAI\Exceptions\BudgetExceededException;
+use JTD\LaravelAI\Models\AIBudget;
+use JTD\LaravelAI\Models\AIUsageCost;
 
 /**
  * Budget Service
@@ -19,28 +21,17 @@ class BudgetService
      * Create a new budget for a user.
      *
      * @param  array  $budgetData  Budget configuration data
-     * @return array  The created budget data
+     * @return array The created budget data
      */
     public function createBudget(array $budgetData): array
     {
-        $budget = [
-            'id' => uniqid('budget_'),
-            'user_id' => $budgetData['user_id'],
-            'type' => $budgetData['type'] ?? 'monthly',
-            'limit_amount' => $budgetData['limit_amount'],
-            'currency' => $budgetData['currency'] ?? 'USD',
-            'warning_threshold' => $budgetData['warning_threshold'] ?? 80.0,
-            'critical_threshold' => $budgetData['critical_threshold'] ?? 90.0,
-            'current_usage' => 0.0,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
+        $budget = AIBudget::createForUser(
+            $budgetData['user_id'],
+            $budgetData['type'] ?? 'monthly',
+            $budgetData
+        );
 
-        // Store budget in cache for testing (in real implementation, this would be in database)
-        $cacheKey = "budget_{$budget['user_id']}_{$budget['type']}";
-        Cache::put($cacheKey, $budget, now()->addDays(30));
-
-        return $budget;
+        return $budget->toArray();
     }
 
     /**
@@ -49,6 +40,7 @@ class BudgetService
      * @param  int  $userId  The user ID
      * @param  float  $estimatedCost  The estimated cost
      * @param  array  $context  Additional context (project_id, etc.)
+     *
      * @throws BudgetExceededException
      */
     public function checkBudgetLimits(int $userId, float $estimatedCost, array $context = []): void
@@ -73,6 +65,7 @@ class BudgetService
      *
      * @param  int  $userId  The user ID
      * @param  float  $estimatedCost  The estimated cost
+     *
      * @throws BudgetExceededException
      */
     public function checkDailyBudget(int $userId, float $estimatedCost): void
@@ -101,6 +94,7 @@ class BudgetService
      *
      * @param  int  $userId  The user ID
      * @param  float  $estimatedCost  The estimated cost
+     *
      * @throws BudgetExceededException
      */
     public function checkMonthlyBudget(int $userId, float $estimatedCost): void
@@ -129,6 +123,7 @@ class BudgetService
      *
      * @param  int  $userId  The user ID
      * @param  float  $estimatedCost  The estimated cost
+     *
      * @throws BudgetExceededException
      */
     public function checkPerRequestBudget(int $userId, float $estimatedCost): void
@@ -151,6 +146,7 @@ class BudgetService
      *
      * @param  int  $projectId  The project ID
      * @param  float  $estimatedCost  The estimated cost
+     *
      * @throws BudgetExceededException
      */
     public function checkProjectBudget(int $projectId, float $estimatedCost): void
@@ -187,9 +183,23 @@ class BudgetService
         $percentage = ($currentSpending / $budgetLimit) * 100;
 
         if ($percentage >= 95) {
-            event(new BudgetThresholdReached($entityId, $budgetType, $currentSpending, $budgetLimit, $percentage, 'critical'));
+            event(new BudgetThresholdReached(
+                userId: $entityId,
+                budgetType: $budgetType,
+                current_spending: $currentSpending,
+                budget_limit: $budgetLimit,
+                threshold_percentage: $percentage,
+                severity: 'critical'
+            ));
         } elseif ($percentage >= 80) {
-            event(new BudgetThresholdReached($entityId, $budgetType, $currentSpending, $budgetLimit, $percentage, 'warning'));
+            event(new BudgetThresholdReached(
+                userId: $entityId,
+                budgetType: $budgetType,
+                current_spending: $currentSpending,
+                budget_limit: $budgetLimit,
+                threshold_percentage: $percentage,
+                severity: 'warning'
+            ));
         }
     }
 
@@ -197,44 +207,57 @@ class BudgetService
      * Get daily budget limit for a user.
      *
      * @param  int  $userId  The user ID
-     * @return float|null  The daily limit or null if not set
+     * @return float|null The daily limit or null if not set
      */
     protected function getDailyBudgetLimit(int $userId): ?float
     {
-        // TODO: Implement database lookup for user budget settings
-        // For now, return config default or null
-        return config('ai.middleware.budget_enforcement.daily_limit');
+        $budget = AIBudget::forUser($userId)
+            ->byType('daily')
+            ->currentPeriod()
+            ->active()
+            ->first();
+
+        return $budget?->limit_amount ?? config('ai.middleware.budget_enforcement.daily_limit');
     }
 
     /**
      * Get monthly budget limit for a user.
      *
      * @param  int  $userId  The user ID
-     * @return float|null  The monthly limit or null if not set
+     * @return float|null The monthly limit or null if not set
      */
     protected function getMonthlyBudgetLimit(int $userId): ?float
     {
-        // TODO: Implement database lookup for user budget settings
-        return config('ai.middleware.budget_enforcement.monthly_limit');
+        $budget = AIBudget::forUser($userId)
+            ->byType('monthly')
+            ->currentPeriod()
+            ->active()
+            ->first();
+
+        return $budget?->limit_amount ?? config('ai.middleware.budget_enforcement.monthly_limit');
     }
 
     /**
      * Get per-request budget limit for a user.
      *
      * @param  int  $userId  The user ID
-     * @return float|null  The per-request limit or null if not set
+     * @return float|null The per-request limit or null if not set
      */
     protected function getPerRequestBudgetLimit(int $userId): ?float
     {
-        // TODO: Implement database lookup for user budget settings
-        return config('ai.middleware.budget_enforcement.per_request_limit');
+        $budget = AIBudget::forUser($userId)
+            ->byType('per_request')
+            ->active()
+            ->first();
+
+        return $budget?->limit_amount ?? config('ai.middleware.budget_enforcement.per_request_limit');
     }
 
     /**
      * Get project budget limit.
      *
      * @param  int  $projectId  The project ID
-     * @return float|null  The project limit or null if not set
+     * @return float|null The project limit or null if not set
      */
     protected function getProjectBudgetLimit(int $projectId): ?float
     {
@@ -246,16 +269,14 @@ class BudgetService
      * Get today's spending for a user.
      *
      * @param  int  $userId  The user ID
-     * @return float  The spending amount
+     * @return float The spending amount
      */
     protected function getTodaySpending(int $userId): float
     {
         $cacheKey = "ai_spending:daily:{$userId}:" . Carbon::today()->format('Y-m-d');
 
         return Cache::remember($cacheKey, 3600, function () use ($userId) {
-            // TODO: Implement database query for today's spending
-            // For now, return 0 as placeholder
-            return 0.0;
+            return AIUsageCost::getTotalCostForUser($userId, 'today');
         });
     }
 
@@ -263,15 +284,14 @@ class BudgetService
      * Get this month's spending for a user.
      *
      * @param  int  $userId  The user ID
-     * @return float  The spending amount
+     * @return float The spending amount
      */
     protected function getMonthSpending(int $userId): float
     {
         $cacheKey = "ai_spending:monthly:{$userId}:" . Carbon::now()->format('Y-m');
 
         return Cache::remember($cacheKey, 3600, function () use ($userId) {
-            // TODO: Implement database query for this month's spending
-            return 0.0;
+            return AIUsageCost::getTotalCostForUser($userId, 'month');
         });
     }
 
@@ -279,13 +299,13 @@ class BudgetService
      * Get project spending.
      *
      * @param  int  $projectId  The project ID
-     * @return float  The spending amount
+     * @return float The spending amount
      */
     protected function getProjectSpending(int $projectId): float
     {
         $cacheKey = "ai_spending:project:{$projectId}";
 
-        return Cache::remember($cacheKey, 1800, function () use ($projectId) {
+        return Cache::remember($cacheKey, 1800, function () {
             // TODO: Implement database query for project spending
             return 0.0;
         });
@@ -296,38 +316,39 @@ class BudgetService
      *
      * @param  int  $userId  The user ID
      * @param  string  $budgetType  The budget type (daily, monthly, etc.)
-     * @return array  Budget status information
+     * @return array Budget status information
      */
     public function getBudgetStatus(int $userId, string $budgetType = 'monthly'): array
     {
-        $cacheKey = "budget_{$userId}_{$budgetType}";
-        $budget = Cache::get($cacheKey);
+        $budget = AIBudget::forUser($userId)
+            ->byType($budgetType)
+            ->currentPeriod()
+            ->active()
+            ->first();
 
-        if (!$budget) {
+        if (! $budget) {
             return [
                 'exists' => false,
                 'message' => 'No budget configured',
             ];
         }
 
-        $usagePercentage = ($budget['current_usage'] / $budget['limit_amount']) * 100;
-
         return [
             'exists' => true,
-            'budget_id' => $budget['id'],
+            'budget_id' => $budget->id,
             'user_id' => $userId,
             'type' => $budgetType,
-            'limit_amount' => $budget['limit_amount'],
-            'current_usage' => $budget['current_usage'],
-            'remaining_amount' => $budget['limit_amount'] - $budget['current_usage'],
-            'usage_percentage' => $usagePercentage,
-            'warning_threshold' => $budget['warning_threshold'],
-            'critical_threshold' => $budget['critical_threshold'],
-            'status' => $this->getBudgetStatusLevel($usagePercentage, $budget),
+            'limit_amount' => $budget->limit_amount,
+            'current_usage' => $budget->current_usage,
+            'remaining_amount' => $budget->remaining_amount,
+            'usage_percentage' => $budget->usage_percentage,
+            'warning_threshold' => $budget->warning_threshold,
+            'critical_threshold' => $budget->critical_threshold,
+            'status' => $budget->status,
             // Add aliases for test compatibility
-            'limit' => $budget['limit_amount'],
-            'spent' => $budget['current_usage'],
-            'percentage_used' => $usagePercentage,
+            'limit' => $budget->limit_amount,
+            'spent' => $budget->current_usage,
+            'percentage_used' => $budget->usage_percentage,
         ];
     }
 
@@ -354,38 +375,40 @@ class BudgetService
      */
     public function checkBudgetCompliance(int $userId, string $budgetType, float $additionalCost = 0.0): void
     {
-        $cacheKey = "budget_{$userId}_{$budgetType}";
-        $budget = Cache::get($cacheKey);
+        $budget = AIBudget::forUser($userId)
+            ->byType($budgetType)
+            ->currentPeriod()
+            ->active()
+            ->first();
 
-        if (!$budget) {
+        if (! $budget) {
             return; // No budget configured
         }
 
         // Update current usage
-        $budget['current_usage'] += $additionalCost;
-        Cache::put($cacheKey, $budget, now()->addDays(30));
-
-        // Calculate usage percentage
-        $usagePercentage = ($budget['current_usage'] / $budget['limit_amount']) * 100;
+        if ($additionalCost > 0) {
+            $budget->addUsage($additionalCost);
+            $budget->refresh(); // Reload from database to get updated values
+        }
 
         // Check thresholds and dispatch events
-        if ($usagePercentage >= $budget['critical_threshold']) {
+        if ($budget->isCritical()) {
             event(new BudgetThresholdReached(
-                $userId,
-                $budgetType,
-                $budget['current_usage'],
-                $budget['limit_amount'],
-                $usagePercentage,
-                'critical'
+                userId: $userId,
+                budgetType: $budgetType,
+                current_spending: $budget->current_usage,
+                budget_limit: $budget->limit_amount,
+                threshold_percentage: $budget->usage_percentage,
+                severity: 'critical'
             ));
-        } elseif ($usagePercentage >= $budget['warning_threshold']) {
+        } elseif ($budget->isWarning()) {
             event(new BudgetThresholdReached(
-                $userId,
-                $budgetType,
-                $budget['current_usage'],
-                $budget['limit_amount'],
-                $usagePercentage,
-                'warning'
+                userId: $userId,
+                budgetType: $budgetType,
+                current_spending: $budget->current_usage,
+                budget_limit: $budget->limit_amount,
+                threshold_percentage: $budget->usage_percentage,
+                severity: 'warning'
             ));
         }
     }

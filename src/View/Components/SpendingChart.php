@@ -253,7 +253,7 @@ class SpendingChart extends Component
         }
 
         // Trend analysis
-        if ($this->type === 'line' && !empty($this->data['datasets'][0]['data'])) {
+        if ($this->type === 'line' && ! empty($this->data['datasets'][0]['data'])) {
             $data = $this->data['datasets'][0]['data'];
             $trend = $this->analyzeTrend($data);
             $insights[] = "Spending trend: {$trend}";
@@ -261,11 +261,11 @@ class SpendingChart extends Component
 
         // Cost analysis
         if ($summary['total_cost'] > 0) {
-            $insights[] = "Total spending: $" . number_format($summary['total_cost'], 2);
-            $insights[] = "Average per period: $" . number_format($summary['average_cost'], 2);
-            
+            $insights[] = 'Total spending: $' . number_format($summary['total_cost'], 2);
+            $insights[] = 'Average per period: $' . number_format($summary['average_cost'], 2);
+
             if ($summary['max_cost'] > $summary['average_cost'] * 2) {
-                $insights[] = "Peak spending detected: $" . number_format($summary['max_cost'], 2);
+                $insights[] = 'Peak spending detected: $' . number_format($summary['max_cost'], 2);
             }
         }
 
@@ -310,8 +310,8 @@ class SpendingChart extends Component
      */
     public function hasData(): bool
     {
-        return !empty($this->data['datasets']) && 
-               !empty($this->data['datasets'][0]['data']) &&
+        return ! empty($this->data['datasets']) &&
+               ! empty($this->data['datasets'][0]['data']) &&
                array_sum($this->data['datasets'][0]['data']) > 0;
     }
 

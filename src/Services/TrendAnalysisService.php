@@ -4,7 +4,6 @@ namespace JTD\LaravelAI\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 /**
  * Trend Analysis Service
@@ -338,8 +337,8 @@ class TrendAnalysisService
             'growth_rate' => $growthRate,
             'current_value' => end($values),
             'average_value' => count($values) > 0 ? array_sum($values) / count($values) : 0,
-            'min_value' => !empty($values) ? min($values) : 0,
-            'max_value' => !empty($values) ? max($values) : 0,
+            'min_value' => ! empty($values) ? min($values) : 0,
+            'max_value' => ! empty($values) ? max($values) : 0,
             'data_points' => count($values),
             'period_range' => [
                 'start' => reset($periods),
@@ -673,9 +672,9 @@ class TrendAnalysisService
         }
 
         $maxUsage = max($requestCounts);
-        $peakPeriods = array_filter($data, fn($item) => $item['request_count'] >= $maxUsage * 0.8);
+        $peakPeriods = array_filter($data, fn ($item) => $item['request_count'] >= $maxUsage * 0.8);
 
-        if (!empty($peakPeriods)) {
+        if (! empty($peakPeriods)) {
             $patterns['peak_usage'] = [
                 'periods' => array_column($peakPeriods, 'period'),
                 'average_requests' => array_sum(array_column($peakPeriods, 'request_count')) / count($peakPeriods),
@@ -684,9 +683,9 @@ class TrendAnalysisService
 
         // Identify low usage periods
         $minUsage = min($requestCounts);
-        $lowPeriods = array_filter($data, fn($item) => $item['request_count'] <= $minUsage * 1.2);
+        $lowPeriods = array_filter($data, fn ($item) => $item['request_count'] <= $minUsage * 1.2);
 
-        if (!empty($lowPeriods)) {
+        if (! empty($lowPeriods)) {
             $patterns['low_usage'] = [
                 'periods' => array_column($lowPeriods, 'period'),
                 'average_requests' => array_sum(array_column($lowPeriods, 'request_count')) / count($lowPeriods),
@@ -696,7 +695,7 @@ class TrendAnalysisService
         // Calculate usage consistency
         $requestCounts = array_column($data, 'request_count');
         $mean = array_sum($requestCounts) / count($requestCounts);
-        $variance = array_sum(array_map(fn($x) => pow($x - $mean, 2), $requestCounts)) / count($requestCounts);
+        $variance = array_sum(array_map(fn ($x) => pow($x - $mean, 2), $requestCounts)) / count($requestCounts);
         $stdDev = sqrt($variance);
         $coefficientOfVariation = $mean > 0 ? $stdDev / $mean : 0;
 
@@ -722,7 +721,7 @@ class TrendAnalysisService
 
         // Calculate mean and standard deviation
         $mean = array_sum($requestCounts) / count($requestCounts);
-        $variance = array_sum(array_map(fn($x) => pow($x - $mean, 2), $requestCounts)) / count($requestCounts);
+        $variance = array_sum(array_map(fn ($x) => pow($x - $mean, 2), $requestCounts)) / count($requestCounts);
         $stdDev = sqrt($variance);
 
         // Identify outliers (values more than 2 standard deviations from mean)
@@ -779,7 +778,7 @@ class TrendAnalysisService
         }
 
         // Inconsistent usage recommendation
-        $variance = array_sum(array_map(fn($x) => pow($x - $avgRequests, 2), $requestCounts)) / count($requestCounts);
+        $variance = array_sum(array_map(fn ($x) => pow($x - $avgRequests, 2), $requestCounts)) / count($requestCounts);
         $coefficientOfVariation = $avgRequests > 0 ? sqrt($variance) / $avgRequests : 0;
 
         if ($coefficientOfVariation > 0.7) {
@@ -901,7 +900,7 @@ class TrendAnalysisService
         }
 
         // Sort by score descending
-        usort($rankings, fn($a, $b) => $b['score'] <=> $a['score']);
+        usort($rankings, fn ($a, $b) => $b['score'] <=> $a['score']);
 
         return $rankings;
     }
@@ -916,7 +915,7 @@ class TrendAnalysisService
         foreach ($data as $record) {
             $provider = $record['provider'] ?? 'unknown';
 
-            if (!isset($metrics[$provider])) {
+            if (! isset($metrics[$provider])) {
                 $metrics[$provider] = [
                     'total_requests' => 0,
                     'successful_requests' => 0,
@@ -965,7 +964,7 @@ class TrendAnalysisService
         foreach ($data as $record) {
             $provider = $record['provider'] ?? 'unknown';
 
-            if (!isset($costComparison[$provider])) {
+            if (! isset($costComparison[$provider])) {
                 $costComparison[$provider] = [
                     'total_cost' => 0,
                     'total_requests' => 0,
@@ -994,7 +993,7 @@ class TrendAnalysisService
         }
 
         // Sort by efficiency (higher is better)
-        uasort($costComparison, fn($a, $b) => $b['efficiency_score'] <=> $a['efficiency_score']);
+        uasort($costComparison, fn ($a, $b) => $b['efficiency_score'] <=> $a['efficiency_score']);
 
         return $costComparison;
     }
@@ -1009,7 +1008,7 @@ class TrendAnalysisService
         foreach ($data as $record) {
             $provider = $record['provider'] ?? 'unknown';
 
-            if (!isset($efficiency[$provider])) {
+            if (! isset($efficiency[$provider])) {
                 $efficiency[$provider] = [
                     'total_requests' => 0,
                     'successful_requests' => 0,
@@ -1051,7 +1050,7 @@ class TrendAnalysisService
         }
 
         // Sort by efficiency score
-        uasort($efficiency, fn($a, $b) => $b['efficiency_score'] <=> $a['efficiency_score']);
+        uasort($efficiency, fn ($a, $b) => $b['efficiency_score'] <=> $a['efficiency_score']);
 
         return $efficiency;
     }
@@ -1116,7 +1115,7 @@ class TrendAnalysisService
         }
 
         // Sort by score
-        usort($recommendations, fn($a, $b) => $b['score'] <=> $a['score']);
+        usort($recommendations, fn ($a, $b) => $b['score'] <=> $a['score']);
 
         return $recommendations;
     }
@@ -1133,11 +1132,11 @@ class TrendAnalysisService
             $provider = $record['provider'] ?? 'unknown';
             $date = date('Y-m-d', strtotime($record['created_at'] ?? 'now'));
 
-            if (!isset($trends[$provider])) {
+            if (! isset($trends[$provider])) {
                 $trends[$provider] = [];
             }
 
-            if (!isset($trends[$provider][$date])) {
+            if (! isset($trends[$provider][$date])) {
                 $trends[$provider][$date] = [
                     'requests' => 0,
                     'total_cost' => 0,
@@ -1239,7 +1238,7 @@ class TrendAnalysisService
         }
 
         // Sort by score descending
-        usort($rankings, fn($a, $b) => $b['score'] <=> $a['score']);
+        usort($rankings, fn ($a, $b) => $b['score'] <=> $a['score']);
 
         return $rankings;
     }
@@ -1254,7 +1253,7 @@ class TrendAnalysisService
         foreach ($data as $record) {
             $model = $record['model'] ?? 'unknown';
 
-            if (!isset($metrics[$model])) {
+            if (! isset($metrics[$model])) {
                 $metrics[$model] = [
                     'total_requests' => 0,
                     'successful_requests' => 0,
@@ -1303,7 +1302,7 @@ class TrendAnalysisService
         foreach ($data as $record) {
             $model = $record['model'] ?? 'unknown';
 
-            if (!isset($costAnalysis[$model])) {
+            if (! isset($costAnalysis[$model])) {
                 $costAnalysis[$model] = [
                     'total_cost' => 0,
                     'total_requests' => 0,
@@ -1341,7 +1340,7 @@ class TrendAnalysisService
         }
 
         // Sort by efficiency score
-        uasort($costAnalysis, fn($a, $b) => $b['efficiency_score'] <=> $a['efficiency_score']);
+        uasort($costAnalysis, fn ($a, $b) => $b['efficiency_score'] <=> $a['efficiency_score']);
 
         return $costAnalysis;
     }
@@ -1356,7 +1355,7 @@ class TrendAnalysisService
         foreach ($data as $record) {
             $model = $record['model'] ?? 'unknown';
 
-            if (!isset($efficiencyScores[$model])) {
+            if (! isset($efficiencyScores[$model])) {
                 $efficiencyScores[$model] = [
                     'total_requests' => 0,
                     'successful_requests' => 0,
@@ -1409,7 +1408,7 @@ class TrendAnalysisService
         }
 
         // Sort by efficiency score
-        uasort($efficiencyScores, fn($a, $b) => $b['efficiency_score'] <=> $a['efficiency_score']);
+        uasort($efficiencyScores, fn ($a, $b) => $b['efficiency_score'] <=> $a['efficiency_score']);
 
         return $efficiencyScores;
     }

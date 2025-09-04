@@ -19,7 +19,10 @@ use JTD\LaravelAI\Services\AIFunctionEvent;
  */
 class ProcessFunctionCallJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * The number of times the job may be attempted.
@@ -30,8 +33,6 @@ class ProcessFunctionCallJob implements ShouldQueue
      * The maximum number of seconds the job can run.
      */
     public int $timeout = 300; // 5 minutes
-
-
 
     /**
      * Create a new job instance.

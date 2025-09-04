@@ -53,8 +53,8 @@ class CrossProviderCostTracker
         AIConversation $conversation,
         AIResponse $response
     ): void {
-        $conversation->increment('total_input_tokens', $response->tokenUsage->inputTokens);
-        $conversation->increment('total_output_tokens', $response->tokenUsage->outputTokens);
+        $conversation->increment('total_input_tokens', $response->tokenUsage->input_tokens);
+        $conversation->increment('total_output_tokens', $response->tokenUsage->output_tokens);
         $conversation->increment('total_cost', $response->tokenUsage->totalCost);
         $conversation->increment('total_messages');
         $conversation->increment('total_requests');

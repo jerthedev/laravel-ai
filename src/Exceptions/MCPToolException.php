@@ -23,13 +23,13 @@ class MCPToolException extends MCPException
     /**
      * Create a new MCP tool exception instance.
      *
-     * @param string $message Exception message
-     * @param int $code Exception code
-     * @param \Throwable|null $previous Previous exception
-     * @param string|null $serverName MCP server name
-     * @param string|null $toolName Tool name
-     * @param array $parameters Tool parameters
-     * @param array $context Additional context data
+     * @param  string  $message  Exception message
+     * @param  int  $code  Exception code
+     * @param  \Throwable|null  $previous  Previous exception
+     * @param  string|null  $serverName  MCP server name
+     * @param  string|null  $toolName  Tool name
+     * @param  array  $parameters  Tool parameters
+     * @param  array  $context  Additional context data
      */
     public function __construct(
         string $message = '',
@@ -41,7 +41,7 @@ class MCPToolException extends MCPException
         array $context = []
     ) {
         parent::__construct($message, $code, $previous, $serverName, $context);
-        
+
         $this->toolName = $toolName;
         $this->parameters = $parameters;
     }
@@ -68,6 +68,7 @@ class MCPToolException extends MCPException
     public function setToolName(string $toolName): self
     {
         $this->toolName = $toolName;
+
         return $this;
     }
 
@@ -77,6 +78,7 @@ class MCPToolException extends MCPException
     public function setParameters(array $parameters): self
     {
         $this->parameters = $parameters;
+
         return $this;
     }
 
@@ -86,7 +88,7 @@ class MCPToolException extends MCPException
     public function getFormattedMessage(): string
     {
         $message = $this->getMessage();
-        
+
         if ($this->serverName && $this->toolName) {
             $message = "[{$this->serverName}:{$this->toolName}] {$message}";
         } elseif ($this->serverName) {
@@ -94,17 +96,17 @@ class MCPToolException extends MCPException
         } elseif ($this->toolName) {
             $message = "[{$this->toolName}] {$message}";
         }
-        
+
         $contextData = $this->context;
-        if (!empty($this->parameters)) {
+        if (! empty($this->parameters)) {
             $contextData['parameters'] = $this->parameters;
         }
-        
-        if (!empty($contextData)) {
+
+        if (! empty($contextData)) {
             $contextString = json_encode($contextData, JSON_UNESCAPED_SLASHES);
             $message .= " Context: {$contextString}";
         }
-        
+
         return $message;
     }
 }

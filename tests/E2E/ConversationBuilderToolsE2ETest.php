@@ -3,11 +3,10 @@
 namespace JTD\LaravelAI\Tests\E2E;
 
 use JTD\LaravelAI\Facades\AI;
-use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Services\AIFunctionEvent;
 use JTD\LaravelAI\Services\UnifiedToolRegistry;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * ConversationBuilder Tools E2E Test
@@ -39,40 +38,40 @@ class ConversationBuilderToolsE2ETest extends E2ETestCase
             'test_email_sender',
             \JTD\LaravelAI\Tests\Support\TestEmailSenderListener::class,
             [
-            'description' => 'Send an email to a recipient',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'to' => ['type' => 'string', 'description' => 'Email recipient'],
-                    'subject' => ['type' => 'string', 'description' => 'Email subject'],
-                    'body' => ['type' => 'string', 'description' => 'Email body'],
+                'description' => 'Send an email to a recipient',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'to' => ['type' => 'string', 'description' => 'Email recipient'],
+                        'subject' => ['type' => 'string', 'description' => 'Email subject'],
+                        'body' => ['type' => 'string', 'description' => 'Email body'],
+                    ],
+                    'required' => ['to', 'subject', 'body'],
                 ],
-                'required' => ['to', 'subject', 'body'],
-            ],
-        ]);
+            ]);
 
         AIFunctionEvent::listen(
             'test_calculator',
             \JTD\LaravelAI\Tests\Support\TestCalculatorListener::class,
             [
-            'description' => 'Perform mathematical calculations',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'operation' => ['type' => 'string', 'enum' => ['add', 'subtract', 'multiply', 'divide']],
-                    'a' => ['type' => 'number', 'description' => 'First number'],
-                    'b' => ['type' => 'number', 'description' => 'Second number'],
+                'description' => 'Perform mathematical calculations',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'operation' => ['type' => 'string', 'enum' => ['add', 'subtract', 'multiply', 'divide']],
+                        'a' => ['type' => 'number', 'description' => 'First number'],
+                        'b' => ['type' => 'number', 'description' => 'Second number'],
+                    ],
+                    'required' => ['operation', 'a', 'b'],
                 ],
-                'required' => ['operation', 'a', 'b'],
-            ],
-        ]);
+            ]);
 
         // Refresh registry to pick up new functions
         $this->toolRegistry->refreshCache();
     }
 
     #[Test]
-    public function it_can_use_withTools_method_with_mock_provider()
+    public function it_can_use_with_tools_method_with_mock_provider()
     {
         // Get available tools
         $allTools = $this->toolRegistry->getAllTools();
@@ -107,7 +106,7 @@ class ConversationBuilderToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_can_use_allTools_method_with_mock_provider()
+    public function it_can_use_all_tools_method_with_mock_provider()
     {
         // Test allTools with mock provider
         $conversation = AI::conversation()
@@ -131,7 +130,7 @@ class ConversationBuilderToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_validates_tool_names_in_withTools()
+    public function it_validates_tool_names_in_with_tools()
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Unknown tools: non_existent_tool');
@@ -160,7 +159,7 @@ class ConversationBuilderToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_can_chain_withTools_with_other_methods()
+    public function it_can_chain_with_tools_with_other_methods()
     {
         $allTools = $this->toolRegistry->getAllTools();
         $toolNames = array_slice(array_keys($allTools), 0, 1);
@@ -190,7 +189,7 @@ class ConversationBuilderToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_can_chain_allTools_with_other_methods()
+    public function it_can_chain_all_tools_with_other_methods()
     {
         // Test method chaining with allTools
         $response = AI::conversation()
@@ -258,7 +257,7 @@ class ConversationBuilderToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_can_use_withTools_multiple_times()
+    public function it_can_use_with_tools_multiple_times()
     {
         $allTools = $this->toolRegistry->getAllTools();
         $toolNames = array_keys($allTools);
@@ -282,7 +281,7 @@ class ConversationBuilderToolsE2ETest extends E2ETestCase
     }
 
     #[Test]
-    public function it_can_override_allTools_with_withTools()
+    public function it_can_override_all_tools_with_with_tools()
     {
         $allTools = $this->toolRegistry->getAllTools();
         $toolNames = array_keys($allTools);

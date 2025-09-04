@@ -2,20 +2,18 @@
 
 namespace JTD\LaravelAI\Tests\Feature\MCPFramework;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\MCPManager;
-use JTD\LaravelAI\Events\MessageSent;
-use JTD\LaravelAI\Events\ResponseGenerated;
-use JTD\LaravelAI\Events\MCPToolExecuted;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Queue;
 use JTD\LaravelAI\Events\MCPServerConnected;
 use JTD\LaravelAI\Events\MCPServerDisconnected;
+use JTD\LaravelAI\Events\MCPToolExecuted;
 use JTD\LaravelAI\Listeners\MCPEventListener;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Queue;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Services\MCPManager;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Event Integration Tests
@@ -31,6 +29,7 @@ class MCPEventIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected MCPManager $mcpManager;
+
     protected string $configPath;
 
     protected function setUp(): void
@@ -168,7 +167,7 @@ class MCPEventIntegrationTest extends TestCase
         try {
             // Simulate MCP event listener processing
             if (class_exists(MCPEventListener::class)) {
-                $listener = new MCPEventListener();
+                $listener = new MCPEventListener;
 
                 // Test event handling
                 if (method_exists($listener, 'handleMCPToolExecution')) {
@@ -302,7 +301,6 @@ class MCPEventIntegrationTest extends TestCase
 
                 $this->assertTrue($errorResult['logged'],
                     "Error scenario {$scenarioType} should be logged");
-
             } catch (\Exception $e) {
                 $this->assertTrue(true, "Error scenario {$scenarioType} failed due to implementation gaps");
             }
@@ -342,7 +340,6 @@ class MCPEventIntegrationTest extends TestCase
                 // Verify performance target
                 $this->assertLessThan($testConfig['target_time'], $processingTime,
                     "MCP {$eventType} processing took {$processingTime}ms, exceeding {$testConfig['target_time']}ms target");
-
             } catch (\Exception $e) {
                 // Validate performance targets even if processing fails
                 $this->assertGreaterThan(0, $testConfig['target_time']);

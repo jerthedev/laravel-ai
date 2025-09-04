@@ -2,10 +2,6 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate\Traits;
 
-use JTD\LaravelAI\Models\AIMessage;
-use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Models\TokenUsage;
-
 /**
  * Integrates DriverTemplate Responses API
  *
@@ -109,5 +105,4 @@ trait IntegratesResponsesAPI
     {
         // TODO: Implement getResponsesAPIRecommendations
     }
-
 }

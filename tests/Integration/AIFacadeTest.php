@@ -4,7 +4,6 @@ namespace JTD\LaravelAI\Tests\Integration;
 
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
 use JTD\LaravelAI\Facades\AI;
-use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Providers\MockProvider;
 use JTD\LaravelAI\Services\AIManager;

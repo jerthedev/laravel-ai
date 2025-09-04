@@ -4,57 +4,152 @@ namespace JTD\LaravelAI\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use JTD\LaravelAI\Contracts\AIMiddlewareInterface;
 use JTD\LaravelAI\Events\BudgetThresholdReached;
 use JTD\LaravelAI\Exceptions\BudgetExceededException;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
+use JTD\LaravelAI\Services\BudgetCacheService;
 use JTD\LaravelAI\Services\BudgetService;
 use JTD\LaravelAI\Services\EventPerformanceTracker;
 use JTD\LaravelAI\Services\PricingService;
 
 /**
- * Enhanced Budget Enforcement Middleware
+ * Budget Enforcement Middleware
  *
- * Enforces spending limits with <10ms processing overhead and real-time enforcement.
- * Supports monthly, daily, and per-request budgets with intelligent caching and
- * optimized database queries for high-performance budget checking.
+ * Enforces AI spending limits at user, project, and organization levels with
+ * real-time budget checking and <10ms processing overhead. Prevents budget
+ * overruns by validating estimated costs before processing AI requests and
+ * firing BudgetThresholdReached events when usage approaches configured thresholds.
+ *
+ * The middleware supports multiple budget types:
+ * - Per-request limits: Maximum cost allowed for a single AI request
+ * - Daily limits: Maximum spending allowed per user per day
+ * - Monthly limits: Maximum spending allowed per user per month
+ * - Project limits: Maximum spending allowed for a specific project
+ * - Organization limits: Maximum spending allowed for an entire organization
+ *
+ * Features:
+ * - Intelligent caching with 5-minute budget cache and 1-minute spending cache
+ * - Real-time cost estimation using PricingService with provider-specific models
+ * - Performance monitoring with EventPerformanceTracker integration
+ * - Fail-open approach to prevent blocking requests on system errors
+ * - Comprehensive logging and analytics for budget enforcement actions
+ * - Threshold event firing at 80% and 95% budget utilization
+ *
+ * Configuration:
+ * Configure budget limits in your application:
+ * ```php
+ * // Via BudgetService
+ * $budgetService->setBudgetLimit($userId, 'daily', 50.00);
+ * $budgetService->setBudgetLimit($userId, 'monthly', 500.00);
+ * $budgetService->setProjectBudgetLimit($projectId, 1000.00);
+ *
+ * // Via config/ai.php middleware settings
+ * 'middleware' => [
+ *     'global' => ['budget-enforcement'],
+ *     'available' => [
+ *         'budget-enforcement' => BudgetEnforcementMiddleware::class,
+ *     ],
+ * ],
+ * ```
+ *
+ * Usage Examples:
+ * ```php
+ * // Via ConversationBuilder (uses global middleware automatically)
+ * $response = AI::conversation()
+ *     ->message('Generate report')
+ *     ->send();
+ *
+ * // Via Direct SendMessage with explicit middleware
+ * $response = AI::provider('openai')->sendMessage('Hello', [
+ *     'middleware' => ['budget-enforcement'],
+ *     'user_id' => $userId,
+ *     'metadata' => [
+ *         'project_id' => $projectId,
+ *         'organization_id' => $organizationId,
+ *     ]
+ * ]);
+ * ```
+ *
+ * Performance Targets:
+ * - <10ms execution time for budget checks
+ * - <5ms for cached budget limit lookups
+ * - <1ms for per-request limit validation
+ *
+ * @author JTD Laravel AI Package
+ *
+ * @since 1.0.0
  */
 class BudgetEnforcementMiddleware implements AIMiddlewareInterface
 {
     /**
-     * Cache TTL for budget data (5 minutes for balance between accuracy and performance).
+     * Cache TTL for budget data in seconds.
+     *
+     * 5 minutes provides balance between accuracy and performance while
+     * ensuring budget limits are reasonably up-to-date for enforcement.
      */
     protected int $budgetCacheTtl = 300;
 
     /**
-     * Cache TTL for spending data (1 minute for real-time accuracy).
+     * Cache TTL for spending data in seconds.
+     *
+     * 1 minute provides real-time accuracy for spending calculations
+     * while maintaining high performance for budget enforcement.
      */
     protected int $spendingCacheTtl = 60;
 
     /**
      * Performance target in milliseconds.
+     *
+     * Target execution time for budget enforcement operations.
+     * Operations exceeding this threshold will be logged as warnings.
      */
     protected int $performanceTargetMs = 10;
 
     /**
-     * Create a new middleware instance.
+     * Create a new budget enforcement middleware instance.
+     *
+     * @param  BudgetService  $budgetService  Service for budget limit management
+     * @param  PricingService  $pricingService  Service for AI cost calculations
+     * @param  EventPerformanceTracker  $performanceTracker  Service for performance monitoring
+     * @param  BudgetCacheService  $budgetCacheService  Service for intelligent budget caching
+     *
+     * @since 1.0.0
      */
     public function __construct(
         protected BudgetService $budgetService,
         protected PricingService $pricingService,
-        protected EventPerformanceTracker $performanceTracker
+        protected EventPerformanceTracker $performanceTracker,
+        protected BudgetCacheService $budgetCacheService
     ) {}
 
     /**
-     * Handle the AI request through enhanced budget enforcement with <10ms overhead.
+     * Handle the AI request through budget enforcement middleware.
      *
-     * @param  AIMessage  $message  The AI message to process
+     * Validates that the estimated cost of the AI request does not exceed
+     * configured budget limits before allowing the request to proceed. Performs
+     * multi-level budget checking including per-request, daily, monthly, project,
+     * and organization limits with intelligent caching for <10ms overhead.
+     *
+     * The enforcement process:
+     * 1. Estimates request cost using PricingService and token analysis
+     * 2. Checks per-request budget (fastest check first)
+     * 3. Validates daily and monthly user spending limits
+     * 4. Verifies project budget if project_id provided in metadata
+     * 5. Confirms organization budget if organization_id provided
+     * 6. Fires BudgetThresholdReached events when approaching limits
+     * 7. Tracks performance metrics and logs enforcement actions
+     *
+     * @param  AIMessage  $message  The AI message to process through budget enforcement
      * @param  Closure  $next  The next middleware in the pipeline
-     * @return AIResponse The processed response
-     * @throws BudgetExceededException When budget limits would be exceeded
+     * @return AIResponse The processed AI response after budget validation
+     *
+     * @throws BudgetExceededException When any budget limit would be exceeded
+     * @throws \InvalidArgumentException When message data is invalid for cost estimation
+     *
+     * @since 1.0.0
      */
     public function handle(AIMessage $message, Closure $next): AIResponse
     {
@@ -74,7 +169,6 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
             $this->trackMiddlewarePerformance($startTime, $message);
 
             return $response;
-
         } catch (BudgetExceededException $e) {
             // Log budget enforcement action
             $this->logBudgetEnforcement($message, $estimatedCost ?? 0, $e);
@@ -120,6 +214,7 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
 
             try {
                 $costData = $this->pricingService->calculateCost($provider, $model, $inputTokens, $outputTokens);
+
                 return $costData['total_cost'] ?? 0.0;
             } catch (\Exception $e) {
                 // Fallback to basic estimation if pricing service fails
@@ -133,6 +228,7 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
      *
      * @param  AIMessage  $message  The AI message
      * @param  float  $estimatedCost  Estimated cost
+     *
      * @throws BudgetExceededException When budget limits would be exceeded
      */
     protected function performEnhancedBudgetChecking(AIMessage $message, float $estimatedCost): void
@@ -203,6 +299,7 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
      * @param  int  $userId  User ID
      * @param  float  $estimatedCost  Estimated cost
      * @param  AIMessage  $message  The message
+     *
      * @throws BudgetExceededException When per-request limit exceeded
      */
     protected function checkPerRequestBudget(int $userId, float $estimatedCost, AIMessage $message): void
@@ -213,8 +310,8 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
             $this->fireBudgetThresholdEvent($userId, 'per_request', $estimatedCost, $perRequestLimit, $estimatedCost);
 
             throw new BudgetExceededException(
-                "Per-request budget limit exceeded. Cost: $" . number_format($estimatedCost, 4) .
-                ", Limit: $" . number_format($perRequestLimit, 4),
+                'Per-request budget limit exceeded. Cost: $' . number_format($estimatedCost, 4) .
+                ', Limit: $' . number_format($perRequestLimit, 4),
                 'per_request',
                 $estimatedCost,
                 $perRequestLimit
@@ -228,13 +325,14 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
      * @param  int  $userId  User ID
      * @param  float  $estimatedCost  Estimated cost
      * @param  AIMessage  $message  The message
+     *
      * @throws BudgetExceededException When daily limit would be exceeded
      */
     protected function checkDailyBudgetOptimized(int $userId, float $estimatedCost, AIMessage $message): void
     {
         $dailyLimit = $this->getCachedBudgetLimit($userId, 'daily');
 
-        if (!$dailyLimit) {
+        if (! $dailyLimit) {
             return;
         }
 
@@ -245,9 +343,9 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
             $this->fireBudgetThresholdEvent($userId, 'daily', $dailySpent, $dailyLimit, $estimatedCost);
 
             throw new BudgetExceededException(
-                "Daily budget limit would be exceeded. Current: $" . number_format($dailySpent, 4) .
-                ", Additional: $" . number_format($estimatedCost, 4) .
-                ", Limit: $" . number_format($dailyLimit, 4),
+                'Daily budget limit would be exceeded. Current: $' . number_format($dailySpent, 4) .
+                ', Additional: $' . number_format($estimatedCost, 4) .
+                ', Limit: $' . number_format($dailyLimit, 4),
                 'daily',
                 $projectedSpending,
                 $dailyLimit
@@ -261,13 +359,14 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
      * @param  int  $userId  User ID
      * @param  float  $estimatedCost  Estimated cost
      * @param  AIMessage  $message  The message
+     *
      * @throws BudgetExceededException When monthly limit would be exceeded
      */
     protected function checkMonthlyBudgetOptimized(int $userId, float $estimatedCost, AIMessage $message): void
     {
         $monthlyLimit = $this->getCachedBudgetLimit($userId, 'monthly');
 
-        if (!$monthlyLimit) {
+        if (! $monthlyLimit) {
             return;
         }
 
@@ -278,9 +377,9 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
             $this->fireBudgetThresholdEvent($userId, 'monthly', $monthlySpent, $monthlyLimit, $estimatedCost);
 
             throw new BudgetExceededException(
-                "Monthly budget limit would be exceeded. Current: $" . number_format($monthlySpent, 4) .
-                ", Additional: $" . number_format($estimatedCost, 4) .
-                ", Limit: $" . number_format($monthlyLimit, 4),
+                'Monthly budget limit would be exceeded. Current: $' . number_format($monthlySpent, 4) .
+                ', Additional: $' . number_format($estimatedCost, 4) .
+                ', Limit: $' . number_format($monthlyLimit, 4),
                 'monthly',
                 $projectedSpending,
                 $monthlyLimit
@@ -307,7 +406,7 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
     // Optimized caching methods for <10ms performance
 
     /**
-     * Get cached budget limit for user and type.
+     * Get cached budget limit for user and type using intelligent caching service.
      *
      * @param  int  $userId  User ID
      * @param  string  $type  Budget type
@@ -315,124 +414,156 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
      */
     protected function getCachedBudgetLimit(int $userId, string $type): ?float
     {
-        $cacheKey = "budget_limit_{$userId}_{$type}";
-
-        return Cache::remember($cacheKey, $this->budgetCacheTtl, function () use ($userId, $type) {
-            return DB::table('ai_budgets')
-                ->where('user_id', $userId)
-                ->where('type', $type)
-                ->where('is_active', true)
-                ->value('limit_amount');
-        });
+        return $this->budgetCacheService->getBudgetLimit($userId, $type);
     }
 
     /**
-     * Get cached daily spending for user.
+     * Get cached daily spending for user using intelligent caching service.
      *
      * @param  int  $userId  User ID
      * @return float Daily spending amount
      */
     protected function getCachedDailySpending(int $userId): float
     {
-        $cacheKey = "daily_spending_{$userId}_" . now()->format('Y-m-d');
-
-        return Cache::remember($cacheKey, $this->spendingCacheTtl, function () use ($userId) {
-            return (float) DB::table('ai_usage_costs')
-                ->where('user_id', $userId)
-                ->whereDate('created_at', today())
-                ->sum('total_cost');
-        });
+        return $this->budgetCacheService->getDailySpending($userId);
     }
 
     /**
-     * Get cached monthly spending for user.
+     * Get cached monthly spending for user using intelligent caching service.
      *
      * @param  int  $userId  User ID
      * @return float Monthly spending amount
      */
     protected function getCachedMonthlySpending(int $userId): float
     {
-        $cacheKey = "monthly_spending_{$userId}_" . now()->format('Y-m');
-
-        return Cache::remember($cacheKey, $this->spendingCacheTtl, function () use ($userId) {
-            return (float) DB::table('ai_usage_costs')
-                ->where('user_id', $userId)
-                ->whereYear('created_at', now()->year)
-                ->whereMonth('created_at', now()->month)
-                ->sum('total_cost');
-        });
+        return $this->budgetCacheService->getMonthlySpending($userId);
     }
 
     /**
-     * Get cached project budget limit.
+     * Get cached project budget limit using intelligent caching service.
      *
      * @param  string  $projectId  Project ID
      * @return float|null Project budget limit
      */
     protected function getCachedProjectBudgetLimit(string $projectId): ?float
     {
-        $cacheKey = "project_budget_limit_{$projectId}";
-
-        return Cache::remember($cacheKey, $this->budgetCacheTtl, function () use ($projectId) {
-            return DB::table('ai_budgets')
-                ->where('project_id', $projectId)
-                ->where('type', 'project')
-                ->where('is_active', true)
-                ->value('limit_amount');
-        });
+        return $this->budgetCacheService->getProjectBudgetLimit($projectId);
     }
 
     /**
-     * Get cached project spending.
+     * Get cached project spending using intelligent caching service.
      *
      * @param  string  $projectId  Project ID
      * @return float Project spending amount
      */
     protected function getCachedProjectSpending(string $projectId): float
     {
-        $cacheKey = "project_spending_{$projectId}_" . now()->format('Y-m-d');
-
-        return Cache::remember($cacheKey, $this->spendingCacheTtl, function () use ($projectId) {
-            return (float) DB::table('ai_usage_costs')
-                ->whereJsonContains('metadata->context->project_id', $projectId)
-                ->sum('total_cost');
-        });
+        return $this->budgetCacheService->getProjectSpending($projectId, 'all');
     }
 
     /**
-     * Get cached organization budget limit.
+     * Get cached organization budget limit using intelligent caching service.
      *
      * @param  string  $organizationId  Organization ID
      * @return float|null Organization budget limit
      */
     protected function getCachedOrganizationBudgetLimit(string $organizationId): ?float
     {
-        $cacheKey = "org_budget_limit_{$organizationId}";
-
-        return Cache::remember($cacheKey, $this->budgetCacheTtl, function () use ($organizationId) {
-            return DB::table('ai_budgets')
-                ->where('organization_id', $organizationId)
-                ->where('type', 'organization')
-                ->where('is_active', true)
-                ->value('limit_amount');
-        });
+        return $this->budgetCacheService->getOrganizationBudgetLimit($organizationId);
     }
 
     /**
-     * Get cached organization spending.
+     * Get cached organization spending using intelligent caching service.
      *
      * @param  string  $organizationId  Organization ID
      * @return float Organization spending amount
      */
     protected function getCachedOrganizationSpending(string $organizationId): float
     {
-        $cacheKey = "org_spending_{$organizationId}_" . now()->format('Y-m-d');
+        return $this->budgetCacheService->getOrganizationSpending($organizationId, 'all');
+    }
 
-        return Cache::remember($cacheKey, $this->spendingCacheTtl, function () use ($organizationId) {
-            return (float) DB::table('ai_usage_costs')
-                ->whereJsonContains('metadata->context->organization_id', $organizationId)
-                ->sum('total_cost');
-        });
+    /**
+     * Check project budget with optimized caching.
+     *
+     * @param  string  $projectId  Project ID
+     * @param  float  $estimatedCost  Estimated cost
+     * @param  AIMessage  $message  The message
+     *
+     * @throws BudgetExceededException When project limit would be exceeded
+     */
+    protected function checkProjectBudgetOptimized(string $projectId, float $estimatedCost, AIMessage $message): void
+    {
+        $projectLimit = $this->getCachedProjectBudgetLimit($projectId);
+
+        if (! $projectLimit) {
+            return;
+        }
+
+        $projectSpent = $this->getCachedProjectSpending($projectId);
+        $projectedSpending = $projectSpent + $estimatedCost;
+
+        if ($projectedSpending > $projectLimit) {
+            $this->fireBudgetThresholdEvent(
+                $message->user_id,
+                'project',
+                $projectSpent,
+                $projectLimit,
+                $estimatedCost,
+                $projectId
+            );
+
+            throw new BudgetExceededException(
+                'Project budget limit would be exceeded. Current: $' . number_format($projectSpent, 4) .
+                ', Additional: $' . number_format($estimatedCost, 4) .
+                ', Limit: $' . number_format($projectLimit, 4),
+                'project',
+                $projectedSpending,
+                $projectLimit
+            );
+        }
+    }
+
+    /**
+     * Check organization budget with optimized caching.
+     *
+     * @param  string  $organizationId  Organization ID
+     * @param  float  $estimatedCost  Estimated cost
+     * @param  AIMessage  $message  The message
+     *
+     * @throws BudgetExceededException When organization limit would be exceeded
+     */
+    protected function checkOrganizationBudgetOptimized(string $organizationId, float $estimatedCost, AIMessage $message): void
+    {
+        $orgLimit = $this->getCachedOrganizationBudgetLimit($organizationId);
+
+        if (! $orgLimit) {
+            return;
+        }
+
+        $orgSpent = $this->getCachedOrganizationSpending($organizationId);
+        $projectedSpending = $orgSpent + $estimatedCost;
+
+        if ($projectedSpending > $orgLimit) {
+            $this->fireBudgetThresholdEvent(
+                $message->user_id,
+                'organization',
+                $orgSpent,
+                $orgLimit,
+                $estimatedCost,
+                null,
+                $organizationId
+            );
+
+            throw new BudgetExceededException(
+                'Organization budget limit would be exceeded. Current: $' . number_format($orgSpent, 4) .
+                ', Additional: $' . number_format($estimatedCost, 4) .
+                ', Limit: $' . number_format($orgLimit, 4),
+                'organization',
+                $projectedSpending,
+                $orgLimit
+            );
+        }
     }
 
     /**
@@ -460,10 +591,10 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
         event(new BudgetThresholdReached(
             userId: $userId,
             budgetType: $budgetType,
-            currentSpending: $currentSpending,
-            budgetLimit: $budgetLimit,
+            current_spending: $currentSpending,
+            budget_limit: $budgetLimit,
             additionalCost: $additionalCost,
-            thresholdPercentage: $thresholdPercentage,
+            threshold_percentage: $thresholdPercentage,
             projectId: $projectId,
             organizationId: $organizationId
         ));
@@ -488,6 +619,7 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
         ];
 
         $rate = $fallbackRates[$provider] ?? 0.002;
+
         return ($tokens / 1000) * $rate;
     }
 
@@ -526,8 +658,8 @@ class BudgetEnforcementMiddleware implements AIMiddlewareInterface
         }
 
         // Track legacy performance metrics for backward compatibility
-        Cache::increment("budget_middleware_operations_total");
-        Cache::increment("budget_middleware_duration_total", $durationMs);
+        Cache::increment('budget_middleware_operations_total');
+        Cache::increment('budget_middleware_duration_total', $durationMs);
         Cache::increment("budget_middleware_outcome_{$outcome}");
     }
 

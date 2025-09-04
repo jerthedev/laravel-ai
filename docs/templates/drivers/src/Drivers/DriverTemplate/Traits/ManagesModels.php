@@ -2,10 +2,6 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate\Traits;
 
-use JTD\LaravelAI\Drivers\DriverTemplate\Support\ModelCapabilities;
-use JTD\LaravelAI\Drivers\DriverTemplate\Support\ModelPricing;
-use JTD\LaravelAI\Models\AIMessage;
-
 /**
  * Manages DriverTemplate Models and Capabilities
  *
@@ -86,7 +82,7 @@ trait ManagesModels
     /**
      * Estimate tokens for input.
      */
-    public function estimateTokens($input, string $modelId = null): int
+    public function estimateTokens($input, ?string $modelId = null): int
     {
         // TODO: Implement estimateTokens
     }
@@ -274,5 +270,4 @@ trait ManagesModels
     {
         // TODO: Implement storeModelStatistics
     }
-
 }

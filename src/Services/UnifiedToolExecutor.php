@@ -88,8 +88,8 @@ class UnifiedToolExecutor
     public function executeToolCall(string $toolName, array $parameters, array $context = []): mixed
     {
         $tool = $this->toolRegistry->getTool($toolName);
-        
-        if (!$tool) {
+
+        if (! $tool) {
             throw new ToolExecutionException("Tool '{$toolName}' not found in registry");
         }
 
@@ -152,8 +152,8 @@ class UnifiedToolExecutor
     public function routeToMCP(string $toolName, array $parameters, array $tool, array $context = []): array
     {
         $serverName = $tool['server'] ?? null;
-        
-        if (!$serverName) {
+
+        if (! $serverName) {
             throw new ToolExecutionException("MCP tool '{$toolName}' has no server specified");
         }
 
@@ -245,17 +245,17 @@ class UnifiedToolExecutor
     public function validateToolParameters(string $toolName, array $parameters): bool
     {
         $tool = $this->toolRegistry->getTool($toolName);
-        
-        if (!$tool) {
+
+        if (! $tool) {
             return false;
         }
 
         $schema = $tool['parameters'] ?? [];
-        
+
         // Basic validation - in production, use a proper JSON schema validator
         if (isset($schema['required'])) {
             foreach ($schema['required'] as $requiredField) {
-                if (!isset($parameters[$requiredField])) {
+                if (! isset($parameters[$requiredField])) {
                     throw new ToolExecutionException(
                         "Missing required parameter '{$requiredField}' for tool '{$toolName}'"
                     );

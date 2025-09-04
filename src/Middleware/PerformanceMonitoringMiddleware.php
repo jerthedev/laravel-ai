@@ -44,7 +44,7 @@ class PerformanceMonitoringMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         // Skip monitoring if disabled
-        if (!config('ai.performance.middleware_monitoring', true)) {
+        if (! config('ai.performance.middleware_monitoring', true)) {
             return $next($request);
         }
 
@@ -83,11 +83,11 @@ class PerformanceMonitoringMiddleware
     public function trackMiddleware(string $middlewareName, Request $request, Closure $next): Response
     {
         $startTime = microtime(true);
-        
+
         try {
             $response = $next($request);
             $duration = (microtime(true) - $startTime) * 1000;
-            
+
             $this->performanceTracker->trackMiddlewarePerformance($middlewareName, $duration, [
                 'success' => true,
                 'route' => $request->route()?->getName() ?? $request->path(),
@@ -95,12 +95,11 @@ class PerformanceMonitoringMiddleware
                 'status_code' => $response->getStatusCode(),
                 'memory_usage' => memory_get_usage(true),
             ]);
-            
+
             return $response;
-            
         } catch (\Exception $e) {
             $duration = (microtime(true) - $startTime) * 1000;
-            
+
             $this->performanceTracker->trackMiddlewarePerformance($middlewareName, $duration, [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -108,7 +107,7 @@ class PerformanceMonitoringMiddleware
                 'route' => $request->route()?->getName() ?? $request->path(),
                 'method' => $request->method(),
             ]);
-            
+
             throw $e;
         }
     }
@@ -214,6 +213,7 @@ trait TracksMiddlewarePerformance
     protected function trackExecution(Request $request, Closure $next): Response
     {
         $performanceMonitor = app(PerformanceMonitoringMiddleware::class);
+
         return $performanceMonitor->trackMiddleware(static::class, $request, $next);
     }
 }

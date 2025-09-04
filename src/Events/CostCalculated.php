@@ -13,7 +13,8 @@ use Illuminate\Queue\SerializesModels;
  */
 class CostCalculated
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
+    use SerializesModels;
 
     /**
      * Create a new event instance.
@@ -23,8 +24,8 @@ class CostCalculated
         public string $provider,
         public string $model,
         public float $cost,
-        public int $inputTokens,
-        public int $outputTokens,
+        public int $input_tokens,
+        public int $output_tokens,
         public ?int $conversationId = null,
         public ?int $messageId = null
     ) {}

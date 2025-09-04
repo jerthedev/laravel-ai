@@ -2,10 +2,10 @@
 
 namespace JTD\LaravelAI\Services;
 
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 /**
  * Event Processing Performance Tracker
@@ -265,7 +265,7 @@ class EventPerformanceTracker
         }
 
         // Sort by priority
-        usort($recommendations, fn($a, $b) => $b['priority'] <=> $a['priority']);
+        usort($recommendations, fn ($a, $b) => $b['priority'] <=> $a['priority']);
 
         return [
             'recommendations' => array_slice($recommendations, 0, 10),
@@ -573,7 +573,7 @@ class EventPerformanceTracker
         }
 
         $overallViolationRate = $totalExecutions > 0 ? ($totalViolations / $totalExecutions) * 100 : 0;
-        $overallAvgDuration = !empty($avgDurations) ? array_sum($avgDurations) / count($avgDurations) : 0;
+        $overallAvgDuration = ! empty($avgDurations) ? array_sum($avgDurations) / count($avgDurations) : 0;
 
         $healthScore = max(0, 100 - ($overallViolationRate * 2) - min($overallAvgDuration / 10, 20));
 
@@ -594,10 +594,19 @@ class EventPerformanceTracker
      */
     protected function getHealthStatus(float $score): string
     {
-        if ($score >= 90) return 'excellent';
-        if ($score >= 75) return 'good';
-        if ($score >= 60) return 'fair';
-        if ($score >= 40) return 'poor';
+        if ($score >= 90) {
+            return 'excellent';
+        }
+        if ($score >= 75) {
+            return 'good';
+        }
+        if ($score >= 60) {
+            return 'fair';
+        }
+        if ($score >= 40) {
+            return 'poor';
+        }
+
         return 'critical';
     }
 
@@ -623,9 +632,16 @@ class EventPerformanceTracker
     {
         $violationRate = ($bottleneck->threshold_violations / $bottleneck->execution_count) * 100;
 
-        if ($violationRate >= 50 || $bottleneck->avg_duration >= 500) return 'critical';
-        if ($violationRate >= 25 || $bottleneck->avg_duration >= 200) return 'high';
-        if ($violationRate >= 10 || $bottleneck->avg_duration >= 100) return 'medium';
+        if ($violationRate >= 50 || $bottleneck->avg_duration >= 500) {
+            return 'critical';
+        }
+        if ($violationRate >= 25 || $bottleneck->avg_duration >= 200) {
+            return 'high';
+        }
+        if ($violationRate >= 10 || $bottleneck->avg_duration >= 100) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
@@ -665,7 +681,7 @@ class EventPerformanceTracker
 
         $message = $recommendations[$component][$severity] ?? null;
 
-        if (!$message) {
+        if (! $message) {
             return null;
         }
 

@@ -110,8 +110,8 @@ class InterfacesAndModelsTest extends TestCase
     {
         $usage = TokenUsage::create(100, 50);
 
-        $this->assertEquals(100, $usage->inputTokens);
-        $this->assertEquals(50, $usage->outputTokens);
+        $this->assertEquals(100, $usage->input_tokens);
+        $this->assertEquals(50, $usage->output_tokens);
         $this->assertEquals(150, $usage->totalTokens);
     }
 
@@ -146,8 +146,8 @@ class InterfacesAndModelsTest extends TestCase
 
         $combined = $usage1->add($usage2);
 
-        $this->assertEquals(300, $combined->inputTokens);
-        $this->assertEquals(150, $combined->outputTokens);
+        $this->assertEquals(300, $combined->input_tokens);
+        $this->assertEquals(150, $combined->output_tokens);
         $this->assertEquals(450, $combined->totalTokens);
         $this->assertEquals(0.009, round($combined->totalCost, 3));
     }

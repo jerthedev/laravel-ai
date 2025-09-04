@@ -20,7 +20,7 @@ class SimpleOpenAITest extends TestCase
         // Check if E2E credentials are available
         $credentialsPath = __DIR__ . '/../credentials/e2e-credentials.json';
 
-        if (!file_exists($credentialsPath)) {
+        if (! file_exists($credentialsPath)) {
             $this->markTestSkipped('E2E credentials file not found');
         }
 
@@ -77,8 +77,8 @@ class SimpleOpenAITest extends TestCase
 
         if ($response->tokenUsage) {
             echo "\n--- Token Usage ---";
-            echo "\nInput Tokens: " . $response->tokenUsage->inputTokens;
-            echo "\nOutput Tokens: " . $response->tokenUsage->outputTokens;
+            echo "\nInput Tokens: " . $response->tokenUsage->input_tokens;
+            echo "\nOutput Tokens: " . $response->tokenUsage->output_tokens;
             echo "\nTotal Tokens: " . $response->tokenUsage->totalTokens;
             echo "\nInput Cost: " . $response->tokenUsage->inputCost;
             echo "\nOutput Cost: " . $response->tokenUsage->outputCost;
@@ -102,13 +102,13 @@ class SimpleOpenAITest extends TestCase
         echo "\nResponseGenerated events: " . count($firedEvents['ResponseGenerated'] ?? []);
         echo "\nCostCalculated events: " . count($firedEvents['CostCalculated'] ?? []);
 
-        if (!empty($firedEvents['CostCalculated'])) {
+        if (! empty($firedEvents['CostCalculated'])) {
             $costEvent = $firedEvents['CostCalculated'][0];
             echo "\n--- CostCalculated Event Data ---";
             echo "\nProvider: " . $costEvent->provider;
             echo "\nCost: " . $costEvent->cost;
-            echo "\nInput Tokens: " . $costEvent->inputTokens;
-            echo "\nOutput Tokens: " . $costEvent->outputTokens;
+            echo "\nInput Tokens: " . $costEvent->input_tokens;
+            echo "\nOutput Tokens: " . $costEvent->output_tokens;
         }
 
         echo "\n=== End Debug ===\n";

@@ -23,7 +23,7 @@ class EventFiringConsistencyE2ETest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         config([
             'ai.default' => 'mock',
             'ai.providers.mock.enabled' => true,
@@ -46,14 +46,14 @@ class EventFiringConsistencyE2ETest extends TestCase
     {
         Event::fake();
         Queue::fake();
-        
+
         $message = AIMessage::user('Test event consistency');
         $message->user_id = 123;
         $message->conversation_id = 456;
-        
+
         // Test Pattern 1: AI::sendMessage() - Default provider
         $response1 = AI::sendMessage($message, ['model' => 'mock-gpt-4']);
-        
+
         // Verify events were fired for default provider pattern
         Event::assertDispatched(MessageSent::class, function ($event) use ($message) {
             return $event->message->content === $message->content
@@ -62,30 +62,30 @@ class EventFiringConsistencyE2ETest extends TestCase
                 && $event->userId === 123
                 && $event->conversationId === 456;
         });
-        
+
         Event::assertDispatched(ResponseGenerated::class, function ($event) use ($message) {
             return $event->message->content === $message->content
                 && $event->response->content === 'Event consistency test response'
                 && $event->context['provider_level_event'] === true
-                && $event->providerMetadata['provider'] === 'mock'
-                && $event->providerMetadata['tokens_used'] === 20; // 8 + 12
+                && $event->provider_metadata['provider'] === 'mock'
+                && $event->provider_metadata['tokens_used'] === 20; // 8 + 12
         });
-        
+
         Event::assertDispatched(CostCalculated::class, function ($event) {
             return $event->userId === 123
                 && $event->provider === 'mock'
-                && $event->inputTokens === 8
-                && $event->outputTokens === 12
+                && $event->input_tokens === 8
+                && $event->output_tokens === 12
                 && $event->conversationId === 456
                 && $event->cost > 0;
         });
-        
+
         // Reset event fake for next test
         Event::fake();
-        
+
         // Test Pattern 2: AI::provider('mock')->sendMessage() - Specific provider
         $response2 = AI::provider('mock')->sendMessage($message, ['model' => 'mock-gpt-4']);
-        
+
         // Verify same events were fired for specific provider pattern
         Event::assertDispatched(MessageSent::class, function ($event) use ($message) {
             return $event->message->content === $message->content
@@ -93,44 +93,44 @@ class EventFiringConsistencyE2ETest extends TestCase
                 && $event->userId === 123
                 && $event->conversationId === 456;
         });
-        
+
         Event::assertDispatched(ResponseGenerated::class, function ($event) use ($message) {
             return $event->message->content === $message->content
                 && $event->response->content === 'Event consistency test response'
                 && $event->context['provider_level_event'] === true;
         });
-        
+
         Event::assertDispatched(CostCalculated::class, function ($event) {
             return $event->userId === 123
                 && $event->provider === 'mock'
-                && $event->inputTokens === 8
-                && $event->outputTokens === 12;
+                && $event->input_tokens === 8
+                && $event->output_tokens === 12;
         });
-        
+
         // Reset event fake for next test
         Event::fake();
-        
+
         // Test Pattern 3: AI::conversation()->send() - Fluent interface
         $response3 = AI::conversation()
             ->message('Test event consistency')
             ->send();
-        
+
         // Verify same events were fired for conversation pattern
         Event::assertDispatched(MessageSent::class, function ($event) {
             return $event->provider === 'mock';
         });
-        
+
         Event::assertDispatched(ResponseGenerated::class, function ($event) {
             return $event->context['provider_level_event'] === true;
         });
-        
+
         Event::assertDispatched(CostCalculated::class, function ($event) {
             return $event->provider === 'mock';
         });
-        
+
         // Reset event fake for next test
         Event::fake();
-        
+
         // Test Pattern 4: Direct driver instantiation
         $driver = new MockProvider([
             'mock_responses' => [
@@ -145,29 +145,29 @@ class EventFiringConsistencyE2ETest extends TestCase
                 ],
             ],
         ]);
-        
+
         $directMessage = AIMessage::user('Test direct driver events');
         $directMessage->user_id = 789;
         $response4 = $driver->sendMessage($directMessage, ['model' => 'mock-direct']);
-        
+
         // Verify same events were fired for direct driver pattern
         Event::assertDispatched(MessageSent::class, function ($event) use ($directMessage) {
             return $event->message->content === $directMessage->content
                 && $event->provider === 'mock'
                 && $event->userId === 789;
         });
-        
+
         Event::assertDispatched(ResponseGenerated::class, function ($event) use ($directMessage) {
             return $event->message->content === $directMessage->content
                 && $event->response->content === 'Direct driver event test'
                 && $event->context['provider_level_event'] === true;
         });
-        
+
         Event::assertDispatched(CostCalculated::class, function ($event) {
             return $event->userId === 789
                 && $event->provider === 'mock'
-                && $event->inputTokens === 6
-                && $event->outputTokens === 10;
+                && $event->input_tokens === 6
+                && $event->output_tokens === 10;
         });
     }
 
@@ -176,17 +176,17 @@ class EventFiringConsistencyE2ETest extends TestCase
     {
         Event::fake();
         Queue::fake();
-        
+
         $message = AIMessage::user('Test streaming event consistency');
         $message->user_id = 555;
         $message->conversation_id = 777;
-        
+
         // Test streaming with default provider
         $chunks = [];
         foreach (AI::sendStreamingMessage($message) as $chunk) {
             $chunks[] = $chunk;
         }
-        
+
         // Verify streaming events were fired
         Event::assertDispatched(MessageSent::class, function ($event) use ($message) {
             return $event->message->content === $message->content
@@ -194,18 +194,18 @@ class EventFiringConsistencyE2ETest extends TestCase
                 && $event->userId === 555
                 && $event->conversationId === 777;
         });
-        
+
         Event::assertDispatched(ResponseGenerated::class, function ($event) {
             return $event->context['provider_level_event'] === true
                 && $event->context['streaming_response'] === true
                 && isset($event->context['total_chunks']);
         });
-        
+
         Event::assertDispatched(CostCalculated::class, function ($event) {
             return $event->userId === 555
                 && $event->provider === 'mock';
         });
-        
+
         $this->assertNotEmpty($chunks);
     }
 
@@ -214,22 +214,22 @@ class EventFiringConsistencyE2ETest extends TestCase
     {
         Event::fake();
         Queue::fake();
-        
+
         // Disable events
         config(['ai.events.enabled' => false]);
-        
+
         $message = AIMessage::user('Test with events disabled');
         $response = AI::sendMessage($message);
-        
+
         // Verify no events were fired when disabled
         Event::assertNotDispatched(MessageSent::class);
         Event::assertNotDispatched(ResponseGenerated::class);
         Event::assertNotDispatched(CostCalculated::class);
-        
+
         // But response should still work
         $this->assertNotNull($response);
         $this->assertNotEmpty($response->content);
-        
+
         // Re-enable events for cleanup
         config(['ai.events.enabled' => true]);
     }
@@ -239,25 +239,25 @@ class EventFiringConsistencyE2ETest extends TestCase
     {
         Event::fake();
         Queue::fake();
-        
+
         // Create message without user_id or conversation_id
         $message = AIMessage::user('Test without user data');
         // Don't set user_id or conversation_id
-        
+
         $response = AI::sendMessage($message);
-        
+
         // Events should still fire with null values
         Event::assertDispatched(MessageSent::class, function ($event) {
             return $event->userId === null
                 && $event->conversationId === null
                 && $event->provider === 'mock';
         });
-        
+
         Event::assertDispatched(ResponseGenerated::class);
         Event::assertDispatched(CostCalculated::class, function ($event) {
             return $event->userId === 0; // Default value for missing user_id
         });
-        
+
         $this->assertNotNull($response);
     }
 
@@ -266,22 +266,22 @@ class EventFiringConsistencyE2ETest extends TestCase
     {
         Event::fake();
         Queue::fake();
-        
+
         $message = AIMessage::user('Test timing data');
-        
+
         $startTime = microtime(true);
         $response = AI::sendMessage($message);
         $endTime = microtime(true);
-        
+
         $actualDuration = $endTime - $startTime;
-        
+
         Event::assertDispatched(ResponseGenerated::class, function ($event) use ($actualDuration) {
             // Processing time should be reasonable (within 10% margin)
-            return $event->totalProcessingTime > 0
-                && $event->totalProcessingTime <= ($actualDuration * 1.1)
+            return $event->total_processing_time > 0
+                && $event->total_processing_time <= ($actualDuration * 1.1)
                 && isset($event->context['processing_start_time']);
         });
-        
+
         $this->assertNotNull($response);
     }
 }

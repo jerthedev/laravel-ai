@@ -2,20 +2,19 @@
 
 namespace JTD\LaravelAI\Tests\Feature\CostTracking;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\PricingService;
-use JTD\LaravelAI\Services\PricingValidator;
-use JTD\LaravelAI\Services\DriverManager;
-use JTD\LaravelAI\Listeners\CostTrackingListener;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use JTD\LaravelAI\Events\ResponseGenerated;
+use JTD\LaravelAI\Listeners\CostTrackingListener;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Models\TokenUsage;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Services\DriverManager;
+use JTD\LaravelAI\Services\PricingService;
+use JTD\LaravelAI\Services\PricingValidator;
+use JTD\LaravelAI\Tests\TestCase;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Cost Accuracy Validation Tests
@@ -28,6 +27,7 @@ class CostAccuracyValidationTest extends TestCase
     use RefreshDatabase;
 
     protected PricingService $pricingService;
+
     protected CostTrackingListener $costTrackingListener;
 
     protected function setUp(): void
@@ -130,8 +130,8 @@ class CostAccuracyValidationTest extends TestCase
         $message->user_id = 1;
 
         $tokenUsage = new TokenUsage(
-            inputTokens: 1000,
-            outputTokens: 500,
+            input_tokens: 1000,
+            output_tokens: 500,
             totalTokens: 1500,
             totalCost: 0.0015 // Provider-reported cost
         );
@@ -148,7 +148,6 @@ class CostAccuracyValidationTest extends TestCase
             $message,
             $response,
 
-
             [
                 'provider' => 'openai',
                 'model' => 'gpt-4o-mini',
@@ -156,7 +155,7 @@ class CostAccuracyValidationTest extends TestCase
                 'billing_details' => [
                     'input_cost' => 0.00015,
                     'output_cost' => 0.0003,
-                ]
+                ],
             ]
         );
 
@@ -311,7 +310,7 @@ class CostAccuracyValidationTest extends TestCase
 
     protected function getModelsForProvider(string $provider): array
     {
-        return match($provider) {
+        return match ($provider) {
             'openai' => ['gpt-4o-mini', 'gpt-4o'],
             'anthropic' => ['claude-3-haiku', 'claude-3-sonnet'],
             'google' => ['gemini-2.0-flash', 'gemini-1.5-pro'],

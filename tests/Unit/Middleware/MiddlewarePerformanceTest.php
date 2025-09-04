@@ -14,8 +14,8 @@ use JTD\LaravelAI\Services\BudgetService;
 use JTD\LaravelAI\Services\EventPerformanceTracker;
 use JTD\LaravelAI\Services\PricingService;
 use JTD\LaravelAI\Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Middleware Performance Tests
@@ -28,20 +28,22 @@ class MiddlewarePerformanceTest extends TestCase
     use RefreshDatabase;
 
     protected PerformanceMonitoringMiddleware $performanceMiddleware;
+
     protected BudgetEnforcementMiddleware $budgetMiddleware;
+
     protected EventPerformanceTracker $performanceTracker;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->performanceTracker = app(EventPerformanceTracker::class);
         $this->performanceMiddleware = new PerformanceMonitoringMiddleware($this->performanceTracker);
-        
+
         $budgetService = app(BudgetService::class);
         $pricingService = app(PricingService::class);
         $this->budgetMiddleware = new BudgetEnforcementMiddleware($budgetService, $pricingService, $this->performanceTracker);
-        
+
         $this->createPerformanceMetricsTable();
         $this->seedTestData();
     }
@@ -50,30 +52,31 @@ class MiddlewarePerformanceTest extends TestCase
     public function it_monitors_middleware_performance_with_minimal_overhead(): void
     {
         Event::fake();
-        
+
         $request = Request::create('/api/ai/chat', 'POST', [
             'message' => 'Test message',
             'provider' => 'openai',
         ]);
 
         $overheadStartTime = microtime(true);
-        
+
         $response = $this->performanceMiddleware->handle($request, function ($req) {
             // Simulate some processing time
             usleep(50000); // 50ms
+
             return response()->json(['success' => true]);
         });
-        
+
         $totalTime = (microtime(true) - $overheadStartTime) * 1000;
 
         // Verify response is successful
         $this->assertEquals(200, $response->getStatusCode());
-        
+
         // Verify monitoring overhead is minimal
         $expectedProcessingTime = 50; // 50ms simulated processing
         $monitoringOverhead = $totalTime - $expectedProcessingTime;
-        
-        $this->assertLessThan(10, $monitoringOverhead, 
+
+        $this->assertLessThan(10, $monitoringOverhead,
             "Monitoring overhead {$monitoringOverhead}ms exceeds 10ms target");
     }
 
@@ -81,7 +84,7 @@ class MiddlewarePerformanceTest extends TestCase
     public function it_tracks_budget_middleware_performance(): void
     {
         Event::fake();
-        
+
         $message = new AIMessage([
             'user_id' => 1,
             'content' => 'Test message',
@@ -91,7 +94,7 @@ class MiddlewarePerformanceTest extends TestCase
         ]);
 
         $startTime = microtime(true);
-        
+
         $response = $this->budgetMiddleware->handle($message, function ($msg) {
             return new \JTD\LaravelAI\Models\AIResponse([
                 'content' => 'Test response',
@@ -99,14 +102,14 @@ class MiddlewarePerformanceTest extends TestCase
                 'metadata' => [],
             ]);
         });
-        
+
         $executionTime = (microtime(true) - $startTime) * 1000;
 
         // Verify response is successful
         $this->assertTrue($response->success);
-        
+
         // Verify performance target is met
-        $this->assertLessThan(10, $executionTime, 
+        $this->assertLessThan(10, $executionTime,
             "Budget middleware took {$executionTime}ms, exceeding 10ms target");
 
         // Verify performance was tracked
@@ -120,12 +123,13 @@ class MiddlewarePerformanceTest extends TestCase
     public function it_tracks_individual_middleware_performance(): void
     {
         $request = Request::create('/api/test', 'GET');
-        
+
         $middlewareName = 'TestMiddleware';
         $expectedDuration = 25; // ms
 
         $response = $this->performanceMiddleware->trackMiddleware($middlewareName, $request, function ($req) use ($expectedDuration) {
             usleep($expectedDuration * 1000); // Convert to microseconds
+
             return response()->json(['test' => 'success']);
         });
 
@@ -152,7 +156,7 @@ class MiddlewarePerformanceTest extends TestCase
     public function it_handles_middleware_errors_gracefully(): void
     {
         Event::fake();
-        
+
         $request = Request::create('/api/test', 'GET');
         $middlewareName = 'FailingMiddleware';
 
@@ -186,19 +190,20 @@ class MiddlewarePerformanceTest extends TestCase
     public function it_fires_performance_threshold_events(): void
     {
         Event::fake();
-        
+
         $request = Request::create('/api/test', 'GET');
         $middlewareName = 'SlowMiddleware';
 
         // Simulate slow middleware (exceeds 10ms threshold)
         $this->performanceMiddleware->trackMiddleware($middlewareName, $request, function ($req) {
             usleep(50000); // 50ms - exceeds threshold
+
             return response()->json(['test' => 'success']);
         });
 
         // Verify threshold exceeded event was fired
         Event::assertDispatched(PerformanceThresholdExceeded::class, function ($event) use ($middlewareName) {
-            return $event->component === 'middleware_execution' 
+            return $event->component === 'middleware_execution'
                 && $event->getComponentName() === $middlewareName
                 && $event->getDuration() > 10;
         });
@@ -226,7 +231,7 @@ class MiddlewarePerformanceTest extends TestCase
             ->first();
 
         $this->assertNotNull($metric);
-        
+
         $contextData = json_decode($metric->context_data, true);
         $this->assertEquals('POST', $contextData['method']);
         $this->assertEquals('/api/ai/chat', $contextData['path']);
@@ -240,7 +245,7 @@ class MiddlewarePerformanceTest extends TestCase
     public function it_measures_monitoring_overhead_accurately(): void
     {
         Cache::flush();
-        
+
         $request = Request::create('/api/test', 'GET');
 
         // Execute with monitoring
@@ -259,7 +264,7 @@ class MiddlewarePerformanceTest extends TestCase
         $overhead = $monitoredTime - $baselineTime;
 
         // Verify overhead is within acceptable limits
-        $this->assertLessThan(5, $overhead, 
+        $this->assertLessThan(5, $overhead,
             "Monitoring overhead {$overhead}ms exceeds 5ms acceptable limit");
 
         // Verify overhead was tracked
@@ -295,6 +300,7 @@ class MiddlewarePerformanceTest extends TestCase
         foreach ($middlewareStack as $middlewareName => $expectedDuration) {
             $this->performanceMiddleware->trackMiddleware($middlewareName, $request, function ($req) use ($expectedDuration) {
                 usleep($expectedDuration * 1000);
+
                 return response()->json(['middleware' => 'executed']);
             });
         }
@@ -302,7 +308,7 @@ class MiddlewarePerformanceTest extends TestCase
         $totalStackTime = (microtime(true) - $stackStartTime) * 1000;
 
         // Verify total stack time is reasonable
-        $this->assertLessThan($totalExpectedTime + 20, $totalStackTime, 
+        $this->assertLessThan($totalExpectedTime + 20, $totalStackTime,
             "Middleware stack took {$totalStackTime}ms, expected around {$totalExpectedTime}ms");
 
         // Verify all middleware were tracked
@@ -324,7 +330,7 @@ class MiddlewarePerformanceTest extends TestCase
      */
     protected function createPerformanceMetricsTable(): void
     {
-        if (!\DB::getSchemaBuilder()->hasTable('ai_performance_metrics')) {
+        if (! \DB::getSchemaBuilder()->hasTable('ai_performance_metrics')) {
             \DB::getSchemaBuilder()->create('ai_performance_metrics', function ($table) {
                 $table->id();
                 $table->string('component', 50);
@@ -334,7 +340,7 @@ class MiddlewarePerformanceTest extends TestCase
                 $table->boolean('exceeded_threshold')->default(false);
                 $table->json('context_data')->nullable();
                 $table->timestamps();
-                
+
                 $table->index(['component', 'created_at']);
                 $table->index(['component_name', 'created_at']);
             });

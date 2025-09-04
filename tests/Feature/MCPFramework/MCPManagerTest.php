@@ -9,7 +9,6 @@ use JTD\LaravelAI\Contracts\MCPServerInterface;
 use JTD\LaravelAI\Exceptions\MCPException;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Services\ExternalMCPServer;
 use JTD\LaravelAI\Services\MCPManager;
 use JTD\LaravelAI\Tests\TestCase;
 use Mockery;
@@ -18,16 +17,18 @@ use PHPUnit\Framework\Attributes\Test;
 class MCPManagerTest extends TestCase
 {
     protected MCPManager $mcpManager;
+
     protected string $configPath;
+
     protected string $toolsPath;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->configPath = base_path('.mcp.json');
         $this->toolsPath = base_path('.mcp.tools.json');
-        
+
         // Clean up any existing files
         if (File::exists($this->configPath)) {
             File::delete($this->configPath);
@@ -35,8 +36,8 @@ class MCPManagerTest extends TestCase
         if (File::exists($this->toolsPath)) {
             File::delete($this->toolsPath);
         }
-        
-        $this->mcpManager = new MCPManager();
+
+        $this->mcpManager = new MCPManager;
     }
 
     protected function tearDown(): void
@@ -48,7 +49,7 @@ class MCPManagerTest extends TestCase
         if (File::exists($this->toolsPath)) {
             File::delete($this->toolsPath);
         }
-        
+
         parent::tearDown();
     }
 
@@ -56,10 +57,10 @@ class MCPManagerTest extends TestCase
     public function it_loads_empty_configuration_when_no_file_exists(): void
     {
         $this->assertFileDoesNotExist($this->configPath);
-        
-        $mcpManager = new MCPManager();
+
+        $mcpManager = new MCPManager;
         $config = $mcpManager->getConfiguration();
-        
+
         $this->assertIsArray($config);
         $this->assertEmpty($config);
     }
@@ -83,7 +84,7 @@ class MCPManagerTest extends TestCase
 
         File::put($this->configPath, json_encode($testConfig));
 
-        $mcpManager = new MCPManager();
+        $mcpManager = new MCPManager;
         $config = $mcpManager->getConfiguration();
 
         $this->assertEquals($testConfig, $config);
@@ -98,7 +99,7 @@ class MCPManagerTest extends TestCase
             ->once()
             ->with('Failed to parse MCP configuration', Mockery::type('array'));
 
-        $mcpManager = new MCPManager();
+        $mcpManager = new MCPManager;
         $config = $mcpManager->getConfiguration();
 
         $this->assertIsArray($config);

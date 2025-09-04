@@ -83,11 +83,11 @@ class GeminiComprehensiveE2ETest extends E2ETestCase
             'max_tokens' => 50,
         ]);
 
-        $this->assertGreaterThan(0, $tokenResponse->tokenUsage->inputTokens);
-        $this->assertGreaterThan(0, $tokenResponse->tokenUsage->outputTokens);
+        $this->assertGreaterThan(0, $tokenResponse->tokenUsage->input_tokens);
+        $this->assertGreaterThan(0, $tokenResponse->tokenUsage->output_tokens);
         $this->assertGreaterThan(0, $tokenResponse->tokenUsage->totalTokens);
-        $this->logTestStep('✅ Token tracking: Input=' . $tokenResponse->tokenUsage->inputTokens .
-                          ', Output=' . $tokenResponse->tokenUsage->outputTokens);
+        $this->logTestStep('✅ Token tracking: Input=' . $tokenResponse->tokenUsage->input_tokens .
+                          ', Output=' . $tokenResponse->tokenUsage->output_tokens);
 
         // Test 4: Cost Calculation
         $this->logTestStep('4. Testing cost calculation...');

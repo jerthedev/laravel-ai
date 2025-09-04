@@ -87,7 +87,7 @@ class AIFunctionEvent
      * @param  string  $functionName  The function name
      * @param  string  $listenerClass  The listener class
      * @param  array  $parameters  Function parameters definition
-     * @return array  The function definition
+     * @return array The function definition
      */
     protected static function buildFunctionDefinition(string $functionName, string $listenerClass, array $parameters): array
     {
@@ -141,7 +141,7 @@ class AIFunctionEvent
      * Get a specific registered function by name.
      *
      * @param  string  $functionName  The function name
-     * @return array|null  The function definition or null if not found
+     * @return array|null The function definition or null if not found
      */
     public static function getRegisteredFunction(string $functionName): ?array
     {
@@ -152,7 +152,7 @@ class AIFunctionEvent
      * Check if a function is registered.
      *
      * @param  string  $functionName  The function name
-     * @return bool  True if the function is registered
+     * @return bool True if the function is registered
      */
     public static function hasRegisteredFunction(string $functionName): bool
     {
@@ -162,7 +162,7 @@ class AIFunctionEvent
     /**
      * Get all registered function names.
      *
-     * @return array<string>  Array of function names
+     * @return array<string> Array of function names
      */
     public static function getRegisteredFunctionNames(): array
     {
@@ -178,8 +178,9 @@ class AIFunctionEvent
      */
     public static function processFunctionCall(string $functionName, array $parameters, array $context = []): void
     {
-        if (!isset(static::$functionListeners[$functionName])) {
+        if (! isset(static::$functionListeners[$functionName])) {
             Log::warning("No listener registered for function: {$functionName}");
+
             return;
         }
 

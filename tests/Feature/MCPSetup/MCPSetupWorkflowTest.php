@@ -3,13 +3,12 @@
 namespace JTD\LaravelAI\Tests\Integration;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Process;
 use JTD\LaravelAI\Services\MCPManager;
 use JTD\LaravelAI\Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Setup Workflow Integration Tests
@@ -24,7 +23,9 @@ class MCPSetupWorkflowTest extends TestCase
     use RefreshDatabase;
 
     protected string $testConfigPath;
+
     protected string $testToolsPath;
+
     protected MCPManager $mcpManager;
 
     protected function setUp(): void

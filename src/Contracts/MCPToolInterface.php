@@ -55,7 +55,7 @@ interface MCPToolInterface
     /**
      * Execute the tool with the given parameters.
      *
-     * @param array $parameters Input parameters matching the input schema
+     * @param  array  $parameters  Input parameters matching the input schema
      * @return array Tool execution result matching the output schema
      *
      * @throws \JTD\LaravelAI\Exceptions\MCPToolException
@@ -66,7 +66,7 @@ interface MCPToolInterface
     /**
      * Validate input parameters against the tool's schema.
      *
-     * @param array $parameters Parameters to validate
+     * @param  array  $parameters  Parameters to validate
      * @return bool True if parameters are valid
      *
      * @throws \JTD\LaravelAI\Exceptions\ValidationException

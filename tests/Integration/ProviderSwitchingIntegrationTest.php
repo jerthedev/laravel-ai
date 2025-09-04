@@ -46,7 +46,7 @@ class ProviderSwitchingIntegrationTest extends TestCase
     protected function configureE2ECredentials(): void
     {
         $credentials = $this->getE2ECredentials();
-        if (!$credentials) {
+        if (! $credentials) {
             return;
         }
 

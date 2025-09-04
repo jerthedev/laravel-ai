@@ -3,9 +3,7 @@
 namespace JTD\LaravelAI\Services;
 
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Process;
 use JTD\LaravelAI\Contracts\MCPServerInterface;
-use JTD\LaravelAI\Exceptions\MCPException;
 
 /**
  * MCP Server Validator Service
@@ -44,7 +42,7 @@ class MCPServerValidator
     /**
      * Perform comprehensive validation of an MCP server.
      */
-    public function validateServer(string $serverName, MCPServerInterface $server = null): array
+    public function validateServer(string $serverName, ?MCPServerInterface $server = null): array
     {
         $results = [
             'server_name' => $serverName,
@@ -91,12 +89,11 @@ class MCPServerValidator
                     $results['warnings'] = array_merge($results['warnings'], $test['warnings']);
                 }
             }
-
         } catch (\Exception $e) {
             $results['overall_status'] = 'error';
             $results['errors'][] = "Validation failed: {$e->getMessage()}";
-            
-            Log::error("MCP server validation failed", [
+
+            Log::error('MCP server validation failed', [
                 'server' => $serverName,
                 'error' => $e->getMessage(),
             ]);
@@ -122,34 +119,34 @@ class MCPServerValidator
             $config = $this->configService->loadConfiguration();
             $serverConfig = $config['servers'][$serverName] ?? null;
 
-            if (!$serverConfig) {
+            if (! $serverConfig) {
                 $result['status'] = 'failed';
                 $result['errors'][] = "Server '{$serverName}' not found in configuration";
+
                 return $result;
             }
 
             // Validate configuration structure
             $validation = $this->configService->validateConfiguration($config);
-            
-            if (!empty($validation['errors'])) {
+
+            if (! empty($validation['errors'])) {
                 $result['status'] = 'failed';
                 $result['errors'] = $validation['errors'];
             } else {
                 $result['status'] = 'passed';
             }
 
-            if (!empty($validation['warnings'])) {
+            if (! empty($validation['warnings'])) {
                 $result['warnings'] = $validation['warnings'];
             }
 
             $result['details'] = [
                 'server_type' => $serverConfig['type'] ?? 'unknown',
                 'enabled' => $serverConfig['enabled'] ?? false,
-                'has_command' => !empty($serverConfig['command']),
-                'has_env_vars' => !empty($serverConfig['env']),
+                'has_command' => ! empty($serverConfig['command']),
+                'has_env_vars' => ! empty($serverConfig['env']),
                 'timeout' => $serverConfig['timeout'] ?? 'default',
             ];
-
         } catch (\Exception $e) {
             $result['status'] = 'error';
             $result['errors'][] = "Configuration validation error: {$e->getMessage()}";
@@ -174,17 +171,18 @@ class MCPServerValidator
         try {
             // Check if server template exists
             $template = $this->installer->getServerTemplate($serverName);
-            
-            if (!$template) {
+
+            if (! $template) {
                 $result['status'] = 'skipped';
                 $result['warnings'][] = "No installation template found for server '{$serverName}'";
+
                 return $result;
             }
 
             // Check if server is installed
             $installStatus = $this->installer->isServerInstalled($serverName);
-            
-            if (!$installStatus['installed']) {
+
+            if (! $installStatus['installed']) {
                 $result['status'] = 'failed';
                 $result['errors'][] = "Server package '{$template['package']}' is not installed";
                 $result['details']['package'] = $template['package'];
@@ -194,7 +192,6 @@ class MCPServerValidator
                 $result['details']['package'] = $template['package'];
                 $result['details']['version'] = $installStatus['version'] ?? 'unknown';
             }
-
         } catch (\Exception $e) {
             $result['status'] = 'error';
             $result['errors'][] = "Installation validation error: {$e->getMessage()}";
@@ -250,7 +247,6 @@ class MCPServerValidator
             if ($responseTime > 5000) { // 5 seconds
                 $result['warnings'][] = "Slow response time: {$result['details']['response_time_ms']}ms";
             }
-
         } catch (\Exception $e) {
             $result['status'] = 'error';
             $result['errors'][] = "Connectivity test error: {$e->getMessage()}";
@@ -276,8 +272,9 @@ class MCPServerValidator
             $config = $this->configService->loadConfiguration();
             $serverConfig = $config['servers'][$serverName] ?? null;
 
-            if (!$serverConfig) {
+            if (! $serverConfig) {
                 $result['status'] = 'skipped';
+
                 return $result;
             }
 
@@ -290,7 +287,7 @@ class MCPServerValidator
                 if (str_starts_with($value, '${') && str_ends_with($value, '}')) {
                     $envVar = substr($value, 2, -1);
                     $envValue = env($envVar);
-                    
+
                     if (empty($envValue)) {
                         $missingVars[] = $envVar;
                     } else {
@@ -303,13 +300,12 @@ class MCPServerValidator
             $result['details']['present_vars'] = $presentVars;
             $result['details']['missing_vars'] = $missingVars;
 
-            if (!empty($missingVars)) {
+            if (! empty($missingVars)) {
                 $result['status'] = 'failed';
-                $result['errors'][] = "Missing environment variables: " . implode(', ', $missingVars);
+                $result['errors'][] = 'Missing environment variables: ' . implode(', ', $missingVars);
             } else {
                 $result['status'] = 'passed';
             }
-
         } catch (\Exception $e) {
             $result['status'] = 'error';
             $result['errors'][] = "Environment validation error: {$e->getMessage()}";
@@ -357,7 +353,6 @@ class MCPServerValidator
             } else {
                 $result['status'] = 'passed';
             }
-
         } catch (\Exception $e) {
             $result['status'] = 'error';
             $result['errors'][] = "Performance test error: {$e->getMessage()}";

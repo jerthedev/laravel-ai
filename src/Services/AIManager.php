@@ -5,7 +5,6 @@ namespace JTD\LaravelAI\Services;
 use Illuminate\Contracts\Foundation\Application;
 use JTD\LaravelAI\Contracts\AIProviderInterface;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
-use JTD\LaravelAI\Events\ResponseGenerated;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 
@@ -93,22 +92,20 @@ class AIManager
         $options = $this->processToolOptions($options);
 
         // Ensure user_id is set if not already provided
-        if (!isset($message->user_id)) {
+        if (! isset($message->user_id)) {
             $message->user_id = auth()->id() ?? 0;
         }
 
         // Add processing metadata if not already set
-        if (!isset($message->metadata['processing_start_time'])) {
+        if (! isset($message->metadata['processing_start_time'])) {
             $message->metadata = array_merge($message->metadata ?? [], [
-                'processing_start_time' => microtime(true)
+                'processing_start_time' => microtime(true),
             ]);
         }
 
         // Send message to provider (events will be fired at provider level)
         return $provider->sendMessage($message, $options);
     }
-
-
 
     /**
      * Send a streaming message using the default provider.
@@ -126,22 +123,20 @@ class AIManager
         $options = $this->processToolOptions($options);
 
         // Ensure user_id is set if not already provided
-        if (!isset($message->user_id)) {
+        if (! isset($message->user_id)) {
             $message->user_id = auth()->id() ?? 0;
         }
 
         // Add processing metadata if not already set
-        if (!isset($message->metadata['processing_start_time'])) {
+        if (! isset($message->metadata['processing_start_time'])) {
             $message->metadata = array_merge($message->metadata ?? [], [
-                'processing_start_time' => microtime(true)
+                'processing_start_time' => microtime(true),
             ]);
         }
 
         // Stream from provider (events will be fired at provider level)
         yield from $provider->sendStreamingMessage($message, $options);
     }
-
-
 
     /**
      * Get all configured providers.
@@ -310,12 +305,12 @@ class AIManager
      * Process tool options and resolve tool definitions.
      *
      * @param  array  $options  Request options
-     * @return array  Processed options with resolved tools
+     * @return array Processed options with resolved tools
      */
     protected function processToolOptions(array $options): array
     {
         // Check if withTools or allTools options are present
-        if (!isset($options['withTools']) && !isset($options['allTools'])) {
+        if (! isset($options['withTools']) && ! isset($options['allTools'])) {
             return $options;
         }
 
@@ -333,7 +328,7 @@ class AIManager
             $toolNames = $options['withTools'];
             $missingTools = $toolRegistry->validateToolNames($toolNames);
 
-            if (!empty($missingTools)) {
+            if (! empty($missingTools)) {
                 throw new \InvalidArgumentException(
                     'Unknown tools: ' . implode(', ', $missingTools)
                 );

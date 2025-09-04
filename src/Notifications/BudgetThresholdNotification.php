@@ -85,7 +85,7 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
         }
 
         $mailMessage->line($this->getRecommendations())
-                   ->line('Thank you for using our AI services responsibly.');
+            ->line('Thank you for using our AI services responsibly.');
 
         // Add severity-based styling
         if ($this->severity === 'critical') {
@@ -114,10 +114,10 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
             ->content($title)
             ->attachment(function ($attachment) use ($message) {
                 $attachment->title('Budget Alert Details')
-                          ->content($message)
-                          ->fields($this->getSlackFields())
-                          ->footer('AI Budget Monitor')
-                          ->timestamp($this->event->metadata['triggered_at'] ?? now());
+                    ->content($message)
+                    ->fields($this->getSlackFields())
+                    ->footer('AI Budget Monitor')
+                    ->timestamp($this->event->metadata['triggered_at'] ?? now());
             });
     }
 
@@ -144,9 +144,9 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
             'type' => 'budget_threshold',
             'severity' => $this->severity,
             'budget_type' => $this->event->budgetType,
-            'threshold_percentage' => $this->event->thresholdPercentage,
-            'current_spending' => $this->event->currentSpending,
-            'budget_limit' => $this->event->budgetLimit,
+            'threshold_percentage' => $this->event->threshold_percentage,
+            'current_spending' => $this->event->current_spending,
+            'budget_limit' => $this->event->budget_limit,
             'additional_cost' => $this->event->additionalCost,
             'project_id' => $this->event->projectId,
             'organization_id' => $this->event->organizationId,
@@ -165,7 +165,7 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
     {
         $budgetTypeDisplay = $this->getBudgetTypeDisplay();
         $severityIcon = $this->getSeverityIcon();
-        
+
         return match ($this->severity) {
             'critical' => "{$severityIcon} URGENT: {$budgetTypeDisplay} Budget Exceeded",
             'high' => "{$severityIcon} WARNING: {$budgetTypeDisplay} Budget Alert",
@@ -197,12 +197,12 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
     protected function getEmailMessage(): string
     {
         $budgetTypeDisplay = $this->getBudgetTypeDisplay();
-        $percentage = number_format($this->event->thresholdPercentage, 1);
-        
-        if ($this->event->thresholdPercentage >= 100) {
+        $percentage = number_format($this->event->threshold_percentage, 1);
+
+        if ($this->event->threshold_percentage >= 100) {
             return "Your {$budgetTypeDisplay} budget has been exceeded by {$percentage}%. Immediate action is required to prevent service interruption.";
         }
-        
+
         return "Your {$budgetTypeDisplay} budget has reached {$percentage}% of the limit. Please review your usage and consider adjusting your budget if needed.";
     }
 
@@ -213,16 +213,16 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
      */
     protected function getBudgetDetails(): string
     {
-        $current = '$' . number_format($this->event->currentSpending, 2);
-        $limit = '$' . number_format($this->event->budgetLimit, 2);
+        $current = '$' . number_format($this->event->current_spending, 2);
+        $limit = '$' . number_format($this->event->budget_limit, 2);
         $additional = '$' . number_format($this->event->additionalCost, 2);
-        
+
         $details = "Current spending: {$current} | Budget limit: {$limit}";
-        
+
         if ($this->event->additionalCost > 0) {
             $details .= " | Additional cost: {$additional}";
         }
-        
+
         return $details;
     }
 
@@ -250,15 +250,15 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
     {
         // This would typically link to your budget management dashboard
         $baseUrl = config('app.url');
-        
+
         if ($this->event->projectId) {
             return "{$baseUrl}/projects/{$this->event->projectId}/budget";
         }
-        
+
         if ($this->event->organizationId) {
             return "{$baseUrl}/organizations/{$this->event->organizationId}/budget";
         }
-        
+
         return "{$baseUrl}/budget";
     }
 
@@ -270,6 +270,7 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
     protected function getRecommendations(): string
     {
         $recommendations = $this->getRecommendationsList();
+
         return 'Recommended actions: ' . implode(', ', array_slice($recommendations, 0, 3));
     }
 
@@ -281,8 +282,8 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
     protected function getRecommendationsList(): array
     {
         $recommendations = [];
-        
-        if ($this->event->thresholdPercentage >= 100) {
+
+        if ($this->event->threshold_percentage >= 100) {
             $recommendations[] = 'Increase budget limit immediately';
             $recommendations[] = 'Review recent high-cost operations';
             $recommendations[] = 'Consider optimizing AI usage patterns';
@@ -291,7 +292,7 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
             $recommendations[] = 'Review cost optimization opportunities';
             $recommendations[] = 'Consider increasing budget if needed';
         }
-        
+
         switch ($this->event->budgetType) {
             case 'daily':
                 $recommendations[] = 'Budget will reset tomorrow';
@@ -303,7 +304,7 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
                 $recommendations[] = 'Reduce request complexity';
                 break;
         }
-        
+
         return $recommendations;
     }
 
@@ -331,8 +332,8 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
     {
         $icon = $this->getSeverityIcon();
         $budgetType = $this->getBudgetTypeDisplay();
-        $percentage = number_format($this->event->thresholdPercentage, 1);
-        
+        $percentage = number_format($this->event->threshold_percentage, 1);
+
         return "{$icon} {$budgetType} Budget Alert: {$percentage}%";
     }
 
@@ -344,10 +345,10 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
     protected function getSlackMessage(): string
     {
         $budgetType = $this->getBudgetTypeDisplay();
-        $current = number_format($this->event->currentSpending, 2);
-        $limit = number_format($this->event->budgetLimit, 2);
-        
-        return "Your {$budgetType} budget has reached {$this->event->thresholdPercentage}% of the limit.\n" .
+        $current = number_format($this->event->current_spending, 2);
+        $limit = number_format($this->event->budget_limit, 2);
+
+        return "Your {$budgetType} budget has reached {$this->event->threshold_percentage}% of the limit.\n" .
                "Current: \${$current} | Limit: \${$limit}";
     }
 
@@ -360,19 +361,19 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
     {
         $fields = [
             'Budget Type' => $this->getBudgetTypeDisplay(),
-            'Current Spending' => '$' . number_format($this->event->currentSpending, 2),
-            'Budget Limit' => '$' . number_format($this->event->budgetLimit, 2),
-            'Threshold' => number_format($this->event->thresholdPercentage, 1) . '%',
+            'Current Spending' => '$' . number_format($this->event->current_spending, 2),
+            'Budget Limit' => '$' . number_format($this->event->budget_limit, 2),
+            'Threshold' => number_format($this->event->threshold_percentage, 1) . '%',
         ];
-        
+
         if ($this->event->additionalCost > 0) {
             $fields['Additional Cost'] = '$' . number_format($this->event->additionalCost, 2);
         }
-        
+
         if ($this->event->projectId) {
             $fields['Project ID'] = $this->event->projectId;
         }
-        
+
         return $fields;
     }
 
@@ -384,11 +385,11 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
     protected function getSmsMessage(): string
     {
         $budgetType = $this->getBudgetTypeDisplay();
-        $percentage = number_format($this->event->thresholdPercentage, 1);
-        $limit = number_format($this->event->budgetLimit, 2);
-        
+        $percentage = number_format($this->event->threshold_percentage, 1);
+        $limit = number_format($this->event->budget_limit, 2);
+
         return "BUDGET ALERT: Your {$budgetType} budget has reached {$percentage}% (limit: \${$limit}). " .
-               "Please review your usage. Reply STOP to opt out.";
+               'Please review your usage. Reply STOP to opt out.';
     }
 
     /**
@@ -399,8 +400,8 @@ class BudgetThresholdNotification extends Notification implements ShouldQueue
     protected function getNotificationMessage(): string
     {
         $budgetType = $this->getBudgetTypeDisplay();
-        $percentage = number_format($this->event->thresholdPercentage, 1);
-        
+        $percentage = number_format($this->event->threshold_percentage, 1);
+
         return "Your {$budgetType} budget has reached {$percentage}% of the limit.";
     }
 

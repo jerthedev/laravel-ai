@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use JTD\LaravelAI\Services\CostAnalyticsService;
 use JTD\LaravelAI\Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Cost Analytics Service Tests
@@ -36,7 +36,7 @@ class CostAnalyticsServiceTest extends TestCase
         parent::setUp();
 
         // Initialize the CostAnalyticsService
-        $this->costAnalyticsService = new CostAnalyticsService();
+        $this->costAnalyticsService = new CostAnalyticsService;
 
         // Seed test data for analytics calculations
         $this->seedTestData();
@@ -226,7 +226,7 @@ class CostAnalyticsServiceTest extends TestCase
 
         // Cache hit should be faster (allow for some variance in timing)
         $this->assertLessThan($firstCallTime, $secondCallTime,
-            "Cached call should be faster than first call");
+            'Cached call should be faster than first call');
 
         // Results should be identical
         $this->assertEquals($firstResult, $secondResult);
@@ -279,7 +279,7 @@ class CostAnalyticsServiceTest extends TestCase
         }
 
         // Execute all promises
-        $results = array_map(fn($promise) => $promise(), $promises);
+        $results = array_map(fn ($promise) => $promise(), $promises);
 
         // All results should be identical
         $firstResult = $results[0];

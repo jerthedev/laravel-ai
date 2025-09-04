@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use JTD\LaravelAI\Services\TrendAnalysisService;
 use JTD\LaravelAI\Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Trend Analysis Service Tests
@@ -197,7 +197,7 @@ class TrendAnalysisServiceTest extends TestCase
         $executionTime = (microtime(true) - $startTime) * 1000; // Convert to milliseconds
 
         // Performance target: <500ms for trend analysis
-        $this->assertLessThan(500, $executionTime, 
+        $this->assertLessThan(500, $executionTime,
             "Trend analysis took {$executionTime}ms, exceeding 500ms target");
 
         $this->assertIsArray($trends);
@@ -225,8 +225,8 @@ class TrendAnalysisServiceTest extends TestCase
         $secondCallTime = (microtime(true) - $startTime) * 1000;
 
         // Cache hit should be significantly faster
-        $this->assertLessThan($firstCallTime / 2, $secondCallTime, 
-            "Cached call should be at least 50% faster");
+        $this->assertLessThan($firstCallTime / 2, $secondCallTime,
+            'Cached call should be at least 50% faster');
 
         // Results should be identical
         $this->assertEquals($firstResult, $secondResult);
@@ -251,12 +251,12 @@ class TrendAnalysisServiceTest extends TestCase
     {
         // Test with known data points
         $values = [1, 2, 3, 4, 5];
-        
+
         // Use reflection to test protected method
         $reflection = new \ReflectionClass($this->trendAnalysisService);
         $method = $reflection->getMethod('calculateLinearRegression');
         $method->setAccessible(true);
-        
+
         $result = $method->invoke($this->trendAnalysisService, $values);
 
         $this->assertIsArray($result);
@@ -278,10 +278,10 @@ class TrendAnalysisServiceTest extends TestCase
 
         // Test increasing trend
         $this->assertEquals('increasing', $method->invoke($this->trendAnalysisService, 0.5));
-        
+
         // Test decreasing trend
         $this->assertEquals('decreasing', $method->invoke($this->trendAnalysisService, -0.5));
-        
+
         // Test stable trend
         $this->assertEquals('stable', $method->invoke($this->trendAnalysisService, 0.005));
     }
@@ -312,9 +312,9 @@ class TrendAnalysisServiceTest extends TestCase
         $days = 30;
 
         $trends = $this->trendAnalysisService->analyzeUsageTrends($userId, $period, $days);
-        
+
         $this->assertEquals('success', $trends['status']);
-        
+
         $forecast = $trends['forecasting'];
         $this->assertArrayHasKey('predictions', $forecast);
         $this->assertArrayHasKey('forecast_periods', $forecast);
@@ -325,10 +325,10 @@ class TrendAnalysisServiceTest extends TestCase
             $this->assertArrayHasKey('period', $prediction);
             $this->assertArrayHasKey('predicted_value', $prediction);
             $this->assertArrayHasKey('confidence_interval', $prediction);
-            
+
             // Predicted values should be non-negative
             $this->assertGreaterThanOrEqual(0, $prediction['predicted_value']);
-            
+
             // Confidence interval should have lower and upper bounds
             $this->assertArrayHasKey('lower', $prediction['confidence_interval']);
             $this->assertArrayHasKey('upper', $prediction['confidence_interval']);
@@ -371,7 +371,7 @@ class TrendAnalysisServiceTest extends TestCase
             $date = now()->subDays($i);
             $provider = $providers[array_rand($providers)];
             $model = $models[array_rand($models)];
-            
+
             // Create trending data (increasing usage over time)
             $baseUsage = 100 + ($i * 2); // Increasing trend
             $tokens = $baseUsage + rand(-20, 20); // Add some variance

@@ -246,10 +246,9 @@ class CoreEventSystemUnifiedE2ETest extends TestCase
             $this->assertInstanceOf(AIResponse::class, $response3);
 
             // Pattern 4: Direct driver
-            $driver = new MockProvider();
+            $driver = new MockProvider;
             $response4 = $driver->sendMessage(AIMessage::user('Test error handling'));
             $this->assertInstanceOf(AIResponse::class, $response4);
-
         } catch (\Exception $e) {
             // If any errors occur, they should be handled consistently
             $this->fail('Unified architecture should handle errors gracefully: ' . $e->getMessage());
@@ -267,7 +266,7 @@ class CoreEventSystemUnifiedE2ETest extends TestCase
             'default' => AI::sendMessage($message),
             'specific' => AI::provider('mock')->sendMessage($message),
             'conversation' => AI::conversation()->message('Test response structure')->send(),
-            'direct' => (new MockProvider())->sendMessage($message),
+            'direct' => (new MockProvider)->sendMessage($message),
         ];
 
         // Verify all responses have consistent structure

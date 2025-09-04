@@ -2,13 +2,11 @@
 
 namespace JTD\LaravelAI\Tests\E2E;
 
-use JTD\LaravelAI\Services\UnifiedToolRegistry;
-use JTD\LaravelAI\Services\UnifiedToolExecutor;
 use JTD\LaravelAI\Services\AIFunctionEvent;
-use JTD\LaravelAI\Services\MCPConfigurationService;
-use JTD\LaravelAI\Services\MCPToolDiscoveryService;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Services\UnifiedToolExecutor;
+use JTD\LaravelAI\Services\UnifiedToolRegistry;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Unified Tool System E2E Test
@@ -22,6 +20,7 @@ use PHPUnit\Framework\Attributes\Group;
 class UnifiedToolSystemE2ETest extends E2ETestCase
 {
     protected UnifiedToolRegistry $toolRegistry;
+
     protected UnifiedToolExecutor $toolExecutor;
 
     protected function setUp(): void

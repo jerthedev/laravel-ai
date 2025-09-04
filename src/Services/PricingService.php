@@ -60,8 +60,6 @@ class PricingService
     {
         $pricing = $this->getModelPricing($provider, $model);
 
-
-
         if (empty($pricing)) {
             return $this->getDefaultCostCalculation($inputTokens, $outputTokens);
         }
@@ -132,11 +130,12 @@ class PricingService
 
             if ($pricingClass) {
                 $pricing = $pricingClass->getModelPricing($model);
-                if (!empty($pricing)) {
+                if (! empty($pricing)) {
                     // Add source if not already present
-                    if (!isset($pricing['source'])) {
+                    if (! isset($pricing['source'])) {
                         $pricing['source'] = 'driver_static';
                     }
+
                     return $pricing;
                 }
             }
@@ -384,8 +383,6 @@ class PricingService
     {
         $unit = $pricing['unit'];
 
-
-
         return match ($unit) {
             PricingUnit::PER_1K_TOKENS, PricingUnit::PER_1M_TOKENS => $this->calculateTokenBasedCost($pricing, $usage),
             PricingUnit::PER_IMAGE, PricingUnit::PER_REQUEST => $pricing['cost'] * ($usage['requests'] ?? 1),
@@ -412,8 +409,6 @@ class PricingService
         $inputCost = ($inputTokens / $divisor) * ($pricing['input'] ?? 0);
         $outputCost = ($outputTokens / $divisor) * ($pricing['output'] ?? 0);
         $total = $inputCost + $outputCost;
-
-
 
         return $total;
     }

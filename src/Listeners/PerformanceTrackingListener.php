@@ -118,7 +118,7 @@ class PerformanceTrackingListener
     {
         $jobId = $event->job->getJobId();
 
-        if (!isset($this->activeJobs[$jobId])) {
+        if (! isset($this->activeJobs[$jobId])) {
             return;
         }
 
@@ -159,7 +159,6 @@ class PerformanceTrackingListener
             ]);
 
             return $result;
-
         } catch (\Exception $e) {
             $duration = (microtime(true) - $startTime) * 1000;
 
@@ -232,6 +231,7 @@ class PerformanceTrackingListener
                 $size += strlen((string) $key);
                 $size += $this->estimatePayloadSize($value);
             }
+
             return $size;
         }
 
@@ -239,6 +239,7 @@ class PerformanceTrackingListener
             if ($data instanceof \Closure) {
                 return 100; // Estimate closure size
             }
+
             return strlen(get_class($data)) + 50; // Estimate object size
         }
 

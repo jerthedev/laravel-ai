@@ -63,7 +63,6 @@ class ForecastingController extends Controller
                 'data' => $trends,
                 'generated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -107,7 +106,6 @@ class ForecastingController extends Controller
                 'data' => $trends,
                 'generated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -149,7 +147,6 @@ class ForecastingController extends Controller
                 'data' => $comparison,
                 'generated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -193,7 +190,6 @@ class ForecastingController extends Controller
                 'data' => $comparison,
                 'generated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -235,7 +231,6 @@ class ForecastingController extends Controller
                 'data' => $recommendations,
                 'generated_at' => now()->toISOString(),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -306,7 +301,6 @@ class ForecastingController extends Controller
                 'success' => true,
                 'data' => $report,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

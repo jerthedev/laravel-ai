@@ -555,32 +555,223 @@ return [
     | AI Middleware System
     |--------------------------------------------------------------------------
     |
-    | The middleware system provides Laravel-familiar request interception
-    | and transformation capabilities for AI requests. Enables smart routing,
-    | context injection, budget enforcement, and performance optimization.
+    | The middleware system provides Laravel-familiar request interception and
+    | transformation capabilities for AI requests. Middleware components execute
+    | in a pipeline pattern, allowing for request modification, policy enforcement,
+    | cost tracking, context injection, and response transformation.
+    |
+    | Global middleware runs for every AI request automatically and cannot be
+    | disabled for individual requests. Available middleware can be selectively
+    | applied using ConversationBuilder or Direct SendMessage patterns.
+    |
+    | Architecture:
+    | AI Request → Global Middleware → Request Middleware → AI Provider → Response
+    |
+    | Usage Examples:
+    | // Via ConversationBuilder
+    | AI::conversation()->middleware(['budget-enforcement', 'analytics'])->send('Hello');
+    |
+    | // Via Direct SendMessage
+    | AI::sendMessage($message, ['middleware' => ['budget-enforcement']]);
+    |
+    | // Global middleware applies automatically to all requests
     |
     */
 
     'middleware' => [
+
+        /*
+        |----------------------------------------------------------------------
+        | Middleware System Enable/Disable
+        |----------------------------------------------------------------------
+        |
+        | Master switch to enable or disable the entire middleware system.
+        | When disabled, all middleware is bypassed and requests go directly
+        | to AI providers without any interception or processing.
+        |
+        */
+
         'enabled' => env('AI_MIDDLEWARE_ENABLED', true),
 
+        /*
+        |----------------------------------------------------------------------
+        | Global Middleware Configuration
+        |----------------------------------------------------------------------
+        |
+        | Global middleware that executes for every AI request automatically.
+        | These middleware cannot be disabled for individual requests and run
+        | in the order specified. Use for essential functionality like budget
+        | enforcement, cost tracking, and security policies.
+        |
+        | Configuration supports both simple class references and detailed
+        | configuration arrays with middleware-specific options.
+        |
+        */
+
         'global' => [
-            'budget_enforcement' => [
+
+            // Budget Enforcement Middleware - Prevents cost overruns
+            'budget-enforcement' => [
+                'class' => \JTD\LaravelAI\Middleware\BudgetEnforcementMiddleware::class,
                 'enabled' => env('AI_BUDGET_ENFORCEMENT_ENABLED', true),
+
+                // Enforcement strictness - strict mode throws exceptions,
+                // relaxed mode logs warnings but allows requests
                 'strict_mode' => env('AI_BUDGET_STRICT_MODE', false),
+
+                // Performance optimization settings
+                'cache_ttl' => env('AI_BUDGET_CACHE_TTL', 300), // 5 minutes
+                'spending_cache_ttl' => env('AI_BUDGET_SPENDING_CACHE_TTL', 60), // 1 minute
+
+                // Budget threshold alerts (percentage of limit)
+                'warning_threshold' => env('AI_BUDGET_WARNING_THRESHOLD', 0.8), // 80%
+                'critical_threshold' => env('AI_BUDGET_CRITICAL_THRESHOLD', 0.95), // 95%
+
+                // Fail-open settings - continue requests on budget service errors
+                'fail_open' => env('AI_BUDGET_FAIL_OPEN', true),
+                'log_failures' => env('AI_BUDGET_LOG_FAILURES', true),
             ],
+
+            // Cost Tracking Middleware - Automatic cost calculation and tracking
+            'cost-tracking' => [
+                'class' => \JTD\LaravelAI\Middleware\CostTrackingMiddleware::class,
+                'enabled' => env('AI_COST_TRACKING_ENABLED', true),
+
+                // Real-time cost calculation and event firing
+                'fire_events' => env('AI_COST_FIRE_EVENTS', true),
+                'background_processing' => env('AI_COST_BACKGROUND_PROCESSING', true),
+
+                // Performance settings
+                'cache_pricing' => env('AI_COST_CACHE_PRICING', true),
+                'pricing_cache_ttl' => env('AI_COST_PRICING_CACHE_TTL', 3600), // 1 hour
+            ],
+
         ],
 
-        'performance' => [
-            'track_execution_time' => true,
-            'log_slow_middleware' => true,
-            'slow_threshold_ms' => 100,
-        ],
+        /*
+        |----------------------------------------------------------------------
+        | Available Middleware Registry
+        |----------------------------------------------------------------------
+        |
+        | Middleware that can be selectively applied to specific AI requests.
+        | These are registered by name and can be used via ConversationBuilder
+        | or Direct SendMessage patterns. Middleware in this registry are not
+        | executed automatically - they must be explicitly requested.
+        |
+        */
 
         'available' => [
-            'budget_enforcement' => \JTD\LaravelAI\Middleware\BudgetEnforcementMiddleware::class,
-            // Additional middleware will be added in future phases
+
+            // Budget enforcement (also available for selective use)
+            'budget-enforcement' => \JTD\LaravelAI\Middleware\BudgetEnforcementMiddleware::class,
+
+            // Cost tracking (also available for selective use)
+            'cost-tracking' => \JTD\LaravelAI\Middleware\CostTrackingMiddleware::class,
+
+            // Performance monitoring middleware
+            'performance-monitoring' => \JTD\LaravelAI\Middleware\PerformanceMonitoringMiddleware::class,
+
+            // Future middleware will be added here:
+            // 'analytics' => \JTD\LaravelAI\Middleware\AnalyticsMiddleware::class,
+            // 'cache' => \JTD\LaravelAI\Middleware\CacheMiddleware::class,
+            // 'rate-limiting' => \JTD\LaravelAI\Middleware\RateLimitingMiddleware::class,
+            // 'context-injection' => \JTD\LaravelAI\Middleware\ContextInjectionMiddleware::class,
+            // 'smart-routing' => \JTD\LaravelAI\Middleware\SmartRoutingMiddleware::class,
+
         ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Performance Configuration
+        |----------------------------------------------------------------------
+        |
+        | Settings for middleware performance monitoring, execution tracking,
+        | and optimization. These settings help identify and debug slow
+        | middleware that may impact overall AI request processing times.
+        |
+        */
+
+        'performance' => [
+
+            // Track execution time for each middleware component
+            'track_execution_time' => env('AI_MIDDLEWARE_TRACK_EXECUTION', true),
+
+            // Log middleware that exceed performance thresholds
+            'log_slow_middleware' => env('AI_MIDDLEWARE_LOG_SLOW', true),
+
+            // Threshold for logging slow middleware (milliseconds)
+            'slow_threshold_ms' => env('AI_MIDDLEWARE_SLOW_THRESHOLD', 100),
+
+            // Total middleware stack performance target
+            'stack_target_ms' => env('AI_MIDDLEWARE_STACK_TARGET', 10),
+
+            // Enable performance warnings in logs
+            'performance_warnings' => env('AI_MIDDLEWARE_PERFORMANCE_WARNINGS', true),
+
+            // Cache middleware resolution for performance
+            'cache_resolution' => env('AI_MIDDLEWARE_CACHE_RESOLUTION', true),
+
+            // Object pooling for high-traffic scenarios
+            'object_pooling' => env('AI_MIDDLEWARE_OBJECT_POOLING', true),
+
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Error Handling Configuration
+        |----------------------------------------------------------------------
+        |
+        | Configuration for middleware error handling, graceful degradation,
+        | and failure recovery. These settings control how the middleware
+        | system behaves when individual middleware components fail.
+        |
+        */
+
+        'error_handling' => [
+
+            // Continue processing on middleware failures (fail-open)
+            'graceful_degradation' => env('AI_MIDDLEWARE_GRACEFUL_DEGRADATION', true),
+
+            // Log middleware errors for debugging
+            'log_errors' => env('AI_MIDDLEWARE_LOG_ERRORS', true),
+
+            // Stop pipeline on critical errors (budget exceeded, etc.)
+            'stop_on_critical_errors' => env('AI_MIDDLEWARE_STOP_ON_CRITICAL', true),
+
+            // Retry failed middleware components
+            'retry_failed_middleware' => env('AI_MIDDLEWARE_RETRY_FAILED', false),
+
+            // Maximum retry attempts per middleware
+            'max_retry_attempts' => env('AI_MIDDLEWARE_MAX_RETRIES', 1),
+
+        ],
+
+        /*
+        |----------------------------------------------------------------------
+        | Development and Debugging
+        |----------------------------------------------------------------------
+        |
+        | Settings for middleware development, debugging, and testing.
+        | These options should typically be disabled in production.
+        |
+        */
+
+        'debug' => [
+
+            // Enable detailed middleware execution logging
+            'detailed_logging' => env('AI_MIDDLEWARE_DETAILED_LOGGING', false),
+
+            // Log middleware pipeline construction
+            'log_pipeline_construction' => env('AI_MIDDLEWARE_LOG_PIPELINE', false),
+
+            // Include middleware metadata in responses (dev only)
+            'include_metadata' => env('AI_MIDDLEWARE_INCLUDE_METADATA', false),
+
+            // Validate middleware interface compliance
+            'validate_interfaces' => env('AI_MIDDLEWARE_VALIDATE_INTERFACES', true),
+
+        ],
+
     ],
 
     /*

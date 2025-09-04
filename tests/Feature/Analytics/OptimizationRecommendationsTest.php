@@ -2,15 +2,15 @@
 
 namespace JTD\LaravelAI\Tests\Feature\Analytics;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\TrendAnalysisService;
-use JTD\LaravelAI\Services\CostAnalyticsService;
-use JTD\LaravelAI\Services\OptimizationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Services\CostAnalyticsService;
+use JTD\LaravelAI\Services\OptimizationService;
+use JTD\LaravelAI\Services\TrendAnalysisService;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Optimization Recommendations Tests
@@ -26,7 +26,9 @@ class OptimizationRecommendationsTest extends TestCase
     use RefreshDatabase;
 
     protected TrendAnalysisService $trendAnalysisService;
+
     protected CostAnalyticsService $costAnalyticsService;
+
     protected ?OptimizationService $optimizationService;
 
     protected function setUp(): void
@@ -166,7 +168,7 @@ class OptimizationRecommendationsTest extends TestCase
         ];
 
         // Analyze provider breakdown for high costs
-        if (isset($providerBreakdown['breakdown']) && !empty($providerBreakdown['breakdown'])) {
+        if (isset($providerBreakdown['breakdown']) && ! empty($providerBreakdown['breakdown'])) {
             foreach ($providerBreakdown['breakdown'] as $provider) {
                 if (isset($provider['avg_cost_per_request']) && $provider['avg_cost_per_request'] > 0.05) {
                     $opportunities['high_cost_providers'][] = $provider['provider'];
@@ -224,7 +226,7 @@ class OptimizationRecommendationsTest extends TestCase
         $switches = $switchingRecommendations['recommended_switches'];
         $this->assertIsArray($switches);
 
-        if (!empty($switches)) {
+        if (! empty($switches)) {
             $firstSwitch = $switches[0];
             $this->assertArrayHasKey('from_provider', $firstSwitch);
             $this->assertArrayHasKey('to_provider', $firstSwitch);
@@ -608,7 +610,7 @@ class OptimizationRecommendationsTest extends TestCase
     protected function seedOptimizationTestData(): void
     {
         // Create test tables if they don't exist (simplified for testing)
-        if (!DB::getSchemaBuilder()->hasTable('ai_optimization_recommendations')) {
+        if (! DB::getSchemaBuilder()->hasTable('ai_optimization_recommendations')) {
             DB::statement('CREATE TABLE ai_optimization_recommendations (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,

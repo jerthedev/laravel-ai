@@ -183,6 +183,173 @@ try {
 }
 ```
 
+## Middleware System
+
+The Laravel AI package includes a powerful middleware system for intercepting and transforming AI requests. Middleware operates in a Laravel-familiar pipeline pattern, enabling budget enforcement, cost tracking, performance monitoring, and custom request processing.
+
+### Available Middleware
+
+#### Budget Enforcement Middleware
+Prevents AI spending from exceeding configured limits with real-time budget checking:
+
+```php
+use JTD\LaravelAI\Services\BudgetService;
+
+// Set budget limits
+$budgetService = app(BudgetService::class);
+$budgetService->setBudgetLimit($userId, 'daily', 50.00);
+$budgetService->setBudgetLimit($userId, 'monthly', 500.00);
+$budgetService->setProjectBudgetLimit($projectId, 1000.00);
+
+// Budget enforcement runs automatically as global middleware
+$response = AI::conversation()->send('Generate a report');
+```
+
+#### Cost Tracking Middleware
+Automatically calculates and tracks costs for all AI requests:
+
+```php
+// Cost tracking runs automatically and fires events
+$response = AI::sendMessage(AIMessage::user('Hello'));
+
+// Access cost information
+echo $response->cost; // e.g., 0.0025
+echo $response->tokenUsage->totalTokens; // e.g., 150
+```
+
+#### Performance Monitoring Middleware
+Tracks request performance and logs slow operations:
+
+```php
+// Available for selective use
+$response = AI::conversation()
+    ->middleware(['performance-monitoring'])
+    ->send('Analyze this data');
+```
+
+### Usage Patterns
+
+#### ConversationBuilder Pattern
+Apply middleware to specific conversations:
+
+```php
+$response = AI::conversation()
+    ->middleware(['budget-enforcement', 'performance-monitoring'])
+    ->message('Generate marketing content')
+    ->send();
+```
+
+#### Direct SendMessage Pattern
+Specify middleware for individual requests:
+
+```php
+$response = AI::provider('openai')->sendMessage('Hello', [
+    'middleware' => ['budget-enforcement'],
+    'user_id' => $userId,
+    'metadata' => [
+        'project_id' => $projectId,
+        'organization_id' => $organizationId,
+    ]
+]);
+```
+
+#### Global Middleware
+Automatically applied to all requests (configured in `config/ai.php`):
+
+```php
+// Global middleware runs for every AI request
+'global' => [
+    'budget-enforcement' => [...],
+    'cost-tracking' => [...],
+],
+```
+
+### Configuration
+
+Configure middleware behavior in `config/ai.php`:
+
+```php
+'middleware' => [
+    'enabled' => true,
+    
+    // Global middleware (runs for all requests)
+    'global' => [
+        'budget-enforcement' => [
+            'class' => BudgetEnforcementMiddleware::class,
+            'strict_mode' => false,
+            'cache_ttl' => 300,
+            'fail_open' => true,
+        ],
+    ],
+    
+    // Available middleware (selective use)
+    'available' => [
+        'budget-enforcement' => BudgetEnforcementMiddleware::class,
+        'cost-tracking' => CostTrackingMiddleware::class,
+        'performance-monitoring' => PerformanceMonitoringMiddleware::class,
+    ],
+    
+    // Performance settings
+    'performance' => [
+        'track_execution_time' => true,
+        'slow_threshold_ms' => 100,
+        'stack_target_ms' => 10,
+    ],
+];
+```
+
+### Budget Management
+
+Set and manage budget limits:
+
+```php
+use JTD\LaravelAI\Services\BudgetService;
+
+$budgetService = app(BudgetService::class);
+
+// Set user budget limits
+$budgetService->setBudgetLimit($userId, 'per_request', 5.00);
+$budgetService->setBudgetLimit($userId, 'daily', 100.00);
+$budgetService->setBudgetLimit($userId, 'monthly', 1000.00);
+
+// Set project budget limits
+$budgetService->setProjectBudgetLimit($projectId, 2000.00);
+
+// Set organization budget limits
+$budgetService->setOrganizationBudgetLimit($orgId, 10000.00);
+
+// Check current spending
+$dailySpent = $budgetService->getDailySpending($userId);
+$monthlySpent = $budgetService->getMonthlySpending($userId);
+```
+
+### Error Handling
+
+Handle budget exceeded exceptions:
+
+```php
+use JTD\LaravelAI\Exceptions\BudgetExceededException;
+
+try {
+    $response = AI::conversation()->send('Expensive operation');
+} catch (BudgetExceededException $e) {
+    echo "Budget limit exceeded: " . $e->getMessage();
+    echo "Budget type: " . $e->getBudgetType(); // 'daily', 'monthly', etc.
+    echo "Limit: $" . $e->getBudgetLimit();
+    echo "Projected spending: $" . $e->getProjectedSpending();
+}
+```
+
+### Performance Features
+
+The middleware system is optimized for enterprise use:
+
+- **<10ms execution overhead** for the entire middleware stack
+- **Intelligent caching** with 5-minute budget cache and 1-minute spending cache
+- **Object pooling** for high-traffic scenarios
+- **Performance monitoring** with automatic slow operation detection
+- **Fail-open approach** to prevent blocking requests on system errors
+
 ## Requirements
 
 - PHP 8.1+

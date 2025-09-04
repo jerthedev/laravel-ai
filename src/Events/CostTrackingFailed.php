@@ -13,7 +13,9 @@ use Illuminate\Queue\SerializesModels;
  */
 class CostTrackingFailed
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     /**
      * Create a new event instance.
@@ -31,13 +33,11 @@ class CostTrackingFailed
 
     /**
      * Determine error severity based on context.
-     *
-     * @return string
      */
     protected function determineSeverity(): string
     {
         $error = $this->context['error'] ?? '';
-        
+
         return match (true) {
             str_contains($error, 'database') => 'high',
             str_contains($error, 'timeout') => 'medium',
@@ -48,8 +48,6 @@ class CostTrackingFailed
 
     /**
      * Get formatted error information.
-     *
-     * @return array
      */
     public function getErrorInfo(): array
     {

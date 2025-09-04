@@ -50,8 +50,8 @@ trait CalculatesCosts
     protected function calculateActualCost(TokenUsage $tokenUsage, string $modelId): array
     {
         return $this->calculateTokenCost(
-            $tokenUsage->inputTokens,
-            $tokenUsage->outputTokens,
+            $tokenUsage->input_tokens,
+            $tokenUsage->output_tokens,
             $modelId
         );
     }
@@ -159,8 +159,8 @@ trait CalculatesCosts
         $totalTokens = $this->estimateTokensForMessages($messages, $model);
 
         return new TokenUsage(
-            inputTokens: $totalTokens,
-            outputTokens: 0,
+            input_tokens: $totalTokens,
+            output_tokens: 0,
             totalTokens: $totalTokens
         );
     }
@@ -327,8 +327,8 @@ trait CalculatesCosts
 
         if (! $pricing) {
             return [
-                'input_tokens' => $usage->inputTokens,
-                'output_tokens' => $usage->outputTokens,
+                'input_tokens' => $usage->input_tokens,
+                'output_tokens' => $usage->output_tokens,
                 'total_tokens' => $usage->totalTokens,
                 'input_cost' => 0.0,
                 'output_cost' => 0.0,
@@ -338,13 +338,13 @@ trait CalculatesCosts
             ];
         }
 
-        $inputCost = ($usage->inputTokens / 1000000) * $pricing['input'];
-        $outputCost = ($usage->outputTokens / 1000000) * $pricing['output'];
+        $inputCost = ($usage->input_tokens / 1000000) * $pricing['input'];
+        $outputCost = ($usage->output_tokens / 1000000) * $pricing['output'];
         $totalCost = $inputCost + $outputCost;
 
         return [
-            'input_tokens' => $usage->inputTokens,
-            'output_tokens' => $usage->outputTokens,
+            'input_tokens' => $usage->input_tokens,
+            'output_tokens' => $usage->output_tokens,
             'total_tokens' => $usage->totalTokens,
             'input_cost' => round($inputCost, 6),
             'output_cost' => round($outputCost, 6),
@@ -367,12 +367,12 @@ trait CalculatesCosts
         $inputUsage = $this->estimateTokens($messages, $model);
 
         // Estimate output tokens (conservative estimate)
-        $estimatedOutputTokens = min($maxOutputTokens, $inputUsage->inputTokens * 2);
+        $estimatedOutputTokens = min($maxOutputTokens, $inputUsage->input_tokens * 2);
 
         $estimatedUsage = new TokenUsage(
-            inputTokens: $inputUsage->inputTokens,
-            outputTokens: $estimatedOutputTokens,
-            totalTokens: $inputUsage->inputTokens + $estimatedOutputTokens
+            input_tokens: $inputUsage->input_tokens,
+            output_tokens: $estimatedOutputTokens,
+            totalTokens: $inputUsage->input_tokens + $estimatedOutputTokens
         );
 
         $breakdown = $this->getCostBreakdown($estimatedUsage, $model);
@@ -431,7 +431,7 @@ trait CalculatesCosts
         }
 
         // Output token optimization
-        if ($usage->outputTokens > $usage->inputTokens * 3) {
+        if ($usage->output_tokens > $usage->input_tokens * 3) {
             $tips[] = 'Consider setting max_tokens to limit output length';
             $tips[] = 'Use more specific prompts to get concise responses';
         }

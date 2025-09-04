@@ -180,8 +180,8 @@ trait HandlesStreaming
                         yield new AIResponse(
                             content: $content,
                             tokenUsage: new TokenUsage(
-                                inputTokens: $tokenUsage['input'] ?? 0,
-                                outputTokens: $tokenUsage['output'] ?? 0,
+                                input_tokens: $tokenUsage['input'] ?? 0,
+                                output_tokens: $tokenUsage['output'] ?? 0,
                                 totalTokens: ($tokenUsage['input'] ?? 0) + ($tokenUsage['output'] ?? 0)
                             ),
                             model: $model,
@@ -215,8 +215,8 @@ trait HandlesStreaming
             yield new AIResponse(
                 content: $fullContent,
                 tokenUsage: new TokenUsage(
-                    inputTokens: $totalInputTokens,
-                    outputTokens: $totalOutputTokens,
+                    input_tokens: $totalInputTokens,
+                    output_tokens: $totalOutputTokens,
                     totalTokens: $totalInputTokens + $totalOutputTokens
                 ),
                 model: $model,

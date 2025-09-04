@@ -45,7 +45,7 @@ class DriverTemplateInvalidCredentialsException extends InvalidCredentialsExcept
      * @param  int  $code  Exception code
      * @param  \Exception|null  $previous  Previous exception
      */
-    public function __construct(string $message = 'Invalid OpenAI API credentials', string $account = null, string $requestId = null, string $openaiErrorType = null, string $organizationId = null, string $projectId = null, array $details = [], int $code = 401, Exception $previous = null)
+    public function __construct(string $message = 'Invalid OpenAI API credentials', ?string $account = null, ?string $requestId = null, ?string $openaiErrorType = null, ?string $organizationId = null, ?string $projectId = null, array $details = [], int $code = 401, ?Exception $previous = null)
     {
         // TODO: Implement __construct
     }
@@ -58,7 +58,7 @@ class DriverTemplateInvalidCredentialsException extends InvalidCredentialsExcept
      * @param  string|null  $organizationId  Organization ID
      * @param  string|null  $projectId  Project ID
      */
-    public static function fromApiError(array $errorData, string $requestId = null, string $organizationId = null, string $projectId = null): static
+    public static function fromApiError(array $errorData, ?string $requestId = null, ?string $organizationId = null, ?string $projectId = null): static
     {
         // TODO: Implement fromApiError
     }
@@ -126,5 +126,4 @@ class DriverTemplateInvalidCredentialsException extends InvalidCredentialsExcept
     {
         // TODO: Implement isAccessError
     }
-
 }

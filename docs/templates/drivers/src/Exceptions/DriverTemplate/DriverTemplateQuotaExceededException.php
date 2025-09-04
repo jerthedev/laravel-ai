@@ -49,7 +49,7 @@ class DriverTemplateQuotaExceededException extends DriverTemplateException
      * @param  int  $code  Exception code
      * @param  \Exception|null  $previous  Previous exception
      */
-    public function __construct(string $message = 'OpenAI quota exceeded', float $currentUsage = null, float $usageLimit = null, string $quotaType = null, string $billingPeriod = null, string $organizationId = null, string $requestId = null, array $details = [], int $code = 429, Exception $previous = null)
+    public function __construct(string $message = 'OpenAI quota exceeded', ?float $currentUsage = null, ?float $usageLimit = null, ?string $quotaType = null, ?string $billingPeriod = null, ?string $organizationId = null, ?string $requestId = null, array $details = [], int $code = 429, ?Exception $previous = null)
     {
         // TODO: Implement __construct
     }
@@ -61,7 +61,7 @@ class DriverTemplateQuotaExceededException extends DriverTemplateException
      * @param  string|null  $requestId  Request ID
      * @param  string|null  $organizationId  Organization ID
      */
-    public static function fromApiError(array $errorData, string $requestId = null, string $organizationId = null): static
+    public static function fromApiError(array $errorData, ?string $requestId = null, ?string $organizationId = null): static
     {
         // TODO: Implement fromApiError
     }
@@ -153,5 +153,4 @@ class DriverTemplateQuotaExceededException extends DriverTemplateException
     {
         // TODO: Implement isUsageError
     }
-
 }

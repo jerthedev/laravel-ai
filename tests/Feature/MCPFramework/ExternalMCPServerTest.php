@@ -4,7 +4,6 @@ namespace JTD\LaravelAI\Tests\Unit\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Process;
-use JTD\LaravelAI\Exceptions\MCPException;
 use JTD\LaravelAI\Exceptions\MCPToolException;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
@@ -20,7 +19,7 @@ class ExternalMCPServerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->testConfig = [
             'type' => 'external',
             'enabled' => true,
@@ -341,7 +340,7 @@ class ExternalMCPServerTest extends TestCase
 
         // Test successful JSON parsing
         $jsonOutput = '{"result": "success", "data": [1, 2, 3]}';
-        
+
         Process::shouldReceive('timeout')
             ->andReturnSelf()
             ->shouldReceive('env')

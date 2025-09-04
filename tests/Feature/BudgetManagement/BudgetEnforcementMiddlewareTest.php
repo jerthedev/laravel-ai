@@ -2,23 +2,22 @@
 
 namespace JTD\LaravelAI\Tests\Feature\BudgetManagement;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Middleware\BudgetEnforcementMiddleware;
-use JTD\LaravelAI\Exceptions\BudgetExceededException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use JTD\LaravelAI\Events\BudgetThresholdReached;
+use JTD\LaravelAI\Middleware\BudgetEnforcementMiddleware;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Models\TokenUsage;
+use JTD\LaravelAI\Services\BudgetService;
+use JTD\LaravelAI\Services\DriverManager;
 use JTD\LaravelAI\Services\PricingService;
 use JTD\LaravelAI\Services\PricingValidator;
-use JTD\LaravelAI\Services\DriverManager;
-use JTD\LaravelAI\Services\BudgetService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Tests\TestCase;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Budget Enforcement Middleware Tests
@@ -32,7 +31,9 @@ class BudgetEnforcementMiddlewareTest extends TestCase
     use RefreshDatabase;
 
     protected BudgetEnforcementMiddleware $middleware;
+
     protected PricingService $pricingService;
+
     protected BudgetService $budgetService;
 
     protected function setUp(): void
@@ -177,7 +178,7 @@ class BudgetEnforcementMiddlewareTest extends TestCase
         Event::fake();
 
         $message = $this->createTestMessage([
-            'metadata' => ['project_id' => 'project_123']
+            'metadata' => ['project_id' => 'project_123'],
         ]);
         $response = $this->createTestAIResponse();
 
@@ -206,7 +207,7 @@ class BudgetEnforcementMiddlewareTest extends TestCase
         Event::fake();
 
         $message = $this->createTestMessage([
-            'metadata' => ['organization_id' => 'org_456']
+            'metadata' => ['organization_id' => 'org_456'],
         ]);
         $response = $this->createTestAIResponse();
 
@@ -331,8 +332,8 @@ class BudgetEnforcementMiddlewareTest extends TestCase
     protected function createTestAIResponse(): AIResponse
     {
         $tokenUsage = new TokenUsage(
-            inputTokens: 100,
-            outputTokens: 50,
+            input_tokens: 100,
+            output_tokens: 50,
             totalTokens: 150,
             totalCost: 0.01
         );
@@ -360,7 +361,7 @@ class BudgetEnforcementMiddlewareTest extends TestCase
     protected function setCurrentSpending(int $userId, array $spending): void
     {
         foreach ($spending as $type => $amount) {
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "daily_spending_{$userId}_" . now()->format('Y-m-d'),
                 'monthly' => "monthly_spending_{$userId}_" . now()->format('Y-m'),
                 default => "spending_{$userId}_{$type}",
@@ -379,7 +380,7 @@ class BudgetEnforcementMiddlewareTest extends TestCase
     protected function setProjectCurrentSpending(string $projectId, array $spending): void
     {
         foreach ($spending as $type => $amount) {
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "project_daily_spending_{$projectId}_" . now()->format('Y-m-d'),
                 'monthly' => "project_monthly_spending_{$projectId}_" . now()->format('Y-m'),
                 default => "project_spending_{$projectId}_{$type}",
@@ -398,7 +399,7 @@ class BudgetEnforcementMiddlewareTest extends TestCase
     protected function setOrganizationCurrentSpending(string $organizationId, array $spending): void
     {
         foreach ($spending as $type => $amount) {
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "org_daily_spending_{$organizationId}_" . now()->format('Y-m-d'),
                 'monthly' => "org_monthly_spending_{$organizationId}_" . now()->format('Y-m'),
                 default => "org_spending_{$organizationId}_{$type}",

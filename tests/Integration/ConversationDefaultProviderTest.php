@@ -15,7 +15,7 @@ class ConversationDefaultProviderTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         config([
             'ai.default' => 'mock',
             'ai.providers.mock.enabled' => true,
@@ -38,7 +38,7 @@ class ConversationDefaultProviderTest extends TestCase
         $response = AI::conversation()
             ->message('Hello, world!')
             ->send();
-        
+
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertEquals('Default provider response from conversation', $response->content);
         $this->assertEquals('mock', $response->provider);
@@ -53,7 +53,7 @@ class ConversationDefaultProviderTest extends TestCase
             ->temperature(0.7)
             ->message('Hello with options!')
             ->send();
-        
+
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertEquals('Default provider response from conversation', $response->content);
         $this->assertEquals('mock', $response->provider);
@@ -69,7 +69,7 @@ class ConversationDefaultProviderTest extends TestCase
             ->temperature(0.7)
             ->message('Hello with explicit provider!')
             ->send();
-        
+
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertEquals('Default provider response from conversation', $response->content);
         $this->assertEquals('mock', $response->provider);
@@ -82,7 +82,7 @@ class ConversationDefaultProviderTest extends TestCase
         $response = AI::conversation()
             ->message('Minimal conversation')
             ->send();
-        
+
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertEquals('Default provider response from conversation', $response->content);
         $this->assertEquals('mock', $response->provider);
@@ -95,15 +95,15 @@ class ConversationDefaultProviderTest extends TestCase
         $generator = AI::conversation()
             ->message('Stream with default provider')
             ->stream();
-        
+
         $this->assertInstanceOf(\Generator::class, $generator);
-        
+
         $chunks = [];
         foreach ($generator as $chunk) {
             $chunks[] = $chunk;
             $this->assertInstanceOf(AIResponse::class, $chunk);
         }
-        
+
         $this->assertNotEmpty($chunks);
     }
 }

@@ -5,23 +5,23 @@ namespace JTD\LaravelAI;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
+use JTD\LaravelAI\Contracts\MCPManagerInterface;
 use JTD\LaravelAI\Services\AIManager;
 use JTD\LaravelAI\Services\BudgetService;
 use JTD\LaravelAI\Services\ConfigurationValidator;
 use JTD\LaravelAI\Services\ConversationBuilder;
 use JTD\LaravelAI\Services\DriverManager;
 use JTD\LaravelAI\Services\EventPerformanceTracker;
+use JTD\LaravelAI\Services\MCPConfigurationService;
+use JTD\LaravelAI\Services\MCPManager;
+use JTD\LaravelAI\Services\MCPToolDiscoveryService;
 use JTD\LaravelAI\Services\MiddlewareManager;
 use JTD\LaravelAI\Services\PerformanceAlertManager;
 use JTD\LaravelAI\Services\PerformanceOptimizationEngine;
 use JTD\LaravelAI\Services\PricingService;
 use JTD\LaravelAI\Services\QueuePerformanceMonitor;
-use JTD\LaravelAI\Services\MCPManager;
-use JTD\LaravelAI\Services\MCPToolDiscoveryService;
-use JTD\LaravelAI\Services\MCPConfigurationService;
-use JTD\LaravelAI\Services\UnifiedToolRegistry;
 use JTD\LaravelAI\Services\UnifiedToolExecutor;
-use JTD\LaravelAI\Contracts\MCPManagerInterface;
+use JTD\LaravelAI\Services\UnifiedToolRegistry;
 
 /**
  * Laravel AI Service Provider
@@ -289,7 +289,7 @@ class LaravelAIServiceProvider extends ServiceProvider
     protected function registerRoutes(): void
     {
         // Only load routes if globally enabled
-        if (!config('ai.routes.enabled', true)) {
+        if (! config('ai.routes.enabled', true)) {
             return;
         }
 

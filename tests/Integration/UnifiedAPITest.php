@@ -98,8 +98,6 @@ class UnifiedAPITest extends TestCase
         $this->assertNotEmpty($chunks);
     }
 
-
-
     #[Test]
     public function it_uses_correct_default_provider_from_config()
     {

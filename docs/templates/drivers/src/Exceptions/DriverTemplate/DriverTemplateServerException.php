@@ -22,7 +22,7 @@ class DriverTemplateServerException extends DriverTemplateException
      * @param  int  $code  Exception code
      * @param  \Exception|null  $previous  Previous exception
      */
-    public function __construct(string $message = 'OpenAI server error', string $openaiErrorType = null, string $openaiErrorCode = null, string $requestId = null, array $details = [], bool $retryable = true, int $code = 500, Exception $previous = null)
+    public function __construct(string $message = 'OpenAI server error', ?string $openaiErrorType = null, ?string $openaiErrorCode = null, ?string $requestId = null, array $details = [], bool $retryable = true, int $code = 500, ?Exception $previous = null)
     {
         // TODO: Implement __construct
     }
@@ -33,7 +33,7 @@ class DriverTemplateServerException extends DriverTemplateException
      * @param  array  $errorData  Error data from DriverTemplate API
      * @param  string|null  $requestId  Request ID
      */
-    public static function fromServerError(array $errorData, string $requestId = null): static
+    public static function fromServerError(array $errorData, ?string $requestId = null): static
     {
         // TODO: Implement fromServerError
     }
@@ -61,5 +61,4 @@ class DriverTemplateServerException extends DriverTemplateException
     {
         // TODO: Implement getSuggestedRetryDelay
     }
-
 }

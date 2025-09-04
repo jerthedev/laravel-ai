@@ -66,6 +66,7 @@ class MCPDiscoverCommand extends Command
             }
         } catch (\Exception $e) {
             $this->error("Tool discovery failed: {$e->getMessage()}");
+
             return 1;
         }
     }
@@ -75,7 +76,7 @@ class MCPDiscoverCommand extends Command
      */
     protected function discoverAllTools(bool $forceRefresh, bool $showTools, bool $jsonOutput): int
     {
-        if (!$jsonOutput) {
+        if (! $jsonOutput) {
             $this->info('🔍 Discovering tools from all MCP servers...');
             if ($forceRefresh) {
                 $this->line('   Force refresh enabled - ignoring cache');
@@ -86,12 +87,13 @@ class MCPDiscoverCommand extends Command
 
         if ($jsonOutput) {
             $this->line(json_encode($result, JSON_PRETTY_PRINT));
+
             return 0;
         }
 
         $stats = $result['statistics'];
 
-        $this->info("✅ Tool discovery completed!");
+        $this->info('✅ Tool discovery completed!');
         $this->line("   Servers checked: {$stats['servers_checked']}");
         $this->line("   Servers successful: {$stats['servers_successful']}");
         $this->line("   Total tools found: {$stats['tools_found']}");
@@ -99,7 +101,7 @@ class MCPDiscoverCommand extends Command
         if ($stats['servers_failed'] > 0) {
             $this->warn("   Servers failed: {$stats['servers_failed']}");
 
-            if (!empty($stats['errors'])) {
+            if (! empty($stats['errors'])) {
                 $this->line('');
                 $this->warn('Errors encountered:');
                 foreach ($stats['errors'] as $error) {
@@ -108,7 +110,7 @@ class MCPDiscoverCommand extends Command
             }
         }
 
-        if ($showTools && !empty($result['tools'])) {
+        if ($showTools && ! empty($result['tools'])) {
             $this->displayDiscoveredTools($result['tools']);
         }
 
@@ -123,7 +125,7 @@ class MCPDiscoverCommand extends Command
      */
     protected function discoverServerTools(string $serverName, bool $forceRefresh, bool $showTools, bool $jsonOutput): int
     {
-        if (!$jsonOutput) {
+        if (! $jsonOutput) {
             $this->info("🔍 Discovering tools from server '{$serverName}'...");
         }
 
@@ -131,6 +133,7 @@ class MCPDiscoverCommand extends Command
 
         if ($jsonOutput) {
             $this->line(json_encode($result, JSON_PRETTY_PRINT));
+
             return 0;
         }
 
@@ -141,7 +144,7 @@ class MCPDiscoverCommand extends Command
         $this->info("✅ Discovered {$toolCount} tool(s) from '{$serverName}'");
         $this->line("   Discovery time: {$discoveryTime}ms");
 
-        if ($showTools && !empty($tools)) {
+        if ($showTools && ! empty($tools)) {
             $this->displayServerTools($serverName, $tools);
         }
 
@@ -169,7 +172,8 @@ class MCPDiscoverCommand extends Command
             $this->line("    Version: {$serverVersion}");
 
             if (empty($tools)) {
-                $this->line("    <fg=yellow>No tools available</>");
+                $this->line('    <fg=yellow>No tools available</>');
+
                 continue;
             }
 
@@ -190,7 +194,8 @@ class MCPDiscoverCommand extends Command
         $this->info("📋 Tools from '{$serverName}':");
 
         if (empty($tools)) {
-            $this->line("   <fg=yellow>No tools available</>");
+            $this->line('   <fg=yellow>No tools available</>');
+
             return;
         }
 
@@ -205,12 +210,12 @@ class MCPDiscoverCommand extends Command
                 $this->line("     Category: {$category}");
             }
 
-            if (isset($tool['inputSchema']) && !empty($tool['inputSchema'])) {
-                $this->line("     Has input schema: Yes");
+            if (isset($tool['inputSchema']) && ! empty($tool['inputSchema'])) {
+                $this->line('     Has input schema: Yes');
             }
 
             if (isset($tool['requires_auth']) && $tool['requires_auth']) {
-                $this->line("     Requires authentication: Yes");
+                $this->line('     Requires authentication: Yes');
             }
         }
     }

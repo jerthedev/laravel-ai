@@ -69,7 +69,7 @@ class XAISuccessfulCallsTest extends E2ETestCase
             // Debug empty content issue
             if (empty($response->content)) {
                 $this->logTestStep('⚠️  Response content is empty - this may be normal for some models/prompts');
-                $this->logTestStep('Token usage - Input: ' . $response->tokenUsage->inputTokens . ', Output: ' . $response->tokenUsage->outputTokens);
+                $this->logTestStep('Token usage - Input: ' . $response->tokenUsage->input_tokens . ', Output: ' . $response->tokenUsage->output_tokens);
 
                 // Still assert that we got a valid response structure
                 $this->assertNotNull($response->content, 'Content should not be null');
@@ -78,8 +78,8 @@ class XAISuccessfulCallsTest extends E2ETestCase
             }
 
             // Check token usage
-            $this->logTestStep('Input tokens: ' . $response->tokenUsage->inputTokens);
-            $this->logTestStep('Output tokens: ' . $response->tokenUsage->outputTokens);
+            $this->logTestStep('Input tokens: ' . $response->tokenUsage->input_tokens);
+            $this->logTestStep('Output tokens: ' . $response->tokenUsage->output_tokens);
             $this->logTestStep('Total tokens: ' . $response->tokenUsage->totalTokens);
 
             // Only assert token usage if it's available

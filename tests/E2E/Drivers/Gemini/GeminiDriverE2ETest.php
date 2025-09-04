@@ -231,7 +231,7 @@ class GeminiDriverE2ETest extends E2ETestCase
             'max_tokens' => 5,
         ]);
 
-        $actualInput = $response->tokenUsage->inputTokens;
+        $actualInput = $response->tokenUsage->input_tokens;
 
         // Estimation should be reasonably close (within 50% margin)
         $this->assertGreaterThan($actualInput * 0.5, $estimated);

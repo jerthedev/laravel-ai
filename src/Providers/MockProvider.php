@@ -626,7 +626,7 @@ class MockProvider extends AbstractAIProvider
         $responses = $this->config['mock_responses'];
 
         // Check if tools are enabled and simulate tool calls
-        if (isset($options['tools']) && !empty($options['tools'])) {
+        if (isset($options['tools']) && ! empty($options['tools'])) {
             $toolCallResponse = $this->simulateToolCalls($content, $options['tools']);
             if ($toolCallResponse) {
                 return $toolCallResponse;
@@ -749,7 +749,7 @@ class MockProvider extends AbstractAIProvider
      * Format resolved tools for Mock provider API.
      *
      * @param  array  $resolvedTools  Resolved tool definitions from UnifiedToolRegistry
-     * @return array  Formatted tools for Mock provider
+     * @return array Formatted tools for Mock provider
      */
     protected function formatToolsForAPI(array $resolvedTools): array
     {
@@ -783,7 +783,7 @@ class MockProvider extends AbstractAIProvider
      *
      * @param  string  $content  Message content
      * @param  array  $tools  Available tools
-     * @return array|null  Tool call response or null if no simulation
+     * @return array|null Tool call response or null if no simulation
      */
     protected function simulateToolCalls(string $content, array $tools): ?array
     {
@@ -802,7 +802,6 @@ class MockProvider extends AbstractAIProvider
                 stripos($contentLower, 'use') !== false ||
                 stripos($contentLower, 'call') !== false ||
                 stripos($contentLower, 'execute') !== false) {
-
                 $shouldSimulateToolCall = true;
                 $toolsToCall[] = $tool;
                 break; // Simulate only one tool call for simplicity
@@ -813,7 +812,7 @@ class MockProvider extends AbstractAIProvider
         if (stripos($contentLower, 'sequential_thinking') !== false ||
             stripos($contentLower, 'think') !== false) {
             $shouldSimulateToolCall = true;
-            $toolsToCall = array_filter($tools, function($tool) {
+            $toolsToCall = array_filter($tools, function ($tool) {
                 return stripos($tool['function']['name'] ?? '', 'sequential_thinking') !== false;
             });
         }
@@ -821,12 +820,12 @@ class MockProvider extends AbstractAIProvider
         if (stripos($contentLower, 'send_email') !== false ||
             stripos($contentLower, 'email') !== false) {
             $shouldSimulateToolCall = true;
-            $toolsToCall = array_filter($tools, function($tool) {
+            $toolsToCall = array_filter($tools, function ($tool) {
                 return stripos($tool['function']['name'] ?? '', 'send_email') !== false;
             });
         }
 
-        if (!$shouldSimulateToolCall || empty($toolsToCall)) {
+        if (! $shouldSimulateToolCall || empty($toolsToCall)) {
             return null;
         }
 
@@ -857,7 +856,7 @@ class MockProvider extends AbstractAIProvider
      * Generate mock arguments for a tool function.
      *
      * @param  array  $functionDef  Function definition
-     * @return array  Mock arguments
+     * @return array Mock arguments
      */
     protected function generateMockArguments(array $functionDef): array
     {
@@ -895,7 +894,7 @@ class MockProvider extends AbstractAIProvider
 
         // Ensure required parameters are included
         foreach ($required as $requiredParam) {
-            if (!isset($arguments[$requiredParam])) {
+            if (! isset($arguments[$requiredParam])) {
                 $arguments[$requiredParam] = 'required_mock_value';
             }
         }
@@ -907,25 +906,25 @@ class MockProvider extends AbstractAIProvider
      * Check if response contains tool calls.
      *
      * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
-     * @return bool  True if response has tool calls
+     * @return bool True if response has tool calls
      */
     protected function hasToolCalls($response): bool
     {
-        return !empty($response->toolCalls) || !empty($response->functionCalls);
+        return ! empty($response->toolCalls) || ! empty($response->functionCalls);
     }
 
     /**
      * Extract tool calls from Mock response.
      *
      * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
-     * @return array  Extracted tool calls in unified format
+     * @return array Extracted tool calls in unified format
      */
     protected function extractToolCalls($response): array
     {
         $calls = [];
 
         // Handle legacy function_call format
-        if (!empty($response->functionCalls)) {
+        if (! empty($response->functionCalls)) {
             $calls[] = [
                 'name' => $response->functionCalls['name'] ?? '',
                 'arguments' => $response->functionCalls['arguments'] ?? [],
@@ -934,7 +933,7 @@ class MockProvider extends AbstractAIProvider
         }
 
         // Handle new tool_calls format
-        if (!empty($response->toolCalls)) {
+        if (! empty($response->toolCalls)) {
             foreach ($response->toolCalls as $toolCall) {
                 if (($toolCall['type'] ?? '') === 'function') {
                     $arguments = $toolCall['function']['arguments'] ?? '{}';

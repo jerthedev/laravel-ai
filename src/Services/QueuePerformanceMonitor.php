@@ -9,7 +9,6 @@ use Illuminate\Queue\Events\JobQueued;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use JTD\LaravelAI\Services\EventPerformanceTracker;
 
 /**
  * Queue Performance Monitor
@@ -61,7 +60,7 @@ class QueuePerformanceMonitor
     {
         $jobId = $this->getJobId($event);
         $jobName = $event->job->displayName();
-        
+
         $this->trackJobQueued($jobId, $jobName, $event->connectionName, $event->queue);
         $this->updateQueueMetrics($event->connectionName, $event->queue, 'queued');
     }
@@ -75,7 +74,7 @@ class QueuePerformanceMonitor
     {
         $jobId = $event->job->getJobId();
         $jobName = $event->job->getName();
-        
+
         $this->activeJobs[$jobId] = [
             'name' => $jobName,
             'connection' => $event->connectionName,
@@ -103,8 +102,8 @@ class QueuePerformanceMonitor
     public function handleJobProcessed(JobProcessed $event): void
     {
         $jobId = $event->job->getJobId();
-        
-        if (!isset($this->activeJobs[$jobId])) {
+
+        if (! isset($this->activeJobs[$jobId])) {
             return;
         }
 
@@ -122,7 +121,7 @@ class QueuePerformanceMonitor
 
         $this->updateQueueMetrics($jobData['connection'], $jobData['queue'], 'completed');
         $this->updateJobThroughput($jobData['connection'], $jobData['queue']);
-        
+
         unset($this->activeJobs[$jobId]);
     }
 
@@ -135,7 +134,7 @@ class QueuePerformanceMonitor
     {
         $jobId = $event->job->getJobId();
         $jobName = $event->job->getName();
-        
+
         $duration = 0;
         if (isset($this->activeJobs[$jobId])) {
             $jobData = $this->activeJobs[$jobId];
@@ -168,10 +167,10 @@ class QueuePerformanceMonitor
     public function getQueueMetrics(?string $connection = null, ?string $queue = null, string $timeframe = 'hour'): array
     {
         $cacheKey = "queue_metrics_{$connection}_{$queue}_{$timeframe}";
-        
+
         return Cache::remember($cacheKey, $this->cacheTtl, function () use ($connection, $queue, $timeframe) {
             $startTime = $this->getStartTime($timeframe);
-            
+
             $query = DB::table('ai_performance_metrics')
                 ->where('component', 'queue_job')
                 ->where('created_at', '>=', $startTime);
@@ -179,7 +178,7 @@ class QueuePerformanceMonitor
             if ($connection) {
                 $query->whereJsonContains('context_data->connection', $connection);
             }
-            
+
             if ($queue) {
                 $query->whereJsonContains('context_data->queue', $queue);
             }
@@ -202,11 +201,11 @@ class QueuePerformanceMonitor
 
         foreach ($connections as $connection) {
             $queues = $this->getActiveQueues($connection);
-            
+
             foreach ($queues as $queue) {
                 $metrics = $this->getQueueMetrics($connection, $queue, 'hour');
                 $health = $this->calculateQueueHealth($metrics);
-                
+
                 $healthData["{$connection}:{$queue}"] = $health;
             }
         }
@@ -228,7 +227,7 @@ class QueuePerformanceMonitor
     public function getThroughputAnalysis(string $timeframe = 'hour'): array
     {
         $startTime = $this->getStartTime($timeframe);
-        
+
         $throughputData = DB::table('ai_performance_metrics')
             ->select([
                 DB::raw('JSON_EXTRACT(context_data, "$.connection") as connection'),
@@ -247,11 +246,11 @@ class QueuePerformanceMonitor
             $connection = trim($data->connection, '"');
             $queue = trim($data->queue, '"');
             $key = "{$connection}:{$queue}";
-            
+
             $timeframeMinutes = $this->getTimeframeMinutes($timeframe);
             $throughputPerMinute = $data->job_count / $timeframeMinutes;
             $successRate = ($data->successful_jobs / $data->job_count) * 100;
-            
+
             $analysis[$key] = [
                 'connection' => $connection,
                 'queue' => $queue,
@@ -283,8 +282,8 @@ class QueuePerformanceMonitor
 
         foreach ($queueHealth['queues'] as $queueKey => $health) {
             $queueRecommendations = $this->generateQueueRecommendations($queueKey, $health, $throughputAnalysis['queues'][$queueKey] ?? []);
-            
-            if (!empty($queueRecommendations)) {
+
+            if (! empty($queueRecommendations)) {
                 $recommendations[$queueKey] = $queueRecommendations;
             }
         }
@@ -362,8 +361,8 @@ class QueuePerformanceMonitor
      */
     protected function getJobId($event): string
     {
-        return method_exists($event->job, 'getJobId') 
-            ? $event->job->getJobId() 
+        return method_exists($event->job, 'getJobId')
+            ? $event->job->getJobId()
             : uniqid('job_', true);
     }
 
@@ -483,8 +482,8 @@ class QueuePerformanceMonitor
             'score' => round($avgScore),
             'status' => $this->getHealthStatus($avgScore),
             'total_queues' => count($queueHealthData),
-            'healthy_queues' => count(array_filter($scores, fn($score) => $score >= 80)),
-            'unhealthy_queues' => count(array_filter($scores, fn($score) => $score < 60)),
+            'healthy_queues' => count(array_filter($scores, fn ($score) => $score >= 80)),
+            'unhealthy_queues' => count(array_filter($scores, fn ($score) => $score < 60)),
         ];
     }
 
@@ -493,10 +492,19 @@ class QueuePerformanceMonitor
      */
     protected function getHealthStatus(float $score): string
     {
-        if ($score >= 90) return 'excellent';
-        if ($score >= 80) return 'good';
-        if ($score >= 60) return 'fair';
-        if ($score >= 40) return 'poor';
+        if ($score >= 90) {
+            return 'excellent';
+        }
+        if ($score >= 80) {
+            return 'good';
+        }
+        if ($score >= 60) {
+            return 'fair';
+        }
+        if ($score >= 40) {
+            return 'poor';
+        }
+
         return 'critical';
     }
 
@@ -543,11 +551,17 @@ class QueuePerformanceMonitor
     protected function calculateThroughputHealthScore(float $throughput, float $successRate, float $avgDuration): int
     {
         $score = 100;
-        
-        if ($throughput < $this->thresholds['throughput_min']) $score -= 30;
-        if ($successRate < 95) $score -= 25;
-        if ($avgDuration > $this->thresholds['job_completion']) $score -= 20;
-        
+
+        if ($throughput < $this->thresholds['throughput_min']) {
+            $score -= 30;
+        }
+        if ($successRate < 95) {
+            $score -= 25;
+        }
+        if ($avgDuration > $this->thresholds['job_completion']) {
+            $score -= 20;
+        }
+
         return max(0, $score);
     }
 

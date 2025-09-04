@@ -3,8 +3,6 @@
 namespace JTD\LaravelAI\Drivers\DriverTemplate\Support;
 
 use JTD\LaravelAI\Contracts\PricingInterface;
-use JTD\LaravelAI\Enums\BillingModel;
-use JTD\LaravelAI\Enums\PricingUnit;
 
 /**
  * DriverTemplate Model Pricing Data
@@ -162,5 +160,4 @@ class ModelPricing implements PricingInterface
     {
         // TODO: Implement hasPricing
     }
-
 }

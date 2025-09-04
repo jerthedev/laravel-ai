@@ -31,8 +31,8 @@ namespace JTD\LaravelAI\Models;
  *
  * // With cost information
  * $usage = new TokenUsage(
- *     inputTokens: 100,
- *     outputTokens: 50,
+ *     input_tokens: 100,
+ *     output_tokens: 50,
  *     totalTokens: 150,
  *     inputCost: 0.001,
  *     outputCost: 0.002,
@@ -148,8 +148,8 @@ class TokenUsage
      * @param  string|null  $provider  Provider used
      */
     public function __construct(
-        int $inputTokens,
-        int $outputTokens,
+        ?int $inputTokens = null,
+        ?int $outputTokens = null,
         ?int $totalTokens = null,
         ?float $inputCost = null,
         ?float $outputCost = null,
@@ -157,16 +157,25 @@ class TokenUsage
         string $currency = 'USD',
         ?array $costBreakdown = null,
         ?string $model = null,
-        ?string $provider = null
+        ?string $provider = null,
+        // Support snake_case named parameters
+        ?int $input_tokens = null,
+        ?int $output_tokens = null,
+        ?int $total_tokens = null,
+        ?float $input_cost = null,
+        ?float $output_cost = null,
+        ?float $total_cost = null,
+        ?array $cost_breakdown = null
     ) {
-        $this->inputTokens = $inputTokens;
-        $this->outputTokens = $outputTokens;
-        $this->totalTokens = $totalTokens ?? ($inputTokens + $outputTokens);
-        $this->inputCost = $inputCost;
-        $this->outputCost = $outputCost;
-        $this->totalCost = $totalCost ?? (($inputCost ?? 0) + ($outputCost ?? 0));
+        // Support both camelCase and snake_case parameters
+        $this->inputTokens = $inputTokens ?? $input_tokens ?? 0;
+        $this->outputTokens = $outputTokens ?? $output_tokens ?? 0;
+        $this->totalTokens = $totalTokens ?? $total_tokens ?? ($this->inputTokens + $this->outputTokens);
+        $this->inputCost = $inputCost ?? $input_cost;
+        $this->outputCost = $outputCost ?? $output_cost;
+        $this->totalCost = $totalCost ?? $total_cost ?? (($this->inputCost ?? 0) + ($this->outputCost ?? 0));
         $this->currency = $currency;
-        $this->costBreakdown = $costBreakdown;
+        $this->costBreakdown = $costBreakdown ?? $cost_breakdown;
         $this->model = $model;
         $this->provider = $provider;
     }
@@ -412,5 +421,45 @@ class TokenUsage
     public function isEmpty(): bool
     {
         return $this->totalTokens === 0;
+    }
+
+    /**
+     * Magic getter to support both camelCase and snake_case property access.
+     *
+     * @param  string  $name  Property name
+     * @return mixed Property value
+     */
+    public function __get(string $name): mixed
+    {
+        return match ($name) {
+            'input_tokens' => $this->inputTokens,
+            'output_tokens' => $this->outputTokens,
+            'total_tokens' => $this->totalTokens,
+            'input_cost' => $this->inputCost,
+            'output_cost' => $this->outputCost,
+            'total_cost' => $this->totalCost,
+            'cost_breakdown' => $this->costBreakdown,
+            default => $this->$name ?? null,
+        };
+    }
+
+    /**
+     * Magic isset to support both camelCase and snake_case property access.
+     *
+     * @param  string  $name  Property name
+     * @return bool Whether the property exists and is not null
+     */
+    public function __isset(string $name): bool
+    {
+        return match ($name) {
+            'input_tokens' => isset($this->inputTokens),
+            'output_tokens' => isset($this->outputTokens),
+            'total_tokens' => isset($this->totalTokens),
+            'input_cost' => isset($this->inputCost),
+            'output_cost' => isset($this->outputCost),
+            'total_cost' => isset($this->totalCost),
+            'cost_breakdown' => isset($this->costBreakdown),
+            default => isset($this->$name),
+        };
     }
 }

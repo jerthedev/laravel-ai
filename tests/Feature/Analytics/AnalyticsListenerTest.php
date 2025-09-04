@@ -2,21 +2,21 @@
 
 namespace JTD\LaravelAI\Tests\Feature\Analytics;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Listeners\AnalyticsListener;
-use JTD\LaravelAI\Events\ResponseGenerated;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use JTD\LaravelAI\Events\CostCalculated;
+use JTD\LaravelAI\Events\ResponseGenerated;
 use JTD\LaravelAI\Events\UsageAnalyticsRecorded;
+use JTD\LaravelAI\Listeners\AnalyticsListener;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 use JTD\LaravelAI\Models\TokenUsage;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * AnalyticsListener Tests
@@ -37,7 +37,7 @@ class AnalyticsListenerTest extends TestCase
     {
         parent::setUp();
 
-        $this->analyticsListener = new AnalyticsListener();
+        $this->analyticsListener = new AnalyticsListener;
 
         $this->seedAnalyticsTestData();
     }
@@ -75,8 +75,8 @@ class AnalyticsListenerTest extends TestCase
             provider: 'openai',
             model: 'gpt-4o-mini',
             cost: 0.02,
-            inputTokens: 200,
-            outputTokens: 100
+            input_tokens: 200,
+            output_tokens: 100
         );
 
         // Process cost event
@@ -133,11 +133,11 @@ class AnalyticsListenerTest extends TestCase
             $message = $this->createTestMessage(['user_id' => $userId]);
             $response = $this->createTestAIResponse([
                 'tokenUsage' => new TokenUsage(
-                    inputTokens: 100 + $i * 10,
-                    outputTokens: 50 + $i * 5,
+                    input_tokens: 100 + $i * 10,
+                    output_tokens: 50 + $i * 5,
                     totalTokens: 150 + $i * 15,
                     totalCost: 0.01 + $i * 0.005
-                )
+                ),
             ]);
 
             $event = new ResponseGenerated($message, $response);
@@ -240,11 +240,11 @@ class AnalyticsListenerTest extends TestCase
         $message = $this->createTestMessage(['user_id' => $userId]);
         $response = $this->createTestAIResponse([
             'tokenUsage' => new TokenUsage(
-                inputTokens: 200,
-                outputTokens: 100,
+                input_tokens: 200,
+                output_tokens: 100,
                 totalTokens: 300,
                 totalCost: 0.025
-            )
+            ),
         ]);
 
         $event = new ResponseGenerated($message, $response);
@@ -331,8 +331,8 @@ class AnalyticsListenerTest extends TestCase
             'model' => 'gpt-4o-mini',
             'finishReason' => 'stop',
             'tokenUsage' => new TokenUsage(
-                inputTokens: 150,
-                outputTokens: 75,
+                input_tokens: 150,
+                output_tokens: 75,
                 totalTokens: 225,
                 totalCost: 0.015
             ),
@@ -352,7 +352,7 @@ class AnalyticsListenerTest extends TestCase
     protected function seedAnalyticsTestData(): void
     {
         // Create test tables if they don't exist (simplified for testing)
-        if (!DB::getSchemaBuilder()->hasTable('ai_usage_analytics')) {
+        if (! DB::getSchemaBuilder()->hasTable('ai_usage_analytics')) {
             DB::statement('CREATE TABLE ai_usage_analytics (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,

@@ -224,7 +224,7 @@ class BudgetStatusCard extends Component
      */
     public function getResetDateDisplay(): ?string
     {
-        if (!$this->resetDate) {
+        if (! $this->resetDate) {
             return null;
         }
 
@@ -253,7 +253,7 @@ class BudgetStatusCard extends Component
      */
     public function getStatusMessage(): string
     {
-        if (!$this->isActive) {
+        if (! $this->isActive) {
             return 'Budget not configured';
         }
 
@@ -274,7 +274,7 @@ class BudgetStatusCard extends Component
      */
     public function getRecommendedActions(): array
     {
-        if (!$this->isActive) {
+        if (! $this->isActive) {
             return ['Configure budget limits to enable monitoring'];
         }
 

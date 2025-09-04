@@ -4,7 +4,6 @@ namespace JTD\LaravelAI\Services;
 
 use Closure;
 use JTD\LaravelAI\Contracts\ConversationBuilderInterface;
-use JTD\LaravelAI\Events\ResponseGenerated;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
 
@@ -231,8 +230,6 @@ class ConversationBuilder implements ConversationBuilderInterface
         return $this;
     }
 
-
-
     /**
      * Apply middleware to this conversation.
      *
@@ -279,7 +276,8 @@ class ConversationBuilder implements ConversationBuilderInterface
      * Enable specific tools by name.
      *
      * @param  array  $toolNames  Array of tool names to enable
-     * @throws \InvalidArgumentException  If any tool names are invalid
+     *
+     * @throws \InvalidArgumentException If any tool names are invalid
      */
     public function withTools(array $toolNames): self
     {
@@ -287,7 +285,7 @@ class ConversationBuilder implements ConversationBuilderInterface
 
         // Validate all tool names exist
         $missingTools = $toolRegistry->validateToolNames($toolNames);
-        if (!empty($missingTools)) {
+        if (! empty($missingTools)) {
             throw new \InvalidArgumentException(
                 'Unknown tools: ' . implode(', ', $missingTools)
             );

@@ -6,7 +6,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use JTD\LaravelAI\Events\BudgetThresholdReached;
 use JTD\LaravelAI\Notifications\BudgetThresholdNotification;
@@ -61,12 +60,13 @@ class BudgetAlertListener implements ShouldQueue
 
         try {
             // Check if alert should be sent (rate limiting and threshold configuration)
-            if (!$this->shouldSendAlert($event)) {
+            if (! $this->shouldSendAlert($event)) {
                 Log::debug('Budget alert skipped due to rate limiting or configuration', [
                     'user_id' => $event->userId,
                     'budget_type' => $event->budgetType,
-                    'threshold_percentage' => $event->thresholdPercentage,
+                    'threshold_percentage' => $event->threshold_percentage,
                 ]);
+
                 return;
             }
 
@@ -75,7 +75,6 @@ class BudgetAlertListener implements ShouldQueue
 
             // Track successful alert processing
             $this->trackAlertMetrics($event, 'success', microtime(true) - $startTime);
-
         } catch (\Exception $e) {
             // Log error and track failure
             Log::error('Budget alert processing failed', [
@@ -107,16 +106,17 @@ class BudgetAlertListener implements ShouldQueue
             $event->organizationId
         );
 
-        if (!$alertConfig['enabled']) {
+        if (! $alertConfig['enabled']) {
             Log::debug('Budget alerts disabled for user', [
                 'user_id' => $event->userId,
                 'budget_type' => $event->budgetType,
             ]);
+
             return;
         }
 
         // Determine alert severity and channels
-        $alertSeverity = $this->determineAlertSeverity($event->thresholdPercentage);
+        $alertSeverity = $this->determineAlertSeverity($event->threshold_percentage);
         $notificationChannels = $this->getNotificationChannels($alertConfig, $alertSeverity);
 
         // Send notifications through configured channels
@@ -133,7 +133,7 @@ class BudgetAlertListener implements ShouldQueue
         Log::info('Budget alert processed successfully', [
             'user_id' => $event->userId,
             'budget_type' => $event->budgetType,
-            'threshold_percentage' => $event->thresholdPercentage,
+            'threshold_percentage' => $event->threshold_percentage,
             'severity' => $alertSeverity,
             'channels' => $notificationChannels,
         ]);
@@ -150,11 +150,11 @@ class BudgetAlertListener implements ShouldQueue
         // Check rate limiting to prevent spam
         $rateLimitKey = "budget_alert_rate_limit_{$event->userId}_{$event->budgetType}";
         $lastAlertTime = Cache::get($rateLimitKey);
-        
+
         if ($lastAlertTime) {
             $timeSinceLastAlert = now()->diffInMinutes($lastAlertTime);
-            $minInterval = $this->getMinAlertInterval($event->budgetType, $event->thresholdPercentage);
-            
+            $minInterval = $this->getMinAlertInterval($event->budgetType, $event->threshold_percentage);
+
             if ($timeSinceLastAlert < $minInterval) {
                 return false;
             }
@@ -169,22 +169,22 @@ class BudgetAlertListener implements ShouldQueue
         );
 
         $minThreshold = $alertConfig['min_threshold_percentage'] ?? 75;
-        
-        return $event->thresholdPercentage >= $minThreshold;
+
+        return $event->threshold_percentage >= $minThreshold;
     }
 
     /**
      * Determine alert severity based on threshold percentage.
      *
-     * @param  float  $thresholdPercentage  Threshold percentage
+     * @param  float  $threshold_percentage  Threshold percentage
      * @return string Alert severity (low, medium, high, critical)
      */
-    protected function determineAlertSeverity(float $thresholdPercentage): string
+    protected function determineAlertSeverity(float $threshold_percentage): string
     {
         return match (true) {
-            $thresholdPercentage >= 100 => 'critical',
-            $thresholdPercentage >= 90 => 'high',
-            $thresholdPercentage >= 80 => 'medium',
+            $threshold_percentage >= 100 => 'critical',
+            $threshold_percentage >= 90 => 'high',
+            $threshold_percentage >= 80 => 'medium',
             default => 'low',
         };
     }
@@ -260,7 +260,6 @@ class BudgetAlertListener implements ShouldQueue
                     $this->sendDatabaseNotification($event, $notification);
                     break;
             }
-
         } catch (\Exception $e) {
             Log::error('Failed to send budget alert notification', [
                 'user_id' => $event->userId,
@@ -280,7 +279,7 @@ class BudgetAlertListener implements ShouldQueue
     protected function sendEmailNotification(BudgetThresholdReached $event, BudgetThresholdNotification $notification, array $alertConfig): void
     {
         $user = $this->budgetAlertService->getUser($event->userId);
-        
+
         if ($user && $user->email) {
             $user->notify($notification);
         }
@@ -302,7 +301,7 @@ class BudgetAlertListener implements ShouldQueue
     protected function sendSlackNotification(BudgetThresholdReached $event, BudgetThresholdNotification $notification, array $alertConfig): void
     {
         $slackWebhook = $alertConfig['slack_webhook'] ?? config('ai.budget.slack_webhook');
-        
+
         if ($slackWebhook) {
             Notification::route('slack', $slackWebhook)->notify($notification);
         }
@@ -318,7 +317,7 @@ class BudgetAlertListener implements ShouldQueue
     protected function sendSmsNotification(BudgetThresholdReached $event, BudgetThresholdNotification $notification, array $alertConfig): void
     {
         $phoneNumber = $alertConfig['sms_phone'] ?? null;
-        
+
         if ($phoneNumber) {
             Notification::route('nexmo', $phoneNumber)->notify($notification);
         }
@@ -333,7 +332,7 @@ class BudgetAlertListener implements ShouldQueue
     protected function sendDatabaseNotification(BudgetThresholdReached $event, BudgetThresholdNotification $notification): void
     {
         $user = $this->budgetAlertService->getUser($event->userId);
-        
+
         if ($user) {
             $user->notify($notification);
         }
@@ -351,9 +350,9 @@ class BudgetAlertListener implements ShouldQueue
         $this->budgetAlertService->recordAlert([
             'user_id' => $event->userId,
             'budget_type' => $event->budgetType,
-            'threshold_percentage' => $event->thresholdPercentage,
-            'current_spending' => $event->currentSpending,
-            'budget_limit' => $event->budgetLimit,
+            'threshold_percentage' => $event->threshold_percentage,
+            'current_spending' => $event->current_spending,
+            'budget_limit' => $event->budget_limit,
             'additional_cost' => $event->additionalCost,
             'severity' => $severity,
             'channels' => $channels,
@@ -379,17 +378,17 @@ class BudgetAlertListener implements ShouldQueue
      * Get minimum alert interval based on budget type and threshold.
      *
      * @param  string  $budgetType  Budget type
-     * @param  float  $thresholdPercentage  Threshold percentage
+     * @param  float  $threshold_percentage  Threshold percentage
      * @return int Minimum interval in minutes
      */
-    protected function getMinAlertInterval(string $budgetType, float $thresholdPercentage): int
+    protected function getMinAlertInterval(string $budgetType, float $threshold_percentage): int
     {
         // More frequent alerts for critical thresholds
-        if ($thresholdPercentage >= 100) {
+        if ($threshold_percentage >= 100) {
             return 5; // 5 minutes for exceeded budgets
         }
 
-        if ($thresholdPercentage >= 90) {
+        if ($threshold_percentage >= 90) {
             return 15; // 15 minutes for critical thresholds
         }
 
@@ -415,11 +414,12 @@ class BudgetAlertListener implements ShouldQueue
     {
         $durationMs = $duration * 1000;
 
-        Cache::increment("budget_alerts_processed_total");
+        Cache::increment('budget_alerts_processed_total');
         Cache::increment("budget_alerts_outcome_{$outcome}");
-        Cache::increment("budget_alerts_duration_total", $durationMs);
+        Cache::increment('budget_alerts_duration_total', $durationMs);
         Cache::increment("budget_alerts_by_type_{$event->budgetType}");
-        Cache::increment("budget_alerts_by_severity_{$event->getSeverity()}");
+        $severity = $this->determineAlertSeverity($event->threshold_percentage);
+        Cache::increment("budget_alerts_by_severity_{$severity}");
 
         // Log slow alert processing
         if ($durationMs > 1000) { // 1 second threshold

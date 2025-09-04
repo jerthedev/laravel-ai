@@ -10,9 +10,7 @@ use JTD\LaravelAI\Listeners\CostTrackingListener;
 use JTD\LaravelAI\Listeners\NotificationListener;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Services\AIManager;
 use JTD\LaravelAI\Services\ConversationBuilder;
-use JTD\LaravelAI\Services\MiddlewareManager;
 use JTD\LaravelAI\Services\PricingService;
 use JTD\LaravelAI\Tests\TestCase;
 
@@ -122,8 +120,8 @@ class PerformanceBenchmarkTest extends TestCase
             message: $message,
             response: $response,
             context: [],
-            totalProcessingTime: 1.0,
-            providerMetadata: [
+            total_processing_time: 1.0,
+            provider_metadata: [
                 'provider' => 'mock',
                 'model' => 'mock-model',
                 'tokens_used' => 150,
@@ -317,6 +315,7 @@ class PerformanceBenchmarkTest extends TestCase
         });
 
         $conversation = app(ConversationBuilder::class);
+
         return $conversation
             ->provider('memory')
             ->model('memory-model')
@@ -331,21 +330,39 @@ class PerformanceBenchmarkTest extends TestCase
             'enabled' => true,
         ]);
 
-        $mockProvider = new class($handler) {
+        $mockProvider = new class($handler)
+        {
             private $handler;
 
-            public function __construct(callable $handler) {
+            public function __construct(callable $handler)
+            {
                 $this->handler = $handler;
             }
 
-            public function sendMessage($messages, $options = []) {
+            public function sendMessage($messages, $options = [])
+            {
                 return ($this->handler)($messages, $options);
             }
 
-            public function getName() { return 'mock'; }
-            public function getModel() { return 'mock-model'; }
-            public function setModel($model) { return $this; }
-            public function setOptions($options) { return $this; }
+            public function getName()
+            {
+                return 'mock';
+            }
+
+            public function getModel()
+            {
+                return 'mock-model';
+            }
+
+            public function setModel($model)
+            {
+                return $this;
+            }
+
+            public function setOptions($options)
+            {
+                return $this;
+            }
         };
 
         $this->app['laravel-ai.driver']->extend($name, function () use ($mockProvider) {
@@ -377,7 +394,7 @@ class PerformanceBenchmarkTest extends TestCase
     protected function tearDown(): void
     {
         // Output final performance summary
-        if (!empty($this->performanceResults)) {
+        if (! empty($this->performanceResults)) {
             $this->outputPerformanceSummary();
         }
 

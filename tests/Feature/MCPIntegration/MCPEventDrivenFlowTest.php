@@ -149,8 +149,8 @@ class MCPEventDrivenFlowTest extends TestCase
             message: $message,
             response: $response,
             context: ['mcp_tools_used' => ['sequential_thinking']],
-            totalProcessingTime: 1.5,
-            providerMetadata: ['provider' => 'openai', 'model' => 'gpt-4o-mini']
+            total_processing_time: 1.5,
+            provider_metadata: ['provider' => 'openai', 'model' => 'gpt-4o-mini']
         );
         event($responseEvent);
 
@@ -159,8 +159,8 @@ class MCPEventDrivenFlowTest extends TestCase
             provider: 'openai',
             model: 'gpt-4o-mini',
             cost: 0.003,
-            inputTokens: 100,
-            outputTokens: 50
+            input_tokens: 100,
+            output_tokens: 50
         );
         event($costEvent);
 
@@ -337,16 +337,16 @@ class MCPEventDrivenFlowTest extends TestCase
                 message: new \JTD\LaravelAI\Models\AIMessage('user', 'Test message'),
                 response: new \JTD\LaravelAI\Models\AIResponse('Test response', new \JTD\LaravelAI\ValueObjects\TokenUsage(10, 5, 15), 'gpt-4o-mini', 'openai'),
                 context: ['processing_time' => $responseDuration],
-                totalProcessingTime: 1.5,
-                providerMetadata: []
+                total_processing_time: 1.5,
+                provider_metadata: []
             ),
             new CostCalculated(
                 userId: $userId,
                 provider: 'openai',
                 model: 'gpt-4o-mini',
                 cost: $totalCost,
-                inputTokens: 100,
-                outputTokens: 50
+                input_tokens: 100,
+                output_tokens: 50
             ),
         ];
 

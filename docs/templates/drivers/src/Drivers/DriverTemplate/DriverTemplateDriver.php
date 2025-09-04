@@ -2,18 +2,9 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate;
 
-use JTD\LaravelAI\Drivers\Contracts\AbstractAIProvider;
-use JTD\LaravelAI\Drivers\DriverTemplate\Traits\CalculatesCosts;
-use JTD\LaravelAI\Drivers\DriverTemplate\Traits\HandlesApiCommunication;
-use JTD\LaravelAI\Drivers\DriverTemplate\Traits\HandlesErrors;
-use JTD\LaravelAI\Drivers\DriverTemplate\Traits\HandlesFunctionCalling;
-use JTD\LaravelAI\Drivers\DriverTemplate\Traits\IntegratesResponsesAPI;
-use JTD\LaravelAI\Drivers\DriverTemplate\Traits\ManagesModels;
-use JTD\LaravelAI\Drivers\DriverTemplate\Traits\SupportsStreaming;
-use JTD\LaravelAI\Drivers\DriverTemplate\Traits\ValidatesHealth;
-use JTD\LaravelAI\Models\AIMessage;
-use JTD\LaravelAI\Models\AIResponse;
 use DriverTemplate;
+use JTD\LaravelAI\Drivers\Contracts\AbstractAIProvider;
+use JTD\LaravelAI\Models\AIMessage;
 
 /**
  * DriverTemplate Driver - Production-Ready Implementation
@@ -103,7 +94,7 @@ class DriverTemplateDriver extends AbstractAIProvider
      *                         - cost_tracking (array, optional): Cost tracking configuration
      *
      * @throws \JTD\LaravelAI\Exceptions\DriverTemplate\DriverTemplateInvalidCredentialsException
-     *                                                                            When API key is missing or invalid format
+     *                                                                                            When API key is missing or invalid format
      * @throws \InvalidArgumentException
      *                                   When configuration parameters are invalid
      *
@@ -303,7 +294,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Calculate cost for a message or token usage.
      */
-    public function calculateCost($message, string $modelId = null): array
+    public function calculateCost($message, ?string $modelId = null): array
     {
         // TODO: Implement calculateCost
     }
@@ -463,7 +454,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Estimate tokens for input.
      */
-    public function estimateTokens($input, string $modelId = null): int
+    public function estimateTokens($input, ?string $modelId = null): int
     {
         // TODO: Implement estimateTokens
     }
@@ -527,7 +518,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Estimate cost for a conversation.
      */
-    public function estimateConversationCost(array $messages, string $modelId = null): array
+    public function estimateConversationCost(array $messages, ?string $modelId = null): array
     {
         // TODO: Implement estimateConversationCost
     }
@@ -543,7 +534,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Get cost breakdown for multiple requests.
      */
-    public function calculateBatchCost(array $requests, string $modelId = null): array
+    public function calculateBatchCost(array $requests, ?string $modelId = null): array
     {
         // TODO: Implement calculateBatchCost
     }
@@ -575,7 +566,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Estimate monthly cost based on usage patterns.
      */
-    public function estimateMonthlyCost(array $usagePattern, string $modelId = null): array
+    public function estimateMonthlyCost(array $usagePattern, ?string $modelId = null): array
     {
         // TODO: Implement estimateMonthlyCost
     }
@@ -583,7 +574,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Get cost optimization recommendations.
      */
-    public function getCostOptimizationRecommendations($message, string $currentModel = null): array
+    public function getCostOptimizationRecommendations($message, ?string $currentModel = null): array
     {
         // TODO: Implement getCostOptimizationRecommendations
     }
@@ -903,7 +894,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Execute function calls (placeholder for user implementation).
      */
-    public function executeFunctionCalls(array $functionCalls, callable $executor = null): array
+    public function executeFunctionCalls(array $functionCalls, ?callable $executor = null): array
     {
         // TODO: Implement executeFunctionCalls
     }
@@ -914,7 +905,7 @@ class DriverTemplateDriver extends AbstractAIProvider
      * @deprecated This method is deprecated and will be removed in the next version.
      *             Use the new unified tool system with withTools() or allTools() instead.
      */
-    public function conversationWithFunctions($message, array $functions, callable $functionExecutor = null, array $options = []): JTD\LaravelAI\Models\AIResponse
+    public function conversationWithFunctions($message, array $functions, ?callable $functionExecutor = null, array $options = []): JTD\LaravelAI\Models\AIResponse
     {
         // TODO: Implement conversationWithFunctions
     }
@@ -1162,7 +1153,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Send a streaming message with callback support.
      */
-    public function sendStreamingMessageWithCallback($message, array $options = [], callable $callback = null): JTD\LaravelAI\Models\AIResponse
+    public function sendStreamingMessageWithCallback($message, array $options = [], ?callable $callback = null): JTD\LaravelAI\Models\AIResponse
     {
         // TODO: Implement sendStreamingMessageWithCallback
     }
@@ -1186,7 +1177,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Stream with progress tracking.
      */
-    public function streamWithProgress($message, array $options = [], callable $progressCallback = null): JTD\LaravelAI\Models\AIResponse
+    public function streamWithProgress($message, array $options = [], ?callable $progressCallback = null): JTD\LaravelAI\Models\AIResponse
     {
         // TODO: Implement streamWithProgress
     }
@@ -1202,7 +1193,7 @@ class DriverTemplateDriver extends AbstractAIProvider
     /**
      * Stream with content filtering.
      */
-    public function streamWithFilter($message, array $options = [], callable $filter = null): JTD\LaravelAI\Models\AIResponse
+    public function streamWithFilter($message, array $options = [], ?callable $filter = null): JTD\LaravelAI\Models\AIResponse
     {
         // TODO: Implement streamWithFilter
     }
@@ -1302,5 +1293,4 @@ class DriverTemplateDriver extends AbstractAIProvider
     {
         // TODO: Implement checkCompletionsAccess
     }
-
 }

@@ -176,8 +176,8 @@ class CostRecord extends Model
 ---
 
 ## AI Prompt
-
-You are implementing ticket 1022-create-missing-eloquent-models.md.
+```
+You are implementing ticket 1203-create-missing-eloquent-models.md.
 
 **Context**: System uses raw database queries instead of Eloquent models, making maintenance difficult.
 
@@ -191,4 +191,7 @@ You are implementing ticket 1022-create-missing-eloquent-models.md.
 5. Update services to use models
 6. Test thoroughly
 
+Important: Backward compatibility is not necessary since this package has not yet been released. We want consistent patterns throughout the project.
+
 **Critical**: This improves code maintainability and enables proper ORM relationships for the budget system.
+```

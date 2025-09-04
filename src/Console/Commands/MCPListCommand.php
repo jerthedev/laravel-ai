@@ -76,6 +76,7 @@ class MCPListCommand extends Command
             }
         } catch (\Exception $e) {
             $this->error("Failed to list servers: {$e->getMessage()}");
+
             return 1;
         }
     }
@@ -89,6 +90,7 @@ class MCPListCommand extends Command
 
         if ($jsonOutput) {
             $this->line(json_encode($availableServers, JSON_PRETTY_PRINT));
+
             return 0;
         }
 
@@ -103,7 +105,7 @@ class MCPListCommand extends Command
             $this->line("    Name: {$serverName}");
             $this->line("    Description: {$serverDescription}");
             $this->line("    Package: {$serverPackage}");
-            $this->line("    Requires API Key: " . ($server['requires_api_key'] ? 'Yes' : 'No'));
+            $this->line('    Requires API Key: ' . ($server['requires_api_key'] ? 'Yes' : 'No'));
 
             if ($server['requires_api_key'] && isset($server['api_key_name'])) {
                 $this->line("    API Key: {$server['api_key_name']}");
@@ -115,7 +117,7 @@ class MCPListCommand extends Command
                 $version = $installStatus['version'] ?? 'unknown';
                 $this->line("    <fg=green>Status: Installed (v{$version})</>");
             } else {
-                $this->line("    <fg=yellow>Status: Not installed</>");
+                $this->line('    <fg=yellow>Status: Not installed</>');
             }
 
             $this->line('');
@@ -135,10 +137,11 @@ class MCPListCommand extends Command
         $configuredServers = $config['servers'] ?? [];
 
         if (empty($configuredServers)) {
-            if (!$jsonOutput) {
+            if (! $jsonOutput) {
                 $this->warn('No MCP servers configured.');
                 $this->line('Run "php artisan ai:mcp:setup" to configure servers.');
             }
+
             return 0;
         }
 
@@ -193,6 +196,7 @@ class MCPListCommand extends Command
                 'total_servers' => count($serverData),
                 'servers' => $serverData,
             ], JSON_PRETTY_PRINT));
+
             return 0;
         }
 
@@ -227,7 +231,7 @@ class MCPListCommand extends Command
             }
 
             // Configuration details
-            $this->line("    Enabled: " . ($config['enabled'] ? 'Yes' : 'No'));
+            $this->line('    Enabled: ' . ($config['enabled'] ? 'Yes' : 'No'));
 
             if (isset($config['command'])) {
                 $this->line("    Command: {$config['command']}");
@@ -237,9 +241,9 @@ class MCPListCommand extends Command
                 $this->line("    Timeout: {$config['timeout']}s");
             }
 
-            if (!empty($config['env'])) {
+            if (! empty($config['env'])) {
                 $envVars = array_keys($config['env']);
-                $this->line("    Environment Variables: " . implode(', ', $envVars));
+                $this->line('    Environment Variables: ' . implode(', ', $envVars));
             }
 
             // Server status
@@ -281,7 +285,7 @@ class MCPListCommand extends Command
                 } elseif (isset($data['tools_error'])) {
                     $this->line("    <fg=red>Tools: Error loading - {$data['tools_error']}</>");
                 } else {
-                    $this->line("    Tools: Not loaded");
+                    $this->line('    Tools: Not loaded');
                 }
             }
 
@@ -290,8 +294,8 @@ class MCPListCommand extends Command
 
         // Summary
         $totalServers = count($serverData);
-        $enabledServers = count(array_filter($serverData, fn($data) => $data['config']['enabled'] ?? false));
-        $loadedServers = count(array_filter($serverData, fn($data) => $data['is_loaded']));
+        $enabledServers = count(array_filter($serverData, fn ($data) => $data['config']['enabled'] ?? false));
+        $loadedServers = count(array_filter($serverData, fn ($data) => $data['is_loaded']));
 
         $this->info('📊 Summary:');
         $this->line("   Total servers: {$totalServers}");

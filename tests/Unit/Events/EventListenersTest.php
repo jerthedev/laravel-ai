@@ -55,8 +55,8 @@ class EventListenersTest extends TestCase
             message: $message,
             response: $response,
             context: [],
-            totalProcessingTime: 1.0,
-            providerMetadata: [
+            total_processing_time: 1.0,
+            provider_metadata: [
                 'provider' => 'openai',
                 'model' => 'gpt-4o-mini',
                 'tokens_used' => 150,
@@ -106,15 +106,15 @@ class EventListenersTest extends TestCase
             message: $message,
             response: $response,
             context: [],
-            totalProcessingTime: 1.0,
-            providerMetadata: [
+            total_processing_time: 1.0,
+            provider_metadata: [
                 'provider' => 'openai',
                 'model' => 'gpt-4o-mini',
                 'tokens_used' => 150,
             ]
         );
 
-        $listener = new AnalyticsListener();
+        $listener = new AnalyticsListener;
 
         // Should not throw any exceptions
         $this->assertNull($listener->handle($event));
@@ -127,13 +127,13 @@ class EventListenersTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'daily',
-            currentSpending: 8.50,
-            budgetLimit: 10.00,
-            percentage: 85.0,
+            current_spending: 8.50,
+            budget_limit: 10.00,
+            threshold_percentage: 85.0,
             severity: 'warning'
         );
 
-        $listener = new NotificationListener();
+        $listener = new NotificationListener;
 
         // Should not throw any exceptions
         $this->assertNull($listener->handle($event));
@@ -143,8 +143,8 @@ class EventListenersTest extends TestCase
     {
         // Test that listeners implement ShouldQueue
         $costListener = new CostTrackingListener($this->app->make(PricingService::class));
-        $analyticsListener = new AnalyticsListener();
-        $notificationListener = new NotificationListener();
+        $analyticsListener = new AnalyticsListener;
+        $notificationListener = new NotificationListener;
 
         $this->assertInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class, $costListener);
         $this->assertInstanceOf(\Illuminate\Contracts\Queue\ShouldQueue::class, $analyticsListener);
@@ -154,8 +154,8 @@ class EventListenersTest extends TestCase
     public function test_listeners_have_correct_queue_assignments()
     {
         $costListener = new CostTrackingListener($this->app->make(PricingService::class));
-        $analyticsListener = new AnalyticsListener();
-        $notificationListener = new NotificationListener();
+        $analyticsListener = new AnalyticsListener;
+        $notificationListener = new NotificationListener;
 
         $this->assertEquals('ai-analytics', $costListener->queue);
         $this->assertEquals('ai-analytics', $analyticsListener->queue);
@@ -165,8 +165,8 @@ class EventListenersTest extends TestCase
     public function test_listeners_have_retry_configuration()
     {
         $costListener = new CostTrackingListener($this->app->make(PricingService::class));
-        $analyticsListener = new AnalyticsListener();
-        $notificationListener = new NotificationListener();
+        $analyticsListener = new AnalyticsListener;
+        $notificationListener = new NotificationListener;
 
         $this->assertEquals(3, $costListener->tries);
         $this->assertEquals(3, $analyticsListener->tries);
@@ -184,6 +184,7 @@ class EventListenersTest extends TestCase
             $mock = Mockery::mock(PricingService::class);
             $mock->shouldReceive('calculateCost')
                 ->andThrow(new \Exception('Pricing service error'));
+
             return $mock;
         });
 
@@ -205,8 +206,8 @@ class EventListenersTest extends TestCase
             message: $message,
             response: $response,
             context: [],
-            totalProcessingTime: 1.0,
-            providerMetadata: []
+            total_processing_time: 1.0,
+            provider_metadata: []
         );
 
         $listener = new CostTrackingListener($this->app->make(PricingService::class));
@@ -235,14 +236,14 @@ class EventListenersTest extends TestCase
             message: $message,
             response: $response,
             context: [],
-            totalProcessingTime: 1.0,
-            providerMetadata: []
+            total_processing_time: 1.0,
+            provider_metadata: []
         );
 
         // Test that listeners complete within reasonable time
         $startTime = microtime(true);
 
-        $analyticsListener = new AnalyticsListener();
+        $analyticsListener = new AnalyticsListener;
         $analyticsListener->handle($event);
 
         $executionTime = microtime(true) - $startTime;
@@ -259,13 +260,13 @@ class EventListenersTest extends TestCase
             $event = new BudgetThresholdReached(
                 userId: 1,
                 budgetType: 'daily',
-                currentSpending: 8.50,
-                budgetLimit: 10.00,
-                percentage: 85.0,
+                current_spending: 8.50,
+                budget_limit: 10.00,
+                threshold_percentage: 85.0,
                 severity: $severity
             );
 
-            $listener = new NotificationListener();
+            $listener = new NotificationListener;
 
             // Should handle all severity levels without error
             $this->assertNull($listener->handle($event));
@@ -279,13 +280,13 @@ class EventListenersTest extends TestCase
             provider: 'openai',
             model: 'gpt-4o-mini',
             cost: 0.001,
-            inputTokens: 100,
-            outputTokens: 50,
+            input_tokens: 100,
+            output_tokens: 50,
             conversationId: 1,
             messageId: 1
         );
 
-        $analyticsListener = new AnalyticsListener();
+        $analyticsListener = new AnalyticsListener;
 
         // Should handle CostCalculated events
         $this->assertNull($analyticsListener->handleCostCalculated($event));

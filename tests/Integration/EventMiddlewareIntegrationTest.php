@@ -57,8 +57,8 @@ class EventMiddlewareIntegrationTest extends TestCase
             message: $message,
             response: $response,
             context: ['integration_test' => true],
-            totalProcessingTime: 1.0,
-            providerMetadata: [
+            total_processing_time: 1.0,
+            provider_metadata: [
                 'provider' => 'test',
                 'model' => 'test-model',
                 'tokens_used' => 150,
@@ -138,9 +138,9 @@ class EventMiddlewareIntegrationTest extends TestCase
         $budgetEvent = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'daily',
-            currentSpending: 9.50,
-            budgetLimit: 10.00,
-            percentage: 95.0,
+            current_spending: 9.50,
+            budget_limit: 10.00,
+            threshold_percentage: 95.0,
             severity: 'critical'
         );
 
@@ -148,7 +148,7 @@ class EventMiddlewareIntegrationTest extends TestCase
 
         // Verify event was dispatched
         Event::assertDispatched(BudgetThresholdReached::class, function ($event) {
-            return $event->severity === 'critical' && $event->percentage === 95.0;
+            return $event->severity === 'critical' && $event->threshold_percentage === 95.0;
         });
     }
 
@@ -162,8 +162,8 @@ class EventMiddlewareIntegrationTest extends TestCase
             provider: 'test',
             model: 'test-model',
             cost: 0.001,
-            inputTokens: 200,
-            outputTokens: 100,
+            input_tokens: 200,
+            output_tokens: 100,
             conversationId: 1,
             messageId: 1
         );
@@ -172,7 +172,7 @@ class EventMiddlewareIntegrationTest extends TestCase
 
         // Verify event was dispatched
         Event::assertDispatched(CostCalculated::class, function ($event) {
-            return $event->cost === 0.001 && $event->inputTokens === 200;
+            return $event->cost === 0.001 && $event->input_tokens === 200;
         });
     }
 
@@ -213,8 +213,8 @@ class EventMiddlewareIntegrationTest extends TestCase
                     'model' => 'test-model',
                 ]),
                 context: ['performance_test' => true],
-                totalProcessingTime: 0.1,
-                providerMetadata: []
+                total_processing_time: 0.1,
+                provider_metadata: []
             );
 
             event($event);
@@ -241,8 +241,8 @@ class EventMiddlewareIntegrationTest extends TestCase
                     'model' => 'test-model',
                 ]),
                 context: ['error_test' => true],
-                totalProcessingTime: 1.0,
-                providerMetadata: []
+                total_processing_time: 1.0,
+                provider_metadata: []
             );
 
             // Fire the event - should not throw exceptions
@@ -268,8 +268,8 @@ class EventMiddlewareIntegrationTest extends TestCase
                 'model' => 'test-model',
             ]),
             context: ['config_test' => true],
-            totalProcessingTime: 1.0,
-            providerMetadata: []
+            total_processing_time: 1.0,
+            provider_metadata: []
         );
 
         // Fire event manually (this should still work even if events are "disabled"

@@ -2,12 +2,10 @@
 
 namespace JTD\LaravelAI\Tests\Feature\BudgetManagement;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\BudgetService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Http\Request;
+use JTD\LaravelAI\Services\BudgetService;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -322,7 +320,7 @@ class BudgetStatusDashboardTest extends TestCase
             Cache::put("budget_limit_{$userId}_{$type}", $data['limit'], 300);
 
             // Set current spending
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "daily_spending_{$userId}_" . now()->format('Y-m-d'),
                 'monthly' => "monthly_spending_{$userId}_" . now()->format('Y-m'),
                 default => "spending_{$userId}_{$type}",
@@ -336,7 +334,7 @@ class BudgetStatusDashboardTest extends TestCase
         foreach ($budgets as $type => $data) {
             Cache::put("project_budget_limit_{$projectId}_{$type}", $data['limit'], 300);
 
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "project_daily_spending_{$projectId}_" . now()->format('Y-m-d'),
                 'monthly' => "project_monthly_spending_{$projectId}_" . now()->format('Y-m'),
                 default => "project_spending_{$projectId}_{$type}",
@@ -350,7 +348,7 @@ class BudgetStatusDashboardTest extends TestCase
         foreach ($budgets as $type => $data) {
             Cache::put("org_budget_limit_{$organizationId}_{$type}", $data['limit'], 300);
 
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "org_daily_spending_{$organizationId}_" . now()->format('Y-m-d'),
                 'monthly' => "org_monthly_spending_{$organizationId}_" . now()->format('Y-m'),
                 default => "org_spending_{$organizationId}_{$type}",
@@ -411,7 +409,7 @@ class BudgetStatusDashboardTest extends TestCase
         // Get budget data from cache
         foreach (['daily', 'monthly'] as $type) {
             $limitKey = "budget_limit_{$userId}_{$type}";
-            $spendingKey = match($type) {
+            $spendingKey = match ($type) {
                 'daily' => "daily_spending_{$userId}_" . now()->format('Y-m-d'),
                 'monthly' => "monthly_spending_{$userId}_" . now()->format('Y-m'),
             };
@@ -423,7 +421,7 @@ class BudgetStatusDashboardTest extends TestCase
                 $remaining = max(0, $limit - $spent);
                 $utilization = ($spent / $limit) * 100;
 
-                $alertLevel = match(true) {
+                $alertLevel = match (true) {
                     $utilization >= 90 => 'critical',
                     $utilization >= 80 => 'warning',
                     default => 'normal',
@@ -506,7 +504,7 @@ class BudgetStatusDashboardTest extends TestCase
     protected function simulateSpendingTrends(int $userId, string $period, int $periods): array
     {
         return [
-            'periods' => array_map(fn($i) => now()->subMonths($i)->format('Y-m'), range(0, $periods - 1)),
+            'periods' => array_map(fn ($i) => now()->subMonths($i)->format('Y-m'), range(0, $periods - 1)),
             'spending' => array_fill(0, $periods, 45.0 + rand(-10, 10)),
             'trend_direction' => 'up',
             'average_spending' => 45.0,
@@ -534,8 +532,8 @@ class BudgetStatusDashboardTest extends TestCase
         $alerts = Cache::get("budget_alerts_{$userId}", []);
 
         $totalAlerts = count($alerts);
-        $criticalAlerts = count(array_filter($alerts, fn($alert) => $alert['severity'] === 'critical'));
-        $warningAlerts = count(array_filter($alerts, fn($alert) => $alert['severity'] === 'warning'));
+        $criticalAlerts = count(array_filter($alerts, fn ($alert) => $alert['severity'] === 'critical'));
+        $warningAlerts = count(array_filter($alerts, fn ($alert) => $alert['severity'] === 'warning'));
 
         return [
             'total_alerts' => $totalAlerts,

@@ -56,7 +56,6 @@ class NotificationListener implements ShouldQueue
             if ($event->severity === 'exceeded') {
                 $this->handleBudgetExceeded($event);
             }
-
         } catch (\Exception $e) {
             // Log error but don't fail the job
             logger()->error('Budget notification failed', [
@@ -79,7 +78,6 @@ class NotificationListener implements ShouldQueue
         try {
             // Check for notification triggers
             $this->checkNotificationTriggers($event);
-
         } catch (\Exception $e) {
             logger()->error('Response notification check failed', [
                 'event' => class_basename($event),
@@ -104,9 +102,9 @@ class NotificationListener implements ShouldQueue
             'user_id' => $event->userId,
             'budget_type' => $event->budgetType,
             'severity' => $event->severity,
-            'percentage' => $event->percentage,
-            'current_spending' => $event->currentSpending,
-            'budget_limit' => $event->budgetLimit,
+            'threshold_percentage' => $event->threshold_percentage,
+            'current_spending' => $event->current_spending,
+            'budget_limit' => $event->budget_limit,
             'message' => $message,
         ]);
     }
@@ -115,16 +113,16 @@ class NotificationListener implements ShouldQueue
      * Build budget alert message.
      *
      * @param  BudgetThresholdReached  $event  The event
-     * @return string  The alert message
+     * @return string The alert message
      */
     protected function buildBudgetAlertMessage(BudgetThresholdReached $event): string
     {
-        $percentage = round($event->percentage, 1);
+        $percentage = round($event->threshold_percentage, 1);
 
-        return match($event->severity) {
-            'warning' => "You've reached {$percentage}% of your {$event->budgetType} AI budget (\${$event->currentSpending} of \${$event->budgetLimit})",
-            'critical' => "CRITICAL: You've reached {$percentage}% of your {$event->budgetType} AI budget (\${$event->currentSpending} of \${$event->budgetLimit})",
-            'exceeded' => "BUDGET EXCEEDED: Your {$event->budgetType} AI budget has been exceeded (\${$event->currentSpending} of \${$event->budgetLimit})",
+        return match ($event->severity) {
+            'warning' => "You've reached {$percentage}% of your {$event->budgetType} AI budget (\${$event->current_spending} of \${$event->budget_limit})",
+            'critical' => "CRITICAL: You've reached {$percentage}% of your {$event->budgetType} AI budget (\${$event->current_spending} of \${$event->budget_limit})",
+            'exceeded' => "BUDGET EXCEEDED: Your {$event->budgetType} AI budget has been exceeded (\${$event->current_spending} of \${$event->budget_limit})",
             default => "Budget threshold reached: {$percentage}% of {$event->budgetType} budget"
         };
     }
@@ -140,9 +138,9 @@ class NotificationListener implements ShouldQueue
             'user_id' => $event->userId,
             'budget_type' => $event->budgetType,
             'severity' => $event->severity,
-            'percentage' => $event->percentage,
-            'current_spending' => $event->currentSpending,
-            'budget_limit' => $event->budgetLimit,
+            'threshold_percentage' => $event->threshold_percentage,
+            'current_spending' => $event->current_spending,
+            'budget_limit' => $event->budget_limit,
             'timestamp' => now()->toISOString(),
         ]);
     }
@@ -158,7 +156,7 @@ class NotificationListener implements ShouldQueue
         logger()->critical('Budget exceeded - administrative action may be required', [
             'user_id' => $event->userId,
             'budget_type' => $event->budgetType,
-            'overage' => $event->currentSpending - $event->budgetLimit,
+            'overage' => $event->current_spending - $event->budget_limit,
             'timestamp' => now()->toISOString(),
         ]);
 
@@ -179,21 +177,21 @@ class NotificationListener implements ShouldQueue
         // Foundation implementation - will be expanded in Sprint 4b
 
         // Check for slow responses
-        if ($event->totalProcessingTime > 30.0) {
+        if ($event->total_processing_time > 30.0) {
             logger()->info('Slow response notification trigger', [
                 'user_id' => $event->message->user_id ?? 0,
-                'processing_time' => $event->totalProcessingTime,
-                'provider' => $event->providerMetadata['provider'] ?? 'unknown',
+                'processing_time' => $event->total_processing_time,
+                'provider' => $event->provider_metadata['provider'] ?? 'unknown',
             ]);
         }
 
         // Check for high token usage
-        $tokens = $event->providerMetadata['tokens_used'] ?? 0;
+        $tokens = $event->provider_metadata['tokens_used'] ?? 0;
         if ($tokens > 10000) {
             logger()->info('High token usage notification trigger', [
                 'user_id' => $event->message->user_id ?? 0,
                 'tokens_used' => $tokens,
-                'provider' => $event->providerMetadata['provider'] ?? 'unknown',
+                'provider' => $event->provider_metadata['provider'] ?? 'unknown',
             ]);
         }
     }

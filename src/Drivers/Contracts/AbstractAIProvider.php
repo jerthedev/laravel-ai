@@ -125,8 +125,8 @@ abstract class AbstractAIProvider implements AIProviderInterface
                         'provider_level_event' => true,
                         'processing_start_time' => $startTime,
                     ],
-                    totalProcessingTime: $responseTime / 1000, // Convert to seconds
-                    providerMetadata: [
+                    total_processing_time: $responseTime / 1000, // Convert to seconds
+                    provider_metadata: [
                         'provider' => $response->provider ?? $this->getName() ?? 'unknown',
                         'model' => $response->model ?? $this->getCurrentModel() ?? 'unknown',
                         'tokens_used' => $response->tokenUsage?->totalTokens ?? 0,
@@ -145,8 +145,8 @@ abstract class AbstractAIProvider implements AIProviderInterface
                     provider: $this->getName(),
                     model: $response->model ?? $this->getCurrentModel() ?? 'unknown',
                     cost: (float) $cost,
-                    inputTokens: $response->tokenUsage->inputTokens ?? 0,
-                    outputTokens: $response->tokenUsage->outputTokens ?? 0,
+                    input_tokens: $response->tokenUsage->input_tokens ?? 0,
+                    output_tokens: $response->tokenUsage->output_tokens ?? 0,
                     conversationId: $primaryMessage->conversation_id ?? null,
                     messageId: $primaryMessage->id ?? null
                 ));
@@ -211,8 +211,8 @@ abstract class AbstractAIProvider implements AIProviderInterface
                     'total_chunks' => count($chunks),
                     'processing_start_time' => $startTime,
                 ],
-                totalProcessingTime: $totalTime,
-                providerMetadata: [
+                total_processing_time: $totalTime,
+                provider_metadata: [
                     'provider' => $finalResponse->provider ?? $this->getName() ?? 'unknown',
                     'model' => $finalResponse->model ?? $this->getCurrentModel() ?? 'unknown',
                     'tokens_used' => $finalResponse->tokenUsage?->totalTokens ?? 0,
@@ -229,8 +229,8 @@ abstract class AbstractAIProvider implements AIProviderInterface
                     provider: $this->getName(),
                     model: $finalResponse->model ?? $this->getCurrentModel() ?? 'unknown',
                     cost: (float) $cost,
-                    inputTokens: $finalResponse->tokenUsage->inputTokens ?? 0,
-                    outputTokens: $finalResponse->tokenUsage->outputTokens ?? 0,
+                    input_tokens: $finalResponse->tokenUsage->input_tokens ?? 0,
+                    output_tokens: $finalResponse->tokenUsage->output_tokens ?? 0,
                     conversationId: $primaryMessage->conversation_id ?? null,
                     messageId: $primaryMessage->id ?? null
                 ));
@@ -518,21 +518,21 @@ abstract class AbstractAIProvider implements AIProviderInterface
      * Process tool options and format them for the provider.
      *
      * @param  array  $options  Request options
-     * @return array  Processed options with formatted tools
+     * @return array Processed options with formatted tools
      */
     protected function processToolOptions(array $options): array
     {
         // Check if withTools or allTools options are present
-        if (!isset($options['withTools']) && !isset($options['allTools']) && !isset($options['resolved_tools'])) {
+        if (! isset($options['withTools']) && ! isset($options['allTools']) && ! isset($options['resolved_tools'])) {
             return $options;
         }
 
         // If tools are already resolved (from ConversationBuilder), use them
-        if (isset($options['resolved_tools']) && !empty($options['resolved_tools'])) {
+        if (isset($options['resolved_tools']) && ! empty($options['resolved_tools'])) {
             // Format tools for this provider's API
             $formattedTools = $this->formatToolsForAPI($options['resolved_tools']);
 
-            if (!empty($formattedTools)) {
+            if (! empty($formattedTools)) {
                 $options['tools'] = $formattedTools;
             }
 
@@ -554,7 +554,7 @@ abstract class AbstractAIProvider implements AIProviderInterface
             $toolNames = $options['withTools'];
             $missingTools = $toolRegistry->validateToolNames($toolNames);
 
-            if (!empty($missingTools)) {
+            if (! empty($missingTools)) {
                 throw new \InvalidArgumentException(
                     'Unknown tools: ' . implode(', ', $missingTools)
                 );
@@ -573,10 +573,10 @@ abstract class AbstractAIProvider implements AIProviderInterface
         }
 
         // Format tools for this provider's API if we have resolved tools
-        if (isset($options['resolved_tools']) && !empty($options['resolved_tools'])) {
+        if (isset($options['resolved_tools']) && ! empty($options['resolved_tools'])) {
             $formattedTools = $this->formatToolsForAPI($options['resolved_tools']);
 
-            if (!empty($formattedTools)) {
+            if (! empty($formattedTools)) {
                 $options['tools'] = $formattedTools;
             }
         }
@@ -589,7 +589,7 @@ abstract class AbstractAIProvider implements AIProviderInterface
      * Override this method in concrete providers to format tools appropriately.
      *
      * @param  array  $resolvedTools  Resolved tool definitions
-     * @return array  Formatted tools for API
+     * @return array Formatted tools for API
      */
     protected function formatToolsForAPI(array $resolvedTools): array
     {
@@ -619,12 +619,12 @@ abstract class AbstractAIProvider implements AIProviderInterface
      * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
      * @param  array  $options  Request options
      * @param  \JTD\LaravelAI\Models\AIMessage|null  $message  Original message
-     * @return \JTD\LaravelAI\Models\AIResponse  Response with tool execution results
+     * @return \JTD\LaravelAI\Models\AIResponse Response with tool execution results
      */
     protected function processToolCallsInResponse($response, array $options, $message = null)
     {
         // Check if response contains tool calls
-        if (!$this->hasToolCalls($response)) {
+        if (! $this->hasToolCalls($response)) {
             return $response;
         }
 
@@ -676,11 +676,11 @@ abstract class AbstractAIProvider implements AIProviderInterface
      * Override this method in concrete providers.
      *
      * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
-     * @return bool  True if response has tool calls
+     * @return bool True if response has tool calls
      */
     protected function hasToolCalls($response): bool
     {
-        return !empty($response->toolCalls) || !empty($response->functionCalls);
+        return ! empty($response->toolCalls) || ! empty($response->functionCalls);
     }
 
     /**
@@ -688,14 +688,14 @@ abstract class AbstractAIProvider implements AIProviderInterface
      * Override this method in concrete providers.
      *
      * @param  \JTD\LaravelAI\Models\AIResponse  $response  AI response
-     * @return array  Extracted tool calls
+     * @return array Extracted tool calls
      */
     protected function extractToolCalls($response): array
     {
         $calls = [];
 
         // Handle legacy function_call format
-        if (!empty($response->functionCalls)) {
+        if (! empty($response->functionCalls)) {
             $calls[] = [
                 'name' => $response->functionCalls['name'] ?? '',
                 'arguments' => $response->functionCalls['arguments'] ?? [],
@@ -704,7 +704,7 @@ abstract class AbstractAIProvider implements AIProviderInterface
         }
 
         // Handle new tool_calls format
-        if (!empty($response->toolCalls)) {
+        if (! empty($response->toolCalls)) {
             foreach ($response->toolCalls as $toolCall) {
                 if (($toolCall['type'] ?? '') === 'function') {
                     $calls[] = [

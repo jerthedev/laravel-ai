@@ -65,7 +65,7 @@ interface MCPServerInterface
      * This method allows the MCP server to modify, enhance, or add context
      * to messages before they are sent to AI providers.
      *
-     * @param AIMessage $message The message to process
+     * @param  AIMessage  $message  The message to process
      * @return AIMessage The processed message
      *
      * @throws \JTD\LaravelAI\Exceptions\MCPException
@@ -78,7 +78,7 @@ interface MCPServerInterface
      * This method allows the MCP server to modify, enhance, or add metadata
      * to responses after they are received from AI providers.
      *
-     * @param AIResponse $response The response to process
+     * @param  AIResponse  $response  The response to process
      * @return AIResponse The processed response
      *
      * @throws \JTD\LaravelAI\Exceptions\MCPException
@@ -95,8 +95,8 @@ interface MCPServerInterface
     /**
      * Execute a tool provided by this MCP server.
      *
-     * @param string $toolName The name of the tool to execute
-     * @param array $parameters Tool parameters
+     * @param  string  $toolName  The name of the tool to execute
+     * @param  array  $parameters  Tool parameters
      * @return array Tool execution result
      *
      * @throws \JTD\LaravelAI\Exceptions\MCPToolException

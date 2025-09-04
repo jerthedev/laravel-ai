@@ -2,19 +2,18 @@
 
 namespace JTD\LaravelAI\Tests\Feature\BudgetManagement;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Events\BudgetThresholdReached;
-use JTD\LaravelAI\Listeners\BudgetAlertListener;
-use JTD\LaravelAI\Services\BudgetAlertService;
-use JTD\LaravelAI\Notifications\BudgetThresholdNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Events\BudgetThresholdReached;
+use JTD\LaravelAI\Listeners\BudgetAlertListener;
+use JTD\LaravelAI\Notifications\BudgetThresholdNotification;
+use JTD\LaravelAI\Services\BudgetAlertService;
+use JTD\LaravelAI\Tests\TestCase;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Budget Alert System Tests
@@ -28,6 +27,7 @@ class BudgetAlertSystemTest extends TestCase
     use RefreshDatabase;
 
     protected BudgetAlertService $budgetAlertService;
+
     protected $budgetAlertListener;
 
     protected function setUp(): void
@@ -40,7 +40,7 @@ class BudgetAlertSystemTest extends TestCase
 
         // Create a mock listener since the real one has interface mismatches
         $this->budgetAlertListener = Mockery::mock(BudgetAlertListener::class);
-        $this->budgetAlertListener->shouldReceive('handle')->andReturnUsing(function($event) {
+        $this->budgetAlertListener->shouldReceive('handle')->andReturnUsing(function ($event) {
             // Simulate notification sending for specific tests
             if (isset($this->shouldSendNotification) && $this->shouldSendNotification) {
                 // Create a mock user that implements the necessary methods
@@ -52,7 +52,7 @@ class BudgetAlertSystemTest extends TestCase
                 $notification = new \JTD\LaravelAI\Notifications\BudgetThresholdNotification($event, 'warning', 'email');
                 \Illuminate\Support\Facades\Notification::send($user, $notification);
             }
-            return null;
+
         });
 
         $this->seedBudgetAlertTestData();
@@ -66,9 +66,9 @@ class BudgetAlertSystemTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'monthly',
-            currentSpending: 85.0,
-            budgetLimit: 100.0,
-            percentage: 85.0,
+            current_spending: 85.0,
+            budget_limit: 100.0,
+            threshold_percentage: 85.0,
             severity: 'warning'
         );
 
@@ -90,16 +90,16 @@ class BudgetAlertSystemTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'daily',
-            currentSpending: 8.5,
-            budgetLimit: 10.0,
-            percentage: 85.0,
+            current_spending: 8.5,
+            budget_limit: 10.0,
+            threshold_percentage: 85.0,
             severity: 'warning'
         );
 
         $this->budgetAlertListener->handle($event);
 
         // Verify alert was processed (simulated database storage)
-        $alertKey = "budget_alert_1_daily_" . now()->format('Y-m-d_H:i');
+        $alertKey = 'budget_alert_1_daily_' . now()->format('Y-m-d_H:i');
         $this->assertTrue(true, 'Alert processing completed successfully');
     }
 
@@ -111,9 +111,9 @@ class BudgetAlertSystemTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'monthly',
-            currentSpending: 90.0,
-            budgetLimit: 100.0,
-            percentage: 90.0,
+            current_spending: 90.0,
+            budget_limit: 100.0,
+            threshold_percentage: 90.0,
             severity: 'critical'
         );
 
@@ -142,9 +142,9 @@ class BudgetAlertSystemTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'daily',
-            currentSpending: 8.0,
-            budgetLimit: 10.0,
-            percentage: 85.0,
+            current_spending: 8.0,
+            budget_limit: 10.0,
+            threshold_percentage: 85.0,
             severity: 'warning'
         );
 
@@ -178,9 +178,9 @@ class BudgetAlertSystemTest extends TestCase
             $event = new BudgetThresholdReached(
                 userId: 1,
                 budgetType: 'monthly',
-                currentSpending: $case['threshold'],
-                budgetLimit: 100.0,
-                percentage: $case['threshold'],
+                current_spending: $case['threshold'],
+                budget_limit: 100.0,
+                threshold_percentage: $case['threshold'],
                 severity: $case['expected_severity']
             );
 
@@ -199,9 +199,9 @@ class BudgetAlertSystemTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'monthly',
-            currentSpending: 45.0,
-            budgetLimit: 50.0,
-            percentage: 90.0,
+            current_spending: 45.0,
+            budget_limit: 50.0,
+            threshold_percentage: 90.0,
             severity: 'critical'
         );
 
@@ -219,9 +219,9 @@ class BudgetAlertSystemTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'monthly',
-            currentSpending: 180.0,
-            budgetLimit: 200.0,
-            percentage: 90.0,
+            current_spending: 180.0,
+            budget_limit: 200.0,
+            threshold_percentage: 90.0,
             severity: 'critical'
         );
 
@@ -245,9 +245,9 @@ class BudgetAlertSystemTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'monthly',
-            currentSpending: 65.0,
-            budgetLimit: 100.0,
-            percentage: 85.0,
+            current_spending: 65.0,
+            budget_limit: 100.0,
+            threshold_percentage: 85.0,
             severity: 'warning'
         );
 
@@ -266,9 +266,9 @@ class BudgetAlertSystemTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 999999, // Non-existent user
             budgetType: 'invalid_type',
-            currentSpending: -10.0, // Invalid spending
-            budgetLimit: 0.0, // Invalid limit
-            percentage: 150.0, // Invalid percentage
+            current_spending: -10.0, // Invalid spending
+            budget_limit: 0.0, // Invalid limit
+            threshold_percentage: 150.0, // Invalid percentage
             severity: 'critical'
         );
 
@@ -285,9 +285,9 @@ class BudgetAlertSystemTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'daily',
-            currentSpending: 9.0,
-            budgetLimit: 10.0,
-            percentage: 85.0,
+            current_spending: 9.0,
+            budget_limit: 10.0,
+            threshold_percentage: 85.0,
             severity: 'warning'
         );
 
@@ -314,9 +314,9 @@ class BudgetAlertSystemTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'monthly',
-            currentSpending: 95.0,
-            budgetLimit: 100.0,
-            percentage: 85.0,
+            current_spending: 95.0,
+            budget_limit: 100.0,
+            threshold_percentage: 85.0,
             severity: 'warning'
         );
 

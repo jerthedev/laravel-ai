@@ -2,7 +2,7 @@
 
 /**
  * Manual validation script for Function Event background processing
- * 
+ *
  * This script demonstrates and validates that Function Events are properly
  * queued via ProcessFunctionCallJob and processed in the background.
  */
@@ -12,7 +12,6 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use Illuminate\Support\Facades\Queue;
 use JTD\LaravelAI\Jobs\ProcessFunctionCallJob;
 use JTD\LaravelAI\Services\AIFunctionEvent;
-use JTD\LaravelAI\Services\UnifiedToolExecutor;
 use JTD\LaravelAI\Tests\Support\TestBackgroundEmailListener;
 
 echo "🧪 Function Event Background Processing Validation\n";
@@ -55,15 +54,14 @@ try {
         789, // message_id
         ['provider' => 'test']
     );
-    
+
     echo "   ✅ ProcessFunctionCallJob created successfully\n";
-    echo "   ✅ Function name: " . $job->functionName . "\n";
-    echo "   ✅ User ID: " . $job->userId . "\n";
-    echo "   ✅ Conversation ID: " . $job->conversationId . "\n";
-    echo "   ✅ Message ID: " . $job->messageId . "\n";
-    
+    echo '   ✅ Function name: ' . $job->functionName . "\n";
+    echo '   ✅ User ID: ' . $job->userId . "\n";
+    echo '   ✅ Conversation ID: ' . $job->conversationId . "\n";
+    echo '   ✅ Message ID: ' . $job->messageId . "\n";
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n2. Testing Function Event routing to background queue:\n";
@@ -87,27 +85,26 @@ try {
     ];
 
     $results = $toolExecutor->processToolCalls($toolCalls, $context);
-    
+
     echo "   ✅ Tool calls processed successfully\n";
-    echo "   ✅ Results count: " . count($results) . "\n";
-    
-    if (!empty($results)) {
+    echo '   ✅ Results count: ' . count($results) . "\n";
+
+    if (! empty($results)) {
         $result = $results[0];
-        echo "   ✅ Result status: " . $result['status'] . "\n";
-        
+        echo '   ✅ Result status: ' . $result['status'] . "\n";
+
         if (isset($result['result']['type'])) {
-            echo "   ✅ Result type: " . $result['result']['type'] . "\n";
-            
+            echo '   ✅ Result type: ' . $result['result']['type'] . "\n";
+
             if ($result['result']['type'] === 'function_event_queued') {
                 echo "   ✅ Function Event correctly queued for background processing\n";
-                echo "   ✅ Execution mode: " . $result['result']['execution_mode'] . "\n";
-                echo "   ✅ Queue message: " . $result['result']['message'] . "\n";
+                echo '   ✅ Execution mode: ' . $result['result']['execution_mode'] . "\n";
+                echo '   ✅ Queue message: ' . $result['result']['message'] . "\n";
             }
         }
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n3. Testing queue job dispatch:\n";
@@ -118,12 +115,11 @@ try {
                $job->userId === 123 &&
                $job->conversationId === 456;
     });
-    
+
     echo "   ✅ ProcessFunctionCallJob was pushed to queue\n";
     echo "   ✅ Job parameters validated correctly\n";
-    
 } catch (Exception $e) {
-    echo "   ❌ Queue assertion failed: " . $e->getMessage() . "\n";
+    echo '   ❌ Queue assertion failed: ' . $e->getMessage() . "\n";
 }
 
 echo "\n4. Testing job execution simulation:\n";
@@ -141,47 +137,44 @@ try {
         777,
         ['test_context' => 'value']
     );
-    
+
     // Execute the job
     $job->handle();
-    
+
     echo "   ✅ Job executed successfully\n";
     echo "   ✅ No exceptions thrown during execution\n";
-    
 } catch (Exception $e) {
-    echo "   ❌ Job execution error: " . $e->getMessage() . "\n";
+    echo '   ❌ Job execution error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n5. Testing queue configuration:\n";
 try {
     // Test queue configuration
     $queueConnection = config('queue.default');
-    echo "   ✅ Default queue connection: " . $queueConnection . "\n";
-    
+    echo '   ✅ Default queue connection: ' . $queueConnection . "\n";
+
     // Check if ai-functions queue is configured
     $queueConfig = config('queue.connections.' . $queueConnection);
     echo "   ✅ Queue configuration available\n";
-    
 } catch (Exception $e) {
-    echo "   ❌ Queue configuration error: " . $e->getMessage() . "\n";
+    echo '   ❌ Queue configuration error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n6. Testing Function Event listener integration:\n";
 try {
     // Get registered functions
     $registeredFunctions = AIFunctionEvent::getRegisteredFunctions();
-    
-    echo "   ✅ Registered functions count: " . count($registeredFunctions) . "\n";
-    
+
+    echo '   ✅ Registered functions count: ' . count($registeredFunctions) . "\n";
+
     if (isset($registeredFunctions['test_background_processing'])) {
         $testFunction = $registeredFunctions['test_background_processing'];
         echo "   ✅ Test function found in registry\n";
-        echo "   ✅ Listener class: " . $testFunction['listener'] . "\n";
-        echo "   ✅ Description: " . $testFunction['description'] . "\n";
+        echo '   ✅ Listener class: ' . $testFunction['listener'] . "\n";
+        echo '   ✅ Description: ' . $testFunction['description'] . "\n";
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Function Event integration error: " . $e->getMessage() . "\n";
+    echo '   ❌ Function Event integration error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n7. Testing error handling in background processing:\n";
@@ -197,17 +190,16 @@ try {
 
     $context = ['user_id' => 123];
     $results = $toolExecutor->processToolCalls($toolCalls, $context);
-    
-    if (!empty($results)) {
+
+    if (! empty($results)) {
         $result = $results[0];
         if ($result['status'] === 'error') {
             echo "   ✅ Error handling working correctly\n";
-            echo "   ✅ Error message: " . $result['error'] . "\n";
+            echo '   ✅ Error message: ' . $result['error'] . "\n";
         }
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error handling test failed: " . $e->getMessage() . "\n";
+    echo '   ❌ Error handling test failed: ' . $e->getMessage() . "\n";
 }
 
 echo "\n8. Testing job retry and failure handling:\n";
@@ -221,12 +213,11 @@ try {
         789,
         ['timeout' => 60, 'tries' => 3]
     );
-    
+
     echo "   ✅ Job created with retry configuration\n";
     echo "   ✅ Timeout and retry settings applied\n";
-    
 } catch (Exception $e) {
-    echo "   ❌ Retry configuration error: " . $e->getMessage() . "\n";
+    echo '   ❌ Retry configuration error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n🎉 Function Event Background Processing validation complete!\n";

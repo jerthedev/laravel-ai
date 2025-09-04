@@ -2,8 +2,8 @@
 
 /**
  * Manual validation script for direct sendMessage patterns
- * 
- * This script demonstrates and validates the new withTools and allTools 
+ *
+ * This script demonstrates and validates the new withTools and allTools
  * options work correctly in direct sendMessage calls.
  */
 
@@ -42,13 +42,12 @@ try {
             'withTools' => ['test_direct_function'],
         ]
     );
-    
+
     echo "   ✅ Default sendMessage with withTools successful\n";
-    echo "   ✅ Response received: " . strlen($response->content) . " characters\n";
-    echo "   ✅ Provider: " . $response->provider . "\n";
-    
+    echo '   ✅ Response received: ' . strlen($response->content) . " characters\n";
+    echo '   ✅ Provider: ' . $response->provider . "\n";
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n2. Testing allTools option in default sendMessage:\n";
@@ -60,13 +59,12 @@ try {
             'allTools' => true,
         ]
     );
-    
+
     echo "   ✅ Default sendMessage with allTools successful\n";
-    echo "   ✅ Response received: " . strlen($response->content) . " characters\n";
-    echo "   ✅ Provider: " . $response->provider . "\n";
-    
+    echo '   ✅ Response received: ' . strlen($response->content) . " characters\n";
+    echo '   ✅ Provider: ' . $response->provider . "\n";
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n3. Testing withTools option in provider-specific sendMessage:\n";
@@ -78,13 +76,12 @@ try {
             'withTools' => ['test_direct_function'],
         ]
     );
-    
+
     echo "   ✅ Provider-specific sendMessage with withTools successful\n";
-    echo "   ✅ Response received: " . strlen($response->content) . " characters\n";
-    echo "   ✅ Provider: " . $response->provider . "\n";
-    
+    echo '   ✅ Response received: ' . strlen($response->content) . " characters\n";
+    echo '   ✅ Provider: ' . $response->provider . "\n";
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n4. Testing allTools option in provider-specific sendMessage:\n";
@@ -96,13 +93,12 @@ try {
             'allTools' => true,
         ]
     );
-    
+
     echo "   ✅ Provider-specific sendMessage with allTools successful\n";
-    echo "   ✅ Response received: " . strlen($response->content) . " characters\n";
-    echo "   ✅ Provider: " . $response->provider . "\n";
-    
+    echo '   ✅ Response received: ' . strlen($response->content) . " characters\n";
+    echo '   ✅ Provider: ' . $response->provider . "\n";
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n5. Testing option combination:\n";
@@ -116,13 +112,12 @@ try {
             'withTools' => ['test_direct_function'],
         ]
     );
-    
+
     echo "   ✅ Combined options successful\n";
     echo "   ✅ Tools and other options work together\n";
-    echo "   ✅ Response: " . substr($response->content, 0, 50) . "...\n";
-    
+    echo '   ✅ Response: ' . substr($response->content, 0, 50) . "...\n";
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n6. Testing validation behavior:\n";
@@ -134,14 +129,13 @@ try {
             'withTools' => ['non_existent_tool'],
         ]
     );
-    
+
     echo "   ❌ Validation failed - should have thrown exception\n";
-    
 } catch (InvalidArgumentException $e) {
     echo "   ✅ Validation working correctly\n";
-    echo "   ✅ Exception message: " . $e->getMessage() . "\n";
+    echo '   ✅ Exception message: ' . $e->getMessage() . "\n";
 } catch (Exception $e) {
-    echo "   ❌ Unexpected error: " . $e->getMessage() . "\n";
+    echo '   ❌ Unexpected error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n7. Testing priority behavior (withTools over allTools):\n";
@@ -154,13 +148,12 @@ try {
             'withTools' => ['test_direct_function'], // Should take priority
         ]
     );
-    
+
     echo "   ✅ Priority behavior working correctly\n";
     echo "   ✅ withTools takes priority over allTools\n";
     echo "   ✅ Response received successfully\n";
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n8. Testing different message types:\n";
@@ -173,9 +166,9 @@ try {
             'withTools' => ['test_direct_function'],
         ]
     );
-    
+
     echo "   ✅ System message with tools successful\n";
-    
+
     // Test with assistant message
     $assistantResponse = AI::provider('mock')->sendMessage(
         AIMessage::assistant('I can help you with various tasks'),
@@ -184,12 +177,11 @@ try {
             'withTools' => ['test_direct_function'],
         ]
     );
-    
+
     echo "   ✅ Assistant message with tools successful\n";
     echo "   ✅ All message types work with tools\n";
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n🎉 Direct sendMessage patterns validation complete!\n";

@@ -102,7 +102,7 @@ class PerformanceDashboardController extends Controller
             'data' => array_merge($overview, [
                 'timeframe' => $timeframe,
                 'last_updated' => now()->toISOString(),
-                'cache_hit' => !$refresh,
+                'cache_hit' => ! $refresh,
             ]),
         ]);
     }
@@ -134,7 +134,7 @@ class PerformanceDashboardController extends Controller
 
         $analytics = $this->performanceTracker->getPerformanceAnalytics($component, $timeframe);
         $bottlenecks = $this->performanceTracker->getPerformanceBottlenecks($limit);
-        $componentBottlenecks = array_filter($bottlenecks, fn($b) => $b['component'] === $component);
+        $componentBottlenecks = array_filter($bottlenecks, fn ($b) => $b['component'] === $component);
 
         return response()->json([
             'success' => true,
@@ -220,7 +220,7 @@ class PerformanceDashboardController extends Controller
             'event_processing',
             'listener_execution',
             'queue_job',
-            'middleware_execution'
+            'middleware_execution',
         ]);
 
         $realTimeData = [];
@@ -362,7 +362,7 @@ class PerformanceDashboardController extends Controller
             'event_processing',
             'listener_execution',
             'queue_job',
-            'middleware_execution'
+            'middleware_execution',
         ]);
 
         try {
@@ -373,7 +373,6 @@ class PerformanceDashboardController extends Controller
                 'success' => true,
                 'data' => $exportResult,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -394,7 +393,7 @@ class PerformanceDashboardController extends Controller
         return [
             'overall_score' => $dashboardData['overall_health']['score'],
             'status' => $dashboardData['overall_health']['status'],
-            'component_health' => array_map(fn($comp) => [
+            'component_health' => array_map(fn ($comp) => [
                 'score' => $this->calculateComponentHealthScore($comp),
                 'status' => $this->getHealthStatus($this->calculateComponentHealthScore($comp)),
             ], $dashboardData['components']),
@@ -445,6 +444,7 @@ class PerformanceDashboardController extends Controller
     protected function getTopRecommendations(): array
     {
         $recommendations = $this->performanceTracker->getOptimizationRecommendations();
+
         return array_slice($recommendations['recommendations'], 0, 5);
     }
 
@@ -537,11 +537,11 @@ class PerformanceDashboardController extends Controller
         $filtered = $recommendations;
 
         if ($severity) {
-            $filtered = array_filter($filtered, fn($rec) => $rec['severity'] === $severity);
+            $filtered = array_filter($filtered, fn ($rec) => $rec['severity'] === $severity);
         }
 
         if ($component) {
-            $filtered = array_filter($filtered, fn($rec) => $rec['component'] === $component);
+            $filtered = array_filter($filtered, fn ($rec) => $rec['component'] === $component);
         }
 
         return array_slice(array_values($filtered), 0, $limit);
@@ -554,8 +554,8 @@ class PerformanceDashboardController extends Controller
     {
         return [
             'total_recommendations' => count($performanceRecs) + count($queueRecs['queue_recommendations']),
-            'critical_count' => count(array_filter($performanceRecs, fn($rec) => $rec['severity'] === 'critical')),
-            'high_priority_count' => count(array_filter($performanceRecs, fn($rec) => $rec['priority'] === 4)),
+            'critical_count' => count(array_filter($performanceRecs, fn ($rec) => $rec['severity'] === 'critical')),
+            'high_priority_count' => count(array_filter($performanceRecs, fn ($rec) => $rec['priority'] === 4)),
             'top_priority' => $performanceRecs[0]['message'] ?? 'No recommendations',
         ];
     }
@@ -610,8 +610,12 @@ class PerformanceDashboardController extends Controller
         $violations = $componentData['threshold_violations'];
 
         $score = 100;
-        if ($violations > 0) $score -= min($violations * 5, 50);
-        if ($recentPerf->avg_duration > 100) $score -= 20;
+        if ($violations > 0) {
+            $score -= min($violations * 5, 50);
+        }
+        if ($recentPerf->avg_duration > 100) {
+            $score -= 20;
+        }
 
         return max(0, $score);
     }
@@ -621,10 +625,19 @@ class PerformanceDashboardController extends Controller
      */
     protected function getHealthStatus(int $score): string
     {
-        if ($score >= 90) return 'excellent';
-        if ($score >= 80) return 'good';
-        if ($score >= 60) return 'fair';
-        if ($score >= 40) return 'poor';
+        if ($score >= 90) {
+            return 'excellent';
+        }
+        if ($score >= 80) {
+            return 'good';
+        }
+        if ($score >= 60) {
+            return 'fair';
+        }
+        if ($score >= 40) {
+            return 'poor';
+        }
+
         return 'critical';
     }
 
@@ -646,8 +659,13 @@ class PerformanceDashboardController extends Controller
     {
         $count = Cache::get("realtime_metrics_{$component}_count", 0);
 
-        if ($count > 100) return 'high';
-        if ($count > 50) return 'medium';
+        if ($count > 100) {
+            return 'high';
+        }
+        if ($count > 50) {
+            return 'medium';
+        }
+
         return 'low';
     }
 
@@ -658,8 +676,13 @@ class PerformanceDashboardController extends Controller
     {
         $violations = Cache::get("performance_violations_{$component}", 0);
 
-        if ($violations > 10) return 'critical';
-        if ($violations > 5) return 'warning';
+        if ($violations > 10) {
+            return 'critical';
+        }
+        if ($violations > 5) {
+            return 'warning';
+        }
+
         return 'healthy';
     }
 

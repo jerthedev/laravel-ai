@@ -2,14 +2,13 @@
 
 namespace JTD\LaravelAI\Tests\Feature\MCPFramework;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Console\Commands\MCPDiscoveryCommand;
-use JTD\LaravelAI\Services\MCPManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
-use PHPUnit\Framework\Attributes\Test;
+use Illuminate\Support\Facades\File;
+use JTD\LaravelAI\Services\MCPManager;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Tool Discovery Tests
@@ -25,7 +24,9 @@ class MCPToolsJsonGenerationTest extends TestCase
     use RefreshDatabase;
 
     protected MCPManager $mcpManager;
+
     protected string $configPath;
+
     protected string $toolsPath;
 
     protected function setUp(): void
@@ -143,7 +144,7 @@ class MCPToolsJsonGenerationTest extends TestCase
 
                 // Check if any expected tools were discovered
                 $discoveredToolNames = array_keys($tools);
-                $hasExpectedTools = !empty(array_intersect($expectedTools, $discoveredToolNames));
+                $hasExpectedTools = ! empty(array_intersect($expectedTools, $discoveredToolNames));
 
                 if ($hasExpectedTools) {
                     $this->assertTrue(true, 'Expected MCP tools were discovered');
@@ -204,7 +205,7 @@ class MCPToolsJsonGenerationTest extends TestCase
 
         // Test cache freshness validation
         $generatedAt = new \DateTime($cachedData['generated_at']);
-        $now = new \DateTime();
+        $now = new \DateTime;
         $hoursDiff = $now->diff($generatedAt)->h + ($now->diff($generatedAt)->days * 24);
 
         // Cache should be considered stale after 24 hours (we set it 2 hours ago, so it should be fresh)

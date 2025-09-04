@@ -2,10 +2,8 @@
 
 namespace JTD\LaravelAI\Services;
 
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use JTD\LaravelAI\Services\CostAnalyticsService;
-use JTD\LaravelAI\Services\TrendAnalysisService;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Report Export Service
@@ -52,16 +50,16 @@ class ReportExportService
         try {
             // Validate options
             $validatedOptions = $this->validateExportOptions($options);
-            
+
             // Generate report data
             $reportData = $this->generateReportData($validatedOptions);
-            
+
             // Export in requested format
             $exportResult = $this->exportToFormat($reportData, $validatedOptions);
-            
+
             // Log export activity
             $this->logExportActivity($validatedOptions, $exportResult);
-            
+
             return [
                 'success' => true,
                 'export_id' => $exportResult['export_id'],
@@ -72,7 +70,6 @@ class ReportExportService
                 'expires_at' => now()->addDays(7)->toISOString(),
                 'download_url' => $this->generateDownloadUrl($exportResult['file_path']),
             ];
-
         } catch (\Exception $e) {
             Log::error('Report export failed', [
                 'options' => $options,
@@ -154,20 +151,19 @@ class ReportExportService
     {
         try {
             $validatedOptions = $this->validateScheduleOptions($scheduleOptions);
-            
+
             // Store schedule configuration
             $scheduleId = $this->storeReportSchedule($validatedOptions);
-            
+
             // Queue initial report generation
             $this->queueReportGeneration($scheduleId, $validatedOptions);
-            
+
             return [
                 'success' => true,
                 'schedule_id' => $scheduleId,
                 'next_generation' => $this->calculateNextGeneration($validatedOptions['frequency']),
                 'created_at' => now()->toISOString(),
             ];
-
         } catch (\Exception $e) {
             Log::error('Failed to schedule automated report', [
                 'options' => $scheduleOptions,
@@ -187,17 +183,18 @@ class ReportExportService
      *
      * @param  array  $options  Export options
      * @return array Validated options
+     *
      * @throws \InvalidArgumentException
      */
     protected function validateExportOptions(array $options): array
     {
         // Required fields
-        if (!isset($options['user_id']) || !isset($options['format'])) {
+        if (! isset($options['user_id']) || ! isset($options['format'])) {
             throw new \InvalidArgumentException('user_id and format are required');
         }
 
         // Validate format
-        if (!in_array($options['format'], $this->supportedFormats)) {
+        if (! in_array($options['format'], $this->supportedFormats)) {
             throw new \InvalidArgumentException('Unsupported export format: ' . $options['format']);
         }
 
@@ -219,7 +216,7 @@ class ReportExportService
         if ($validated['start_date'] && $validated['end_date']) {
             $startDate = \Carbon\Carbon::parse($validated['start_date']);
             $endDate = \Carbon\Carbon::parse($validated['end_date']);
-            
+
             if ($startDate->gt($endDate)) {
                 throw new \InvalidArgumentException('start_date must be before end_date');
             }
@@ -238,7 +235,7 @@ class ReportExportService
     {
         $userId = $options['user_id'];
         $reportType = $options['report_type'];
-        
+
         $data = [
             'metadata' => [
                 'user_id' => $userId,
@@ -293,20 +290,20 @@ class ReportExportService
     {
         $exportId = uniqid('export_', true);
         $fileName = $this->generateFileName($options, $exportId);
-        
+
         switch ($options['format']) {
             case 'json':
                 return $this->exportToJson($data, $fileName, $exportId);
-            
+
             case 'csv':
                 return $this->exportToCsv($data, $fileName, $exportId);
-            
+
             case 'pdf':
                 return $this->exportToPdf($data, $fileName, $exportId);
-            
+
             case 'xlsx':
                 return $this->exportToExcel($data, $fileName, $exportId);
-            
+
             default:
                 throw new \InvalidArgumentException('Unsupported export format');
         }
@@ -324,9 +321,9 @@ class ReportExportService
     {
         $jsonContent = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         $filePath = "exports/{$fileName}";
-        
+
         Storage::disk('local')->put($filePath, $jsonContent);
-        
+
         return [
             'export_id' => $exportId,
             'file_path' => $filePath,
@@ -347,9 +344,9 @@ class ReportExportService
     {
         $csvContent = $this->convertToCsv($data);
         $filePath = "exports/{$fileName}";
-        
+
         Storage::disk('local')->put($filePath, $csvContent);
-        
+
         return [
             'export_id' => $exportId,
             'file_path' => $filePath,
@@ -372,9 +369,9 @@ class ReportExportService
         $htmlContent = $this->generateHtmlReport($data);
         $pdfContent = $this->convertHtmlToPdf($htmlContent);
         $filePath = "exports/{$fileName}";
-        
+
         Storage::disk('local')->put($filePath, $pdfContent);
-        
+
         return [
             'export_id' => $exportId,
             'file_path' => $filePath,
@@ -396,9 +393,9 @@ class ReportExportService
         // This would use PhpSpreadsheet library
         $excelContent = $this->generateExcelFile($data);
         $filePath = "exports/{$fileName}";
-        
+
         Storage::disk('local')->put($filePath, $excelContent);
-        
+
         return [
             'export_id' => $exportId,
             'file_path' => $filePath,
@@ -419,7 +416,7 @@ class ReportExportService
         $timestamp = now()->format('Y-m-d_H-i-s');
         $reportType = $options['report_type'];
         $format = $options['format'];
-        
+
         return "{$reportType}_report_{$timestamp}_{$exportId}.{$format}";
     }
 
@@ -432,7 +429,7 @@ class ReportExportService
     protected function generateDownloadUrl(string $filePath): string
     {
         // This would generate a signed URL or temporary download link
-        return url("/api/ai/exports/download/" . basename($filePath));
+        return url('/api/ai/exports/download/' . basename($filePath));
     }
 
     /**
@@ -444,27 +441,29 @@ class ReportExportService
     protected function convertToCsv(array $data): string
     {
         $output = fopen('php://temp', 'r+');
-        
+
         // Add metadata header
         fputcsv($output, ['Report Metadata']);
         fputcsv($output, ['Generated At', $data['metadata']['generated_at']]);
         fputcsv($output, ['Report Type', $data['metadata']['report_type']]);
         fputcsv($output, ['User ID', $data['metadata']['user_id']]);
         fputcsv($output, []);
-        
+
         // Add data sections
         foreach ($data as $section => $sectionData) {
-            if ($section === 'metadata') continue;
-            
+            if ($section === 'metadata') {
+                continue;
+            }
+
             fputcsv($output, [ucfirst(str_replace('_', ' ', $section))]);
             $this->addSectionToCsv($output, $sectionData);
             fputcsv($output, []);
         }
-        
+
         rewind($output);
         $csvContent = stream_get_contents($output);
         fclose($output);
-        
+
         return $csvContent;
     }
 
@@ -480,7 +479,7 @@ class ReportExportService
             // Tabular data
             $headers = array_keys($data[0]);
             fputcsv($output, $headers);
-            
+
             foreach ($data as $row) {
                 fputcsv($output, array_values($row));
             }
@@ -518,7 +517,7 @@ class ReportExportService
     {
         // This would use a PDF library like DomPDF or wkhtmltopdf
         // For now, return placeholder
-        return "PDF content placeholder for: " . substr($html, 0, 100);
+        return 'PDF content placeholder for: ' . substr($html, 0, 100);
     }
 
     /**
@@ -531,7 +530,7 @@ class ReportExportService
     {
         // This would use PhpSpreadsheet to create Excel files
         // For now, return placeholder
-        return "Excel content placeholder";
+        return 'Excel content placeholder';
     }
 
     /**

@@ -2,18 +2,18 @@
 
 namespace JTD\LaravelAI\Tests\Feature\MCPFramework;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\MCPManager;
-use JTD\LaravelAI\Services\MCPServerRegistry;
-use JTD\LaravelAI\Contracts\MCPServerInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Contracts\MCPServerInterface;
+use JTD\LaravelAI\Services\MCPManager;
+use JTD\LaravelAI\Services\MCPServerRegistry;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Server Interface Tests
- * 
+ *
  * Tests for Sprint4b Story 4: MCP Server Framework and Configuration System
  * Validates MCP server interface, registry, and external server integration
  * as specified in the task requirements.
@@ -25,24 +25,26 @@ class MCPServerInterfaceTest extends TestCase
     use RefreshDatabase;
 
     protected MCPManager $mcpManager;
+
     protected ?MCPServerRegistry $serverRegistry;
+
     protected string $configPath;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->mcpManager = app(MCPManager::class);
-        
+
         // MCPServerRegistry may not exist, handle gracefully
         try {
             $this->serverRegistry = app(MCPServerRegistry::class);
         } catch (\Exception $e) {
             $this->serverRegistry = null;
         }
-        
+
         $this->configPath = base_path('.mcp.json');
-        
+
         $this->cleanupTestFiles();
     }
 
@@ -57,11 +59,11 @@ class MCPServerInterfaceTest extends TestCase
     {
         // Verify MCPServerInterface contract exists
         $this->assertTrue(interface_exists(MCPServerInterface::class), 'MCPServerInterface contract should exist');
-        
+
         // Verify interface methods
         $reflection = new \ReflectionClass(MCPServerInterface::class);
         $methods = $reflection->getMethods();
-        
+
         $expectedMethods = [
             'connect',
             'disconnect',
@@ -71,9 +73,9 @@ class MCPServerInterfaceTest extends TestCase
             'listTools',
             'executeTool',
         ];
-        
-        $actualMethods = array_map(fn($method) => $method->getName(), $methods);
-        
+
+        $actualMethods = array_map(fn ($method) => $method->getName(), $methods);
+
         foreach ($expectedMethods as $expectedMethod) {
             if (in_array($expectedMethod, $actualMethods)) {
                 $this->assertTrue(true, "MCPServerInterface should have {$expectedMethod} method");
@@ -81,7 +83,7 @@ class MCPServerInterfaceTest extends TestCase
                 $this->assertTrue(true, "MCPServerInterface method {$expectedMethod} may be named differently or missing");
             }
         }
-        
+
         $this->assertTrue(true, 'MCP server interface contract validation completed');
     }
 
@@ -108,16 +110,16 @@ class MCPServerInterfaceTest extends TestCase
                 ],
             ],
         ];
-        
+
         File::put($this->configPath, json_encode($testConfig));
         $this->mcpManager->loadConfiguration();
-        
+
         if ($this->serverRegistry) {
             try {
                 // Test server registration
                 $registeredServers = $this->serverRegistry->getRegisteredServers();
                 $this->assertIsArray($registeredServers);
-                
+
                 // Test server lookup
                 foreach (['sequential_thinking', 'brave_search'] as $serverId) {
                     $server = $this->serverRegistry->getServer($serverId);
@@ -125,15 +127,15 @@ class MCPServerInterfaceTest extends TestCase
                         $this->assertInstanceOf(MCPServerInterface::class, $server);
                     }
                 }
-                
+
                 // Test server status
                 $serverStatuses = $this->serverRegistry->getServerStatuses();
                 $this->assertIsArray($serverStatuses);
-                
+
                 foreach ($serverStatuses as $serverId => $status) {
                     $this->assertContains($status, ['available', 'unavailable', 'error', 'connecting']);
                 }
-                
+
                 $this->assertTrue(true, 'Server registry functionality validated successfully');
             } catch (\Error $e) {
                 // Expected due to missing registry methods
@@ -154,7 +156,7 @@ class MCPServerInterfaceTest extends TestCase
                     'capabilities' => ['tools'],
                 ],
             ];
-            
+
             $this->assertIsArray($mockRegistry);
             $this->assertCount(2, $mockRegistry);
             $this->assertTrue(true, 'Server registry functionality simulated successfully');
@@ -176,27 +178,27 @@ class MCPServerInterfaceTest extends TestCase
                 ],
             ],
         ];
-        
+
         File::put($this->configPath, json_encode($externalConfig));
         $this->mcpManager->loadConfiguration();
-        
+
         try {
             // Test external server connection
             $connectionResult = $this->connectToExternalServer('external_test_server');
-            
+
             $this->assertIsArray($connectionResult);
             $this->assertArrayHasKey('status', $connectionResult);
             $this->assertArrayHasKey('server_id', $connectionResult);
-            
+
             if ($connectionResult['status'] === 'connected') {
                 // Test external server capabilities
                 $capabilities = $this->getExternalServerCapabilities('external_test_server');
                 $this->assertIsArray($capabilities);
-                
+
                 // Test external server tool listing
                 $tools = $this->listExternalServerTools('external_test_server');
                 $this->assertIsArray($tools);
-                
+
                 $this->assertTrue(true, 'External server integration completed successfully');
             } else {
                 $this->assertTrue(true, 'External server integration handled connection failure gracefully');
@@ -223,12 +225,12 @@ class MCPServerInterfaceTest extends TestCase
                 'class' => 'App\\MCP\\TestServer',
             ],
         ];
-        
+
         foreach ($validConfigurations as $serverId => $config) {
             $isValid = $this->validateServerConfiguration($serverId, $config);
             $this->assertTrue($isValid, "Configuration for {$serverId} should be valid");
         }
-        
+
         // Test invalid server configurations
         $invalidConfigurations = [
             'missing_type' => [
@@ -244,12 +246,12 @@ class MCPServerInterfaceTest extends TestCase
                 'enabled' => true,
             ],
         ];
-        
+
         foreach ($invalidConfigurations as $serverId => $config) {
             $isValid = $this->validateServerConfiguration($serverId, $config);
             $this->assertFalse($isValid, "Configuration for {$serverId} should be invalid");
         }
-        
+
         $this->assertTrue(true, 'Server configuration validation completed successfully');
     }
 
@@ -267,29 +269,29 @@ class MCPServerInterfaceTest extends TestCase
                 ],
             ],
         ];
-        
+
         File::put($this->configPath, json_encode($testConfig));
         $this->mcpManager->loadConfiguration();
-        
+
         try {
             $serverId = 'lifecycle_server';
-            
+
             // Test server startup
             $startupResult = $this->startServer($serverId);
             $this->assertIsArray($startupResult);
             $this->assertArrayHasKey('status', $startupResult);
-            
+
             if ($startupResult['status'] === 'started') {
                 // Test server health check
                 $healthCheck = $this->checkServerHealth($serverId);
                 $this->assertIsArray($healthCheck);
                 $this->assertArrayHasKey('healthy', $healthCheck);
-                
+
                 // Test server shutdown
                 $shutdownResult = $this->shutdownServer($serverId);
                 $this->assertIsArray($shutdownResult);
                 $this->assertArrayHasKey('status', $shutdownResult);
-                
+
                 $this->assertTrue(true, 'Server lifecycle management completed successfully');
             } else {
                 $this->assertTrue(true, 'Server lifecycle management handled startup failure gracefully');
@@ -313,35 +315,35 @@ class MCPServerInterfaceTest extends TestCase
                 ],
             ],
         ];
-        
+
         File::put($this->configPath, json_encode($testConfig));
         $this->mcpManager->loadConfiguration();
-        
+
         try {
             $serverId = 'performance_server';
-            
+
             // Measure server connection performance
             $startTime = microtime(true);
             $connectionResult = $this->connectToExternalServer($serverId);
             $connectionTime = (microtime(true) - $startTime) * 1000; // Convert to milliseconds
-            
+
             // Verify connection performance target (<1000ms)
-            $this->assertLessThan(1000, $connectionTime, 
+            $this->assertLessThan(1000, $connectionTime,
                 "Server connection took {$connectionTime}ms, exceeding 1000ms target");
-            
+
             if (isset($connectionResult['status']) && $connectionResult['status'] === 'connected') {
                 // Measure tool listing performance
                 $startTime = microtime(true);
                 $tools = $this->listExternalServerTools($serverId);
                 $listingTime = (microtime(true) - $startTime) * 1000;
-                
+
                 // Verify tool listing performance target (<500ms)
-                $this->assertLessThan(500, $listingTime, 
+                $this->assertLessThan(500, $listingTime,
                     "Tool listing took {$listingTime}ms, exceeding 500ms target");
-                
+
                 $this->assertIsArray($tools);
             }
-            
+
             $this->assertTrue(true, 'Server operation performance validation completed successfully');
         } catch (\Exception $e) {
             // Validate performance targets even if operations fail
@@ -351,12 +353,12 @@ class MCPServerInterfaceTest extends TestCase
                 'capability_check' => 200,   // 200 milliseconds
                 'health_check' => 100,       // 100 milliseconds
             ];
-            
+
             foreach ($performanceTargets as $operation => $target) {
                 $this->assertGreaterThan(0, $target);
                 $this->assertLessThan(5000, $target); // Reasonable upper bound
             }
-            
+
             $this->assertTrue(true, 'Server operation performance targets validated');
         }
     }
@@ -380,31 +382,31 @@ class MCPServerInterfaceTest extends TestCase
                 'timeout' => 2,
             ],
         ];
-        
+
         foreach ($errorConfigurations as $serverId => $config) {
             $testConfig = ['servers' => [$serverId => $config]];
             File::put($this->configPath, json_encode($testConfig));
             $this->mcpManager->loadConfiguration();
-            
+
             try {
                 // Test error handling
                 $result = $this->connectToExternalServer($serverId);
-                
+
                 $this->assertIsArray($result);
                 $this->assertArrayHasKey('status', $result);
-                
+
                 // Should handle errors gracefully
                 if ($result['status'] === 'error') {
                     $this->assertArrayHasKey('error', $result);
                     $this->assertArrayHasKey('error_type', $result);
                 }
-                
+
                 $this->assertTrue(true, "Error scenario for {$serverId} handled gracefully");
             } catch (\Exception $e) {
                 $this->assertTrue(true, "Error scenario for {$serverId} failed due to implementation gaps");
             }
         }
-        
+
         $this->assertTrue(true, 'Server error scenarios validation completed');
     }
 
@@ -452,20 +454,20 @@ class MCPServerInterfaceTest extends TestCase
     {
         // Simulate configuration validation
         $requiredFields = ['type', 'enabled'];
-        
+
         foreach ($requiredFields as $field) {
-            if (!isset($config[$field])) {
+            if (! isset($config[$field])) {
                 return false;
             }
         }
-        
+
         // Type-specific validation
         if ($config['type'] === 'external') {
             return isset($config['command']);
         } elseif ($config['type'] === 'internal') {
             return isset($config['class']);
         }
-        
+
         return in_array($config['type'], ['external', 'internal']);
     }
 

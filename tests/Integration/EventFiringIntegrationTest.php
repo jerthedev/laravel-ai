@@ -67,8 +67,8 @@ class EventFiringIntegrationTest extends TestCase
         Event::assertDispatched(ResponseGenerated::class, function ($event) use ($message) {
             return $event->message->content === $message->content
                 && $event->context['provider_level_event'] === true
-                && isset($event->totalProcessingTime)
-                && $event->totalProcessingTime >= 0;
+                && isset($event->total_processing_time)
+                && $event->total_processing_time >= 0;
         });
 
         // Verify response is valid
@@ -108,8 +108,8 @@ class EventFiringIntegrationTest extends TestCase
                 return $event->userId === 789
                     && $event->provider === 'mock'
                     && $event->model === 'mock-gpt-4'
-                    && $event->inputTokens >= 0
-                    && $event->outputTokens >= 0
+                    && $event->input_tokens >= 0
+                    && $event->output_tokens >= 0
                     && $event->cost >= 0;
             });
         }
@@ -186,10 +186,10 @@ class EventFiringIntegrationTest extends TestCase
         // Check ResponseGenerated metadata
         Event::assertDispatched(ResponseGenerated::class, function ($event) {
             return $event->context['provider_level_event'] === true
-                && isset($event->providerMetadata['provider'])
-                && $event->providerMetadata['provider'] === 'mock'
-                && isset($event->providerMetadata['model'])
-                && $event->providerMetadata['model'] === 'mock-gpt-4';
+                && isset($event->provider_metadata['provider'])
+                && $event->provider_metadata['provider'] === 'mock'
+                && isset($event->provider_metadata['model'])
+                && $event->provider_metadata['model'] === 'mock-gpt-4';
         });
     }
 
@@ -209,8 +209,8 @@ class EventFiringIntegrationTest extends TestCase
 
         Event::assertDispatched(ResponseGenerated::class, function ($event) use ($actualDuration) {
             // Processing time should be reasonable (within 10% margin)
-            return $event->totalProcessingTime > 0
-                && $event->totalProcessingTime <= ($actualDuration * 1.1)
+            return $event->total_processing_time > 0
+                && $event->total_processing_time <= ($actualDuration * 1.1)
                 && isset($event->context['processing_start_time']);
         });
     }

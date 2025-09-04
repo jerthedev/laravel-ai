@@ -2,10 +2,6 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate\Traits;
 
-use JTD\LaravelAI\Drivers\DriverTemplate\Support\ModelPricing;
-use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Models\TokenUsage;
-
 /**
  * Calculates Costs for DriverTemplate API Usage
  *
@@ -17,7 +13,7 @@ trait CalculatesCosts
     /**
      * Calculate cost for a message or token usage.
      */
-    public function calculateCost($message, string $modelId = null): array
+    public function calculateCost($message, ?string $modelId = null): array
     {
         // TODO: Implement calculateCost
     }
@@ -57,7 +53,7 @@ trait CalculatesCosts
     /**
      * Estimate cost for a conversation.
      */
-    public function estimateConversationCost(array $messages, string $modelId = null): array
+    public function estimateConversationCost(array $messages, ?string $modelId = null): array
     {
         // TODO: Implement estimateConversationCost
     }
@@ -73,7 +69,7 @@ trait CalculatesCosts
     /**
      * Get cost breakdown for multiple requests.
      */
-    public function calculateBatchCost(array $requests, string $modelId = null): array
+    public function calculateBatchCost(array $requests, ?string $modelId = null): array
     {
         // TODO: Implement calculateBatchCost
     }
@@ -105,7 +101,7 @@ trait CalculatesCosts
     /**
      * Estimate monthly cost based on usage patterns.
      */
-    public function estimateMonthlyCost(array $usagePattern, string $modelId = null): array
+    public function estimateMonthlyCost(array $usagePattern, ?string $modelId = null): array
     {
         // TODO: Implement estimateMonthlyCost
     }
@@ -113,7 +109,7 @@ trait CalculatesCosts
     /**
      * Get cost optimization recommendations.
      */
-    public function getCostOptimizationRecommendations($message, string $currentModel = null): array
+    public function getCostOptimizationRecommendations($message, ?string $currentModel = null): array
     {
         // TODO: Implement getCostOptimizationRecommendations
     }
@@ -125,5 +121,4 @@ trait CalculatesCosts
     {
         // TODO: Implement getModelTradeOffs
     }
-
 }

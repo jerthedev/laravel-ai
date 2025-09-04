@@ -2,14 +2,14 @@
 
 namespace JTD\LaravelAI\Tests\Feature\Analytics;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\TrendAnalysisService;
-use JTD\LaravelAI\Services\CostAnalyticsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Services\CostAnalyticsService;
+use JTD\LaravelAI\Services\TrendAnalysisService;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Trend Analysis and Forecasting Tests
@@ -25,6 +25,7 @@ class TrendAnalysisTest extends TestCase
     use RefreshDatabase;
 
     protected TrendAnalysisService $trendAnalysisService;
+
     protected CostAnalyticsService $costAnalyticsService;
 
     protected function setUp(): void
@@ -316,7 +317,7 @@ class TrendAnalysisTest extends TestCase
             $this->assertIsArray($forecasting);
 
             // If forecasting data exists, verify accuracy metrics
-            if (!empty($forecasting)) {
+            if (! empty($forecasting)) {
                 // Verify forecasting contains confidence intervals
                 $this->assertTrue(true, 'Forecasting accuracy validation completed');
             }
@@ -384,7 +385,7 @@ class TrendAnalysisTest extends TestCase
 
         // Verify cache key exists
         $cacheKey = "usage_trends_{$userId}_daily_30";
-        $this->assertTrue(Cache::has($cacheKey) || !empty($firstResult),
+        $this->assertTrue(Cache::has($cacheKey) || ! empty($firstResult),
             'Trend analysis results should be cached');
     }
 
@@ -520,7 +521,7 @@ class TrendAnalysisTest extends TestCase
     protected function seedTrendAnalysisTestData(): void
     {
         // Create test tables if they don't exist (simplified for testing)
-        if (!DB::getSchemaBuilder()->hasTable('ai_trend_analysis')) {
+        if (! DB::getSchemaBuilder()->hasTable('ai_trend_analysis')) {
             DB::statement('CREATE TABLE ai_trend_analysis (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,

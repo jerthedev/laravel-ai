@@ -13,16 +13,18 @@ use PHPUnit\Framework\Attributes\Test;
 class MCPConfigurationServiceTest extends TestCase
 {
     protected MCPConfigurationService $configService;
+
     protected string $configPath;
+
     protected string $toolsPath;
 
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->configPath = base_path('.mcp.json');
         $this->toolsPath = base_path('.mcp.tools.json');
-        
+
         // Clean up any existing files
         if (File::exists($this->configPath)) {
             File::delete($this->configPath);
@@ -30,8 +32,8 @@ class MCPConfigurationServiceTest extends TestCase
         if (File::exists($this->toolsPath)) {
             File::delete($this->toolsPath);
         }
-        
-        $this->configService = new MCPConfigurationService();
+
+        $this->configService = new MCPConfigurationService;
     }
 
     protected function tearDown(): void
@@ -43,7 +45,7 @@ class MCPConfigurationServiceTest extends TestCase
         if (File::exists($this->toolsPath)) {
             File::delete($this->toolsPath);
         }
-        
+
         parent::tearDown();
     }
 

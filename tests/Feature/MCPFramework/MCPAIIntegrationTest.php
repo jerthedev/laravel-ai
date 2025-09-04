@@ -2,15 +2,15 @@
 
 namespace JTD\LaravelAI\Tests\Feature\MCPFramework;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\MCPManager;
-use JTD\LaravelAI\Facades\AI;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\File;
 use JTD\LaravelAI\Events\MessageSent;
 use JTD\LaravelAI\Events\ResponseGenerated;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Event;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Facades\AI;
+use JTD\LaravelAI\Services\MCPManager;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Integration with AI Message Flow Tests
@@ -24,7 +24,9 @@ use PHPUnit\Framework\Attributes\Group;
 class MCPAIIntegrationTest extends TestCase
 {
     protected MCPManager $mcpManager;
+
     protected string $configPath;
+
     protected string $toolsPath;
 
     protected function setUp(): void

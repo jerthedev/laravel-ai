@@ -94,8 +94,8 @@ class ProviderSpecificDriverE2ETest extends TestCase
         $costEvent = $this->firedEvents['CostCalculated'][0];
         $this->assertEquals(123, $costEvent->userId);
         $this->assertEquals('mock', $costEvent->provider);
-        $this->assertEquals(8, $costEvent->inputTokens);
-        $this->assertEquals(12, $costEvent->outputTokens);
+        $this->assertEquals(8, $costEvent->input_tokens);
+        $this->assertEquals(12, $costEvent->output_tokens);
         $this->assertIsFloat($costEvent->cost); // Cost calculation may not be working correctly
     }
 
@@ -198,8 +198,8 @@ class ProviderSpecificDriverE2ETest extends TestCase
 
         $costEvent = $this->firedEvents['CostCalculated'][0];
         $this->assertEquals(555, $costEvent->userId);
-        $this->assertEquals(5, $costEvent->inputTokens);
-        $this->assertEquals(8, $costEvent->outputTokens);
+        $this->assertEquals(5, $costEvent->input_tokens);
+        $this->assertEquals(8, $costEvent->output_tokens);
     }
 
     #[Test]
@@ -243,8 +243,8 @@ class ProviderSpecificDriverE2ETest extends TestCase
         $costEvent = $this->firedEvents['CostCalculated'][0];
         $this->assertEquals(999, $costEvent->userId);
         $this->assertEquals(0.005, $costEvent->cost);
-        $this->assertEquals(10, $costEvent->inputTokens);
-        $this->assertEquals(15, $costEvent->outputTokens);
+        $this->assertEquals(10, $costEvent->input_tokens);
+        $this->assertEquals(15, $costEvent->output_tokens);
     }
 
     #[Test]
@@ -345,7 +345,7 @@ class ProviderSpecificDriverE2ETest extends TestCase
         // All events should have consistent provider data
         $this->assertEquals('mock', $messageSentEvent->provider);
         $this->assertEquals('mock', $costEvent->provider);
-        $this->assertEquals('mock', $responseEvent->providerMetadata['provider']);
+        $this->assertEquals('mock', $responseEvent->provider_metadata['provider']);
 
         // ResponseGenerated should have provider-level event flag
         $this->assertTrue($responseEvent->context['provider_level_event']);

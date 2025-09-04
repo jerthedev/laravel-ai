@@ -138,8 +138,8 @@ trait SupportsStreaming
 
                 // Create token usage
                 $tokenUsage = new TokenUsage(
-                    inputTokens: $inputTokens,
-                    outputTokens: $outputTokens,
+                    input_tokens: $inputTokens,
+                    output_tokens: $outputTokens,
                     totalTokens: $totalTokens
                 );
 

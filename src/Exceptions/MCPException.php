@@ -23,11 +23,11 @@ class MCPException extends \Exception
     /**
      * Create a new MCP exception instance.
      *
-     * @param string $message Exception message
-     * @param int $code Exception code
-     * @param \Throwable|null $previous Previous exception
-     * @param string|null $serverName MCP server name
-     * @param array $context Additional context data
+     * @param  string  $message  Exception message
+     * @param  int  $code  Exception code
+     * @param  \Throwable|null  $previous  Previous exception
+     * @param  string|null  $serverName  MCP server name
+     * @param  array  $context  Additional context data
      */
     public function __construct(
         string $message = '',
@@ -37,7 +37,7 @@ class MCPException extends \Exception
         array $context = []
     ) {
         parent::__construct($message, $code, $previous);
-        
+
         $this->serverName = $serverName;
         $this->context = $context;
     }
@@ -64,6 +64,7 @@ class MCPException extends \Exception
     public function setServerName(string $serverName): self
     {
         $this->serverName = $serverName;
+
         return $this;
     }
 
@@ -73,6 +74,7 @@ class MCPException extends \Exception
     public function setContext(array $context): self
     {
         $this->context = $context;
+
         return $this;
     }
 
@@ -82,6 +84,7 @@ class MCPException extends \Exception
     public function addContext(string $key, mixed $value): self
     {
         $this->context[$key] = $value;
+
         return $this;
     }
 
@@ -91,16 +94,16 @@ class MCPException extends \Exception
     public function getFormattedMessage(): string
     {
         $message = $this->getMessage();
-        
+
         if ($this->serverName) {
             $message = "[{$this->serverName}] {$message}";
         }
-        
-        if (!empty($this->context)) {
+
+        if (! empty($this->context)) {
             $contextString = json_encode($this->context, JSON_UNESCAPED_SLASHES);
             $message .= " Context: {$contextString}";
         }
-        
+
         return $message;
     }
 }

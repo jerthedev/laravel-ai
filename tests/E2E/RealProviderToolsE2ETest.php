@@ -6,8 +6,8 @@ use JTD\LaravelAI\Facades\AI;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Services\AIFunctionEvent;
 use JTD\LaravelAI\Services\UnifiedToolRegistry;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Real Provider Tools E2E Test
@@ -27,7 +27,7 @@ class RealProviderToolsE2ETest extends E2ETestCase
         parent::setUp();
 
         // Skip if no OpenAI credentials
-        if (!$this->hasE2ECredentials('openai')) {
+        if (! $this->hasE2ECredentials('openai')) {
             $this->markTestSkipped('OpenAI credentials not available for real provider testing');
         }
 
@@ -43,55 +43,55 @@ class RealProviderToolsE2ETest extends E2ETestCase
             'get_current_weather',
             \JTD\LaravelAI\Tests\Support\TestCurrentWeatherListener::class,
             [
-            'description' => 'Get the current weather in a given location',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'location' => [
-                        'type' => 'string',
-                        'description' => 'The city and state, e.g. San Francisco, CA',
+                'description' => 'Get the current weather in a given location',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'location' => [
+                            'type' => 'string',
+                            'description' => 'The city and state, e.g. San Francisco, CA',
+                        ],
+                        'unit' => [
+                            'type' => 'string',
+                            'enum' => ['celsius', 'fahrenheit'],
+                            'description' => 'Temperature unit',
+                        ],
                     ],
-                    'unit' => [
-                        'type' => 'string',
-                        'enum' => ['celsius', 'fahrenheit'],
-                        'description' => 'Temperature unit',
-                    ],
+                    'required' => ['location'],
                 ],
-                'required' => ['location'],
-            ],
-        ]);
+            ]);
 
         AIFunctionEvent::listen(
             'calculate_tip',
             \JTD\LaravelAI\Tests\Support\TestCalculateTipListener::class,
             [
-            'description' => 'Calculate tip amount and total bill',
-            'parameters' => [
-                'type' => 'object',
-                'properties' => [
-                    'amount' => [
-                        'type' => 'number',
-                        'description' => 'The bill amount',
+                'description' => 'Calculate tip amount and total bill',
+                'parameters' => [
+                    'type' => 'object',
+                    'properties' => [
+                        'amount' => [
+                            'type' => 'number',
+                            'description' => 'The bill amount',
+                        ],
+                        'percentage' => [
+                            'type' => 'number',
+                            'description' => 'Tip percentage (default: 15)',
+                        ],
+                        'currency' => [
+                            'type' => 'string',
+                            'description' => 'Currency code (default: USD)',
+                        ],
                     ],
-                    'percentage' => [
-                        'type' => 'number',
-                        'description' => 'Tip percentage (default: 15)',
-                    ],
-                    'currency' => [
-                        'type' => 'string',
-                        'description' => 'Currency code (default: USD)',
-                    ],
+                    'required' => ['amount'],
                 ],
-                'required' => ['amount'],
-            ],
-        ]);
+            ]);
 
         // Refresh registry to pick up new functions
         $this->toolRegistry->refreshCache();
     }
 
     #[Test]
-    public function it_can_use_withTools_with_real_openai_conversation_builder()
+    public function it_can_use_with_tools_with_real_openai_conversation_builder()
     {
         $this->rateLimitApiCall();
 
@@ -108,11 +108,11 @@ class RealProviderToolsE2ETest extends E2ETestCase
         $this->assertNotEmpty($response->content);
 
         // Check if OpenAI made tool calls
-        if (!empty($response->toolCalls)) {
+        if (! empty($response->toolCalls)) {
             $this->assertIsArray($response->toolCalls);
             $this->logE2EInfo('Real OpenAI tool calls detected', [
                 'tool_calls' => count($response->toolCalls),
-                'tools' => array_map(fn($call) => $call['function']['name'] ?? 'unknown', $response->toolCalls),
+                'tools' => array_map(fn ($call) => $call['function']['name'] ?? 'unknown', $response->toolCalls),
             ]);
         }
 
@@ -126,12 +126,12 @@ class RealProviderToolsE2ETest extends E2ETestCase
 
         $this->logE2EInfo('Real OpenAI withTools ConversationBuilder test completed', [
             'response_length' => strlen($response->content),
-            'has_tool_calls' => !empty($response->toolCalls),
+            'has_tool_calls' => ! empty($response->toolCalls),
         ]);
     }
 
     #[Test]
-    public function it_can_use_allTools_with_real_openai_conversation_builder()
+    public function it_can_use_all_tools_with_real_openai_conversation_builder()
     {
         $this->rateLimitApiCall();
 
@@ -148,22 +148,22 @@ class RealProviderToolsE2ETest extends E2ETestCase
         $this->assertNotEmpty($response->content);
 
         // Check if OpenAI made tool calls
-        if (!empty($response->toolCalls)) {
+        if (! empty($response->toolCalls)) {
             $this->assertIsArray($response->toolCalls);
             $this->logE2EInfo('Real OpenAI multiple tool calls detected', [
                 'tool_calls' => count($response->toolCalls),
-                'tools' => array_map(fn($call) => $call['function']['name'] ?? 'unknown', $response->toolCalls),
+                'tools' => array_map(fn ($call) => $call['function']['name'] ?? 'unknown', $response->toolCalls),
             ]);
         }
 
         $this->logE2EInfo('Real OpenAI allTools ConversationBuilder test completed', [
             'response_length' => strlen($response->content),
-            'has_tool_calls' => !empty($response->toolCalls),
+            'has_tool_calls' => ! empty($response->toolCalls),
         ]);
     }
 
     #[Test]
-    public function it_can_use_withTools_with_real_openai_direct_send()
+    public function it_can_use_with_tools_with_real_openai_direct_send()
     {
         $this->rateLimitApiCall();
 
@@ -181,7 +181,7 @@ class RealProviderToolsE2ETest extends E2ETestCase
         $this->assertNotEmpty($response->content);
 
         // Check if OpenAI made tool calls
-        if (!empty($response->toolCalls)) {
+        if (! empty($response->toolCalls)) {
             $this->assertIsArray($response->toolCalls);
 
             // Verify tool call structure
@@ -202,12 +202,12 @@ class RealProviderToolsE2ETest extends E2ETestCase
 
         $this->logE2EInfo('Real OpenAI withTools direct send test completed', [
             'response_length' => strlen($response->content),
-            'has_tool_calls' => !empty($response->toolCalls),
+            'has_tool_calls' => ! empty($response->toolCalls),
         ]);
     }
 
     #[Test]
-    public function it_can_use_allTools_with_real_openai_direct_send()
+    public function it_can_use_all_tools_with_real_openai_direct_send()
     {
         $this->rateLimitApiCall();
 
@@ -226,7 +226,7 @@ class RealProviderToolsE2ETest extends E2ETestCase
 
         $this->logE2EInfo('Real OpenAI allTools direct send test completed', [
             'response_length' => strlen($response->content),
-            'has_tool_calls' => !empty($response->toolCalls),
+            'has_tool_calls' => ! empty($response->toolCalls),
         ]);
     }
 
@@ -269,7 +269,7 @@ class RealProviderToolsE2ETest extends E2ETestCase
 
             $this->logE2EInfo('Real tool execution results processed', [
                 'execution_results' => count($executionResults),
-                'successful_results' => count(array_filter($executionResults, fn($r) => $r['status'] === 'success')),
+                'successful_results' => count(array_filter($executionResults, fn ($r) => $r['status'] === 'success')),
             ]);
         }
 
@@ -295,7 +295,7 @@ class RealProviderToolsE2ETest extends E2ETestCase
 
         $this->assertNotNull($response);
 
-        if (!empty($response->toolCalls)) {
+        if (! empty($response->toolCalls)) {
             foreach ($response->toolCalls as $toolCall) {
                 // Verify OpenAI tool call format
                 $this->assertIsString($toolCall['id']);
@@ -339,8 +339,8 @@ class RealProviderToolsE2ETest extends E2ETestCase
         $this->assertIsString($response->content);
 
         // Check if multiple tools were called
-        if (!empty($response->toolCalls)) {
-            $toolNames = array_map(fn($call) => $call['function']['name'] ?? 'unknown', $response->toolCalls);
+        if (! empty($response->toolCalls)) {
+            $toolNames = array_map(fn ($call) => $call['function']['name'] ?? 'unknown', $response->toolCalls);
             $uniqueTools = array_unique($toolNames);
 
             $this->logE2EInfo('Multiple real tool calls detected', [
@@ -416,15 +416,15 @@ class RealProviderToolsE2ETest extends E2ETestCase
         $this->assertIsArray($response->metadata);
 
         // Validate token usage
-        $this->assertIsInt($response->tokenUsage->inputTokens);
-        $this->assertIsInt($response->tokenUsage->outputTokens);
+        $this->assertIsInt($response->tokenUsage->input_tokens);
+        $this->assertIsInt($response->tokenUsage->output_tokens);
         $this->assertIsInt($response->tokenUsage->totalTokens);
 
         $this->logE2EInfo('Real OpenAI response structure validated', [
             'model' => $response->model,
             'provider' => $response->provider,
-            'input_tokens' => $response->tokenUsage->inputTokens,
-            'output_tokens' => $response->tokenUsage->outputTokens,
+            'input_tokens' => $response->tokenUsage->input_tokens,
+            'output_tokens' => $response->tokenUsage->output_tokens,
             'total_tokens' => $response->tokenUsage->totalTokens,
         ]);
     }

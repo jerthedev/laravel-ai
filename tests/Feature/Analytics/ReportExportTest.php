@@ -2,16 +2,16 @@
 
 namespace JTD\LaravelAI\Tests\Feature\Analytics;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\ReportExportService;
-use JTD\LaravelAI\Services\CostAnalyticsService;
-use JTD\LaravelAI\Services\TrendAnalysisService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Services\CostAnalyticsService;
+use JTD\LaravelAI\Services\ReportExportService;
+use JTD\LaravelAI\Services\TrendAnalysisService;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Report Export Functionality Tests
@@ -27,7 +27,9 @@ class ReportExportTest extends TestCase
     use RefreshDatabase;
 
     protected ReportExportService $reportExportService;
+
     protected CostAnalyticsService $costAnalyticsService;
+
     protected TrendAnalysisService $trendAnalysisService;
 
     protected function setUp(): void
@@ -191,7 +193,7 @@ class ReportExportTest extends TestCase
             $this->assertIsArray($invalidFormatResult);
 
             // ReportExportService uses 'success' key instead of 'status'
-            if (isset($invalidFormatResult['success']) && !$invalidFormatResult['success']) {
+            if (isset($invalidFormatResult['success']) && ! $invalidFormatResult['success']) {
                 $this->assertArrayHasKey('message', $invalidFormatResult);
                 $this->assertStringContainsString('format', strtolower($invalidFormatResult['message']));
             }
@@ -496,7 +498,7 @@ class ReportExportTest extends TestCase
     protected function seedReportExportTestData(): void
     {
         // Create test tables if they don't exist (simplified for testing)
-        if (!DB::getSchemaBuilder()->hasTable('ai_report_exports')) {
+        if (! DB::getSchemaBuilder()->hasTable('ai_report_exports')) {
             DB::statement('CREATE TABLE ai_report_exports (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,

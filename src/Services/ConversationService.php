@@ -9,7 +9,6 @@ use JTD\LaravelAI\Contracts\AIProviderInterface;
 use JTD\LaravelAI\Events\ConversationCreated;
 use JTD\LaravelAI\Events\ConversationUpdated;
 use JTD\LaravelAI\Events\MessageAdded;
-use JTD\LaravelAI\Events\ResponseGenerated;
 use JTD\LaravelAI\Exceptions\ConversationException;
 use JTD\LaravelAI\Models\AIConversation;
 use JTD\LaravelAI\Models\AIMessage;
@@ -197,8 +196,8 @@ class ConversationService
                 'request_parameters' => $options,
                 'response_metadata' => $response->metadata ?? [],
                 'finish_reason' => $response->finishReason,
-                'input_tokens' => $response->tokenUsage->inputTokens,
-                'output_tokens' => $response->tokenUsage->outputTokens,
+                'input_tokens' => $response->tokenUsage->input_tokens,
+                'output_tokens' => $response->tokenUsage->output_tokens,
                 'total_tokens' => $response->tokenUsage->totalTokens,
                 'cost' => $response->getTotalCost() ?? 0,
                 'cost_breakdown' => $response->costBreakdown ?? [],
@@ -249,8 +248,8 @@ class ConversationService
     {
         $conversation->increment('total_requests');
         $conversation->increment('successful_requests');
-        $conversation->increment('total_input_tokens', $response->tokenUsage->inputTokens);
-        $conversation->increment('total_output_tokens', $response->tokenUsage->outputTokens);
+        $conversation->increment('total_input_tokens', $response->tokenUsage->input_tokens);
+        $conversation->increment('total_output_tokens', $response->tokenUsage->output_tokens);
         $conversation->increment('total_cost', $response->getTotalCost() ?? 0);
 
         // Update average response time

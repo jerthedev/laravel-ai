@@ -2,7 +2,7 @@
 
 /**
  * Manual validation script for real provider integration
- * 
+ *
  * This script demonstrates and validates that the unified tool system
  * works correctly with real AI providers like OpenAI.
  */
@@ -12,17 +12,17 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use JTD\LaravelAI\Facades\AI;
 use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Services\AIFunctionEvent;
-use JTD\LaravelAI\Tests\Support\TestCurrentWeatherListener;
 use JTD\LaravelAI\Tests\Support\TestCalculateTipListener;
+use JTD\LaravelAI\Tests\Support\TestCurrentWeatherListener;
 
 echo "🧪 Real Provider Integration Validation\n";
 echo "======================================\n\n";
 
 // Check if OpenAI credentials are available
-$hasOpenAICredentials = !empty(config('laravel-ai.providers.openai.api_key')) || 
+$hasOpenAICredentials = ! empty(config('laravel-ai.providers.openai.api_key')) ||
                        file_exists(base_path('tests/credentials/e2e-credentials.json'));
 
-if (!$hasOpenAICredentials) {
+if (! $hasOpenAICredentials) {
     echo "⚠️  OpenAI credentials not available - using Mock provider for demonstration\n\n";
 }
 
@@ -83,25 +83,24 @@ try {
         ->withTools(['get_weather_info'])
         ->message('What\'s the weather like in Tokyo?')
         ->send();
-    
+
     echo "   ✅ ConversationBuilder withTools() successful\n";
-    echo "   ✅ Response length: " . strlen($response->content) . " characters\n";
-    echo "   ✅ Provider: " . $response->provider . "\n";
-    echo "   ✅ Model: " . $response->model . "\n";
-    
-    if (!empty($response->toolCalls)) {
-        echo "   ✅ Tool calls detected: " . count($response->toolCalls) . "\n";
+    echo '   ✅ Response length: ' . strlen($response->content) . " characters\n";
+    echo '   ✅ Provider: ' . $response->provider . "\n";
+    echo '   ✅ Model: ' . $response->model . "\n";
+
+    if (! empty($response->toolCalls)) {
+        echo '   ✅ Tool calls detected: ' . count($response->toolCalls) . "\n";
         foreach ($response->toolCalls as $toolCall) {
-            echo "      - Tool: " . ($toolCall['function']['name'] ?? 'unknown') . "\n";
+            echo '      - Tool: ' . ($toolCall['function']['name'] ?? 'unknown') . "\n";
         }
     }
-    
+
     if (isset($response->metadata['tool_execution_results'])) {
-        echo "   ✅ Tool execution results: " . count($response->metadata['tool_execution_results']) . "\n";
+        echo '   ✅ Tool execution results: ' . count($response->metadata['tool_execution_results']) . "\n";
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n2. Testing ConversationBuilder allTools() with real provider:\n";
@@ -112,17 +111,16 @@ try {
         ->allTools()
         ->message('Calculate a 20% tip on $75 and tell me about the weather')
         ->send();
-    
+
     echo "   ✅ ConversationBuilder allTools() successful\n";
-    echo "   ✅ Response length: " . strlen($response->content) . " characters\n";
-    echo "   ✅ Provider: " . $response->provider . "\n";
-    
-    if (!empty($response->toolCalls)) {
-        echo "   ✅ Tool calls detected: " . count($response->toolCalls) . "\n";
+    echo '   ✅ Response length: ' . strlen($response->content) . " characters\n";
+    echo '   ✅ Provider: ' . $response->provider . "\n";
+
+    if (! empty($response->toolCalls)) {
+        echo '   ✅ Tool calls detected: ' . count($response->toolCalls) . "\n";
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n3. Testing direct sendMessage with withTools option:\n";
@@ -134,31 +132,30 @@ try {
             'withTools' => ['calculate_restaurant_tip'],
         ]
     );
-    
+
     echo "   ✅ Direct sendMessage withTools successful\n";
-    echo "   ✅ Response length: " . strlen($response->content) . " characters\n";
-    echo "   ✅ Provider: " . $response->provider . "\n";
-    
-    if (!empty($response->toolCalls)) {
-        echo "   ✅ Tool calls detected: " . count($response->toolCalls) . "\n";
-        
+    echo '   ✅ Response length: ' . strlen($response->content) . " characters\n";
+    echo '   ✅ Provider: ' . $response->provider . "\n";
+
+    if (! empty($response->toolCalls)) {
+        echo '   ✅ Tool calls detected: ' . count($response->toolCalls) . "\n";
+
         // Validate tool call structure
         foreach ($response->toolCalls as $toolCall) {
-            echo "      - Tool ID: " . ($toolCall['id'] ?? 'missing') . "\n";
-            echo "      - Tool Type: " . ($toolCall['type'] ?? 'missing') . "\n";
-            echo "      - Function Name: " . ($toolCall['function']['name'] ?? 'missing') . "\n";
-            
+            echo '      - Tool ID: ' . ($toolCall['id'] ?? 'missing') . "\n";
+            echo '      - Tool Type: ' . ($toolCall['type'] ?? 'missing') . "\n";
+            echo '      - Function Name: ' . ($toolCall['function']['name'] ?? 'missing') . "\n";
+
             if (isset($toolCall['function']['arguments'])) {
                 $args = json_decode($toolCall['function']['arguments'], true);
                 if ($args) {
-                    echo "      - Arguments: " . implode(', ', array_keys($args)) . "\n";
+                    echo '      - Arguments: ' . implode(', ', array_keys($args)) . "\n";
                 }
             }
         }
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n4. Testing direct sendMessage with allTools option:\n";
@@ -170,13 +167,12 @@ try {
             'allTools' => true,
         ]
     );
-    
+
     echo "   ✅ Default sendMessage allTools successful\n";
-    echo "   ✅ Response length: " . strlen($response->content) . " characters\n";
-    echo "   ✅ Provider: " . $response->provider . "\n";
-    
+    echo '   ✅ Response length: ' . strlen($response->content) . " characters\n";
+    echo '   ✅ Provider: ' . $response->provider . "\n";
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n5. Testing token usage and response metadata:\n";
@@ -188,23 +184,22 @@ try {
             'withTools' => ['calculate_restaurant_tip'],
         ]
     );
-    
+
     echo "   ✅ Response metadata validation\n";
-    echo "   ✅ Content type: " . gettype($response->content) . "\n";
-    echo "   ✅ Model: " . $response->model . "\n";
-    echo "   ✅ Provider: " . $response->provider . "\n";
-    
+    echo '   ✅ Content type: ' . gettype($response->content) . "\n";
+    echo '   ✅ Model: ' . $response->model . "\n";
+    echo '   ✅ Provider: ' . $response->provider . "\n";
+
     if ($response->tokenUsage) {
         echo "   ✅ Token usage available\n";
-        echo "      - Input tokens: " . $response->tokenUsage->inputTokens . "\n";
-        echo "      - Output tokens: " . $response->tokenUsage->outputTokens . "\n";
-        echo "      - Total tokens: " . $response->tokenUsage->totalTokens . "\n";
+        echo '      - Input tokens: ' . $response->tokenUsage->input_tokens . "\n";
+        echo '      - Output tokens: ' . $response->tokenUsage->output_tokens . "\n";
+        echo '      - Total tokens: ' . $response->tokenUsage->totalTokens . "\n";
     }
-    
-    echo "   ✅ Metadata keys: " . implode(', ', array_keys($response->metadata)) . "\n";
-    
+
+    echo '   ✅ Metadata keys: ' . implode(', ', array_keys($response->metadata)) . "\n";
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n6. Testing error handling with invalid tools:\n";
@@ -216,14 +211,13 @@ try {
             'withTools' => ['non_existent_tool'],
         ]
     );
-    
+
     echo "   ❌ Validation failed - should have thrown exception\n";
-    
 } catch (InvalidArgumentException $e) {
     echo "   ✅ Tool validation working correctly\n";
-    echo "   ✅ Exception: " . $e->getMessage() . "\n";
+    echo '   ✅ Exception: ' . $e->getMessage() . "\n";
 } catch (Exception $e) {
-    echo "   ❌ Unexpected error: " . $e->getMessage() . "\n";
+    echo '   ❌ Unexpected error: ' . $e->getMessage() . "\n";
 }
 
 echo "\n7. Testing complex tool interaction:\n";
@@ -235,18 +229,17 @@ try {
         ->systemPrompt('You are a helpful assistant with access to weather and calculation tools')
         ->message('I\'m going to dinner in Paris. What\'s the weather like there, and what would be a good 18% tip on a €85 meal?')
         ->send();
-    
+
     echo "   ✅ Complex tool interaction successful\n";
-    echo "   ✅ Response length: " . strlen($response->content) . " characters\n";
-    
-    if (!empty($response->toolCalls)) {
-        echo "   ✅ Multiple tool calls: " . count($response->toolCalls) . "\n";
-        $toolNames = array_map(fn($call) => $call['function']['name'] ?? 'unknown', $response->toolCalls);
-        echo "   ✅ Tools used: " . implode(', ', array_unique($toolNames)) . "\n";
+    echo '   ✅ Response length: ' . strlen($response->content) . " characters\n";
+
+    if (! empty($response->toolCalls)) {
+        echo '   ✅ Multiple tool calls: ' . count($response->toolCalls) . "\n";
+        $toolNames = array_map(fn ($call) => $call['function']['name'] ?? 'unknown', $response->toolCalls);
+        echo '   ✅ Tools used: ' . implode(', ', array_unique($toolNames)) . "\n";
     }
-    
 } catch (Exception $e) {
-    echo "   ❌ Error: " . $e->getMessage() . "\n";
+    echo '   ❌ Error: ' . $e->getMessage() . "\n";
 }
 
 if ($hasOpenAICredentials) {
@@ -254,7 +247,7 @@ if ($hasOpenAICredentials) {
     try {
         $chunks = [];
         $finalResponse = null;
-        
+
         foreach (AI::provider('openai')->sendStreamingMessage(
             AIMessage::user('What\'s the weather in London?'),
             [
@@ -265,16 +258,15 @@ if ($hasOpenAICredentials) {
             $chunks[] = $chunk;
             $finalResponse = $chunk;
         }
-        
+
         echo "   ✅ Streaming with tools successful\n";
-        echo "   ✅ Chunks received: " . count($chunks) . "\n";
-        
+        echo '   ✅ Chunks received: ' . count($chunks) . "\n";
+
         if ($finalResponse) {
-            echo "   ✅ Final response length: " . strlen($finalResponse->content ?? '') . " characters\n";
+            echo '   ✅ Final response length: ' . strlen($finalResponse->content ?? '') . " characters\n";
         }
-        
     } catch (Exception $e) {
-        echo "   ⚠️  Streaming with tools not supported or failed: " . $e->getMessage() . "\n";
+        echo '   ⚠️  Streaming with tools not supported or failed: ' . $e->getMessage() . "\n";
     }
 }
 

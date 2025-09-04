@@ -164,9 +164,9 @@ class GeminiAdvancedIntegrationTest extends E2ETestCase
 
             $this->assertInstanceOf(AIResponse::class, $response);
             $this->assertNotEmpty($response->content);
-            $this->assertLessThanOrEqual($limit + 10, $response->tokenUsage->outputTokens); // Allow small margin
+            $this->assertLessThanOrEqual($limit + 10, $response->tokenUsage->output_tokens); // Allow small margin
 
-            $this->logTestStep('✅ Max tokens ' . $limit . ': ' . $response->tokenUsage->outputTokens . ' actual tokens, ' . round($responseTime) . 'ms');
+            $this->logTestStep('✅ Max tokens ' . $limit . ': ' . $response->tokenUsage->output_tokens . ' actual tokens, ' . round($responseTime) . 'ms');
         }
 
         $this->logTestEnd('Parameter variations test completed');
@@ -201,7 +201,7 @@ class GeminiAdvancedIntegrationTest extends E2ETestCase
 
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertNotEmpty($response->content);
-        $this->assertGreaterThan(100, $response->tokenUsage->inputTokens); // Should have significant input tokens
+        $this->assertGreaterThan(100, $response->tokenUsage->input_tokens); // Should have significant input tokens
 
         // Response should be contextually relevant to supervised learning
         $content = strtolower($response->content);
@@ -309,7 +309,7 @@ class GeminiAdvancedIntegrationTest extends E2ETestCase
             'max_tokens' => 20,
         ]);
 
-        $actualInput = $response->tokenUsage->inputTokens;
+        $actualInput = $response->tokenUsage->input_tokens;
 
         $this->logTestStep('📊 Actual input tokens: ' . $actualInput);
 

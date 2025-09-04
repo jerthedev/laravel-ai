@@ -4,7 +4,7 @@ namespace JTD\LaravelAI\Enums;
 
 /**
  * Billing model enumeration for different AI provider pricing structures.
- * 
+ *
  * This enum standardizes how different providers charge for their services,
  * enabling consistent cost calculation and budget management across providers.
  */
@@ -22,7 +22,7 @@ enum BillingModel: string
      */
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::PAY_PER_USE => 'Pay Per Use',
             self::TIERED => 'Tiered Pricing',
             self::SUBSCRIPTION => 'Subscription',
@@ -37,7 +37,7 @@ enum BillingModel: string
      */
     public function description(): string
     {
-        return match($this) {
+        return match ($this) {
             self::PAY_PER_USE => 'Direct payment based on actual usage (tokens, requests, etc.)',
             self::TIERED => 'Different pricing tiers based on usage volume',
             self::SUBSCRIPTION => 'Fixed monthly/yearly subscription with usage limits',
@@ -49,12 +49,12 @@ enum BillingModel: string
 
     /**
      * Check if this billing model supports automatic cost calculation.
-     * 
+     *
      * Some models like enterprise or subscription may require manual configuration.
      */
     public function supportsAutomaticCalculation(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::PAY_PER_USE, self::TIERED, self::CREDITS => true,
             self::SUBSCRIPTION, self::FREE_TIER, self::ENTERPRISE => false,
         };
@@ -65,7 +65,7 @@ enum BillingModel: string
      */
     public function requiresPrePayment(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::CREDITS, self::SUBSCRIPTION => true,
             self::PAY_PER_USE, self::TIERED, self::FREE_TIER, self::ENTERPRISE => false,
         };
@@ -76,7 +76,7 @@ enum BillingModel: string
      */
     public function hasUsageLimits(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::SUBSCRIPTION, self::FREE_TIER, self::CREDITS => true,
             self::PAY_PER_USE, self::TIERED, self::ENTERPRISE => false,
         };
@@ -87,7 +87,7 @@ enum BillingModel: string
      */
     public function supportsRealTimeTracking(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::PAY_PER_USE, self::TIERED, self::CREDITS => true,
             self::SUBSCRIPTION, self::FREE_TIER, self::ENTERPRISE => false,
         };
@@ -95,12 +95,12 @@ enum BillingModel: string
 
     /**
      * Get the cost calculation complexity level.
-     * 
+     *
      * @return string 'simple'|'moderate'|'complex'
      */
     public function getCalculationComplexity(): string
     {
-        return match($this) {
+        return match ($this) {
             self::PAY_PER_USE, self::FREE_TIER => 'simple',
             self::CREDITS, self::SUBSCRIPTION => 'moderate',
             self::TIERED, self::ENTERPRISE => 'complex',
@@ -112,7 +112,7 @@ enum BillingModel: string
      */
     public function supportsBudgetEnforcement(): bool
     {
-        return match($this) {
+        return match ($this) {
             self::PAY_PER_USE, self::TIERED, self::CREDITS => true,
             self::SUBSCRIPTION, self::FREE_TIER, self::ENTERPRISE => false,
         };
@@ -120,69 +120,69 @@ enum BillingModel: string
 
     /**
      * Get billing models that support automatic calculation.
-     * 
+     *
      * @return array<self>
      */
     public static function getAutomaticCalculationModels(): array
     {
         return array_filter(
             self::cases(),
-            fn(self $model) => $model->supportsAutomaticCalculation()
+            fn (self $model) => $model->supportsAutomaticCalculation()
         );
     }
 
     /**
      * Get billing models that require pre-payment.
-     * 
+     *
      * @return array<self>
      */
     public static function getPrePaymentModels(): array
     {
         return array_filter(
             self::cases(),
-            fn(self $model) => $model->requiresPrePayment()
+            fn (self $model) => $model->requiresPrePayment()
         );
     }
 
     /**
      * Get billing models that support real-time tracking.
-     * 
+     *
      * @return array<self>
      */
     public static function getRealTimeTrackingModels(): array
     {
         return array_filter(
             self::cases(),
-            fn(self $model) => $model->supportsRealTimeTracking()
+            fn (self $model) => $model->supportsRealTimeTracking()
         );
     }
 
     /**
      * Get billing models grouped by calculation complexity.
-     * 
+     *
      * @return array<string, array<self>>
      */
     public static function getByComplexity(): array
     {
         $grouped = ['simple' => [], 'moderate' => [], 'complex' => []];
-        
+
         foreach (self::cases() as $model) {
             $complexity = $model->getCalculationComplexity();
             $grouped[$complexity][] = $model;
         }
-        
+
         return $grouped;
     }
 
     /**
      * Validate if a billing model is compatible with a pricing unit.
-     * 
-     * @param PricingUnit $unit The pricing unit to validate against
+     *
+     * @param  PricingUnit  $unit  The pricing unit to validate against
      * @return bool True if compatible, false otherwise
      */
     public function isCompatibleWith(PricingUnit $unit): bool
     {
-        return match($this) {
+        return match ($this) {
             self::PAY_PER_USE, self::TIERED => true, // Compatible with all units
             self::CREDITS => $unit->isTokenBased() || $unit->isRequestBased(),
             self::SUBSCRIPTION => $unit->isTimeBased() || $unit->isRequestBased(),
@@ -193,12 +193,12 @@ enum BillingModel: string
 
     /**
      * Get recommended pricing units for this billing model.
-     * 
+     *
      * @return array<PricingUnit>
      */
     public function getRecommendedUnits(): array
     {
-        return match($this) {
+        return match ($this) {
             self::PAY_PER_USE => [
                 PricingUnit::PER_1K_TOKENS,
                 PricingUnit::PER_REQUEST,

@@ -62,7 +62,7 @@ class MCPServerInstaller
             'permissions' => $this->checkPermissions(),
         ];
 
-        $results['all_passed'] = !in_array(false, array_column($results, 'available'));
+        $results['all_passed'] = ! in_array(false, array_column($results, 'available'));
 
         return $results;
     }
@@ -74,8 +74,8 @@ class MCPServerInstaller
     {
         try {
             $result = Process::run('node --version');
-            
-            if (!$result->successful()) {
+
+            if (! $result->successful()) {
                 return [
                     'available' => false,
                     'error' => 'Node.js not found',
@@ -108,8 +108,8 @@ class MCPServerInstaller
     {
         try {
             $result = Process::run('npm --version');
-            
-            if (!$result->successful()) {
+
+            if (! $result->successful()) {
                 return [
                     'available' => false,
                     'error' => 'npm not found',
@@ -139,8 +139,8 @@ class MCPServerInstaller
         try {
             // Try to get npm global directory
             $result = Process::run('npm config get prefix');
-            
-            if (!$result->successful()) {
+
+            if (! $result->successful()) {
                 return [
                     'available' => false,
                     'error' => 'Cannot determine npm global directory',
@@ -169,7 +169,7 @@ class MCPServerInstaller
      */
     public function installServer(string $serverKey, array $options = []): array
     {
-        if (!isset($this->serverTemplates[$serverKey])) {
+        if (! isset($this->serverTemplates[$serverKey])) {
             throw new MCPException("Unknown server: {$serverKey}");
         }
 
@@ -180,10 +180,10 @@ class MCPServerInstaller
         Log::info("Starting installation of MCP server: {$serverKey}");
 
         // Check prerequisites unless skipped
-        if (!$skipPrerequisites) {
+        if (! $skipPrerequisites) {
             $prerequisites = $this->checkPrerequisites();
-            if (!$prerequisites['all_passed']) {
-                throw new MCPException("Prerequisites not met for server installation");
+            if (! $prerequisites['all_passed']) {
+                throw new MCPException('Prerequisites not met for server installation');
             }
         }
 
@@ -192,8 +192,8 @@ class MCPServerInstaller
 
             // Install the package
             $installResult = $this->executeInstallCommand($template['install_command'], $timeout);
-            
-            if (!$installResult['success']) {
+
+            if (! $installResult['success']) {
                 throw new MCPException("Installation failed: {$installResult['error']}");
             }
 
@@ -264,8 +264,8 @@ class MCPServerInstaller
     {
         try {
             $testCommand = $template['test_command'] ?? null;
-            
-            if (!$testCommand) {
+
+            if (! $testCommand) {
                 // Fallback test - just check if the package can be executed
                 $packageName = $template['package'];
                 $testCommand = "npx {$packageName} --help";
@@ -293,7 +293,7 @@ class MCPServerInstaller
      */
     public function isServerInstalled(string $serverKey): array
     {
-        if (!isset($this->serverTemplates[$serverKey])) {
+        if (! isset($this->serverTemplates[$serverKey])) {
             return [
                 'installed' => false,
                 'error' => "Unknown server: {$serverKey}",
@@ -306,7 +306,7 @@ class MCPServerInstaller
         try {
             // Check if package is globally installed
             $result = Process::run("npm list -g {$package} --depth=0");
-            
+
             $installed = $result->successful();
             $output = $result->output();
 
@@ -335,7 +335,7 @@ class MCPServerInstaller
      */
     public function uninstallServer(string $serverKey): array
     {
-        if (!isset($this->serverTemplates[$serverKey])) {
+        if (! isset($this->serverTemplates[$serverKey])) {
             throw new MCPException("Unknown server: {$serverKey}");
         }
 
@@ -383,6 +383,7 @@ class MCPServerInstaller
     {
         try {
             $result = Process::run("which {$executable}");
+
             return $result->successful() ? trim($result->output()) : null;
         } catch (\Exception $e) {
             return null;

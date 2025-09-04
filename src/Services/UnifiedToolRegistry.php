@@ -4,7 +4,6 @@ namespace JTD\LaravelAI\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use JTD\LaravelAI\Exceptions\ToolNotFoundException;
 
 /**
  * Unified Tool Registry Service
@@ -51,7 +50,7 @@ class UnifiedToolRegistry
      */
     public function getAllTools(bool $forceRefresh = false): array
     {
-        if (!$forceRefresh && Cache::has($this->cacheKey)) {
+        if (! $forceRefresh && Cache::has($this->cacheKey)) {
             return Cache::get($this->cacheKey);
         }
 
@@ -95,7 +94,7 @@ class UnifiedToolRegistry
     public function getTool(string $name): ?array
     {
         $allTools = $this->getAllTools();
-        
+
         return $allTools[$name] ?? null;
     }
 
@@ -105,7 +104,7 @@ class UnifiedToolRegistry
     public function getToolsByType(string $type): array
     {
         $allTools = $this->getAllTools();
-        
+
         return array_filter($allTools, function ($tool) use ($type) {
             return ($tool['type'] ?? '') === $type;
         });
@@ -128,7 +127,7 @@ class UnifiedToolRegistry
         $missing = [];
 
         foreach ($toolNames as $toolName) {
-            if (!isset($allTools[$toolName])) {
+            if (! isset($allTools[$toolName])) {
                 $missing[] = $toolName;
             }
         }
@@ -142,7 +141,7 @@ class UnifiedToolRegistry
     public function getToolsByExecutionMode(string $mode): array
     {
         $allTools = $this->getAllTools();
-        
+
         return array_filter($allTools, function ($tool) use ($mode) {
             return ($tool['execution_mode'] ?? '') === $mode;
         });
@@ -167,10 +166,10 @@ class UnifiedToolRegistry
 
         foreach ($toolsConfig as $serverName => $serverData) {
             $tools = $serverData['tools'] ?? [];
-            
+
             foreach ($tools as $tool) {
                 $toolName = $tool['name'] ?? null;
-                if (!$toolName) {
+                if (! $toolName) {
                     continue;
                 }
 
@@ -248,7 +247,7 @@ class UnifiedToolRegistry
         foreach ($allTools as $toolName => $tool) {
             $name = $tool['name'] ?? '';
             $description = $tool['description'] ?? '';
-            
+
             if (str_contains(strtolower($name), strtolower($query)) ||
                 str_contains(strtolower($description), strtolower($query))) {
                 $results[$toolName] = $tool;
@@ -264,7 +263,7 @@ class UnifiedToolRegistry
     public function getStats(): array
     {
         $allTools = $this->getAllTools();
-        
+
         $stats = [
             'total_tools' => count($allTools),
             'mcp_tools' => 0,

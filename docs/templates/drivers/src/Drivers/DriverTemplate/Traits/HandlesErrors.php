@@ -2,8 +2,6 @@
 
 namespace JTD\LaravelAI\Drivers\DriverTemplate\Traits;
 
-use JTD\LaravelAI\Drivers\DriverTemplate\Support\ErrorMapper;
-
 /**
  * Handles Error Processing and Retry Logic
  *
@@ -171,5 +169,4 @@ trait HandlesErrors
     {
         // TODO: Implement getRetryTimeout
     }
-
 }

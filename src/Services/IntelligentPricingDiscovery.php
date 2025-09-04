@@ -217,7 +217,7 @@ class IntelligentPricingDiscovery
         $prompt = $this->buildDiscoveryPrompt($provider, $model);
 
         // Check if Brave Search MCP tool is available
-        if (!$this->isBraveSearchAvailable()) {
+        if (! $this->isBraveSearchAvailable()) {
             return [
                 'status' => 'no_mcp_tools',
                 'message' => 'Brave Search MCP tool not available for AI discovery',
@@ -236,7 +236,6 @@ class IntelligentPricingDiscovery
 
             // Parse the AI response and extract pricing information
             return $this->parseAIDiscoveryResponse($response, $provider, $model);
-
         } catch (\Exception $e) {
             Log::error('AI pricing discovery failed', [
                 'provider' => $provider,
@@ -281,8 +280,6 @@ Model: {$model}
 Current date: " . now()->format('Y-m-d');
     }
 
-
-
     /**
      * Check if Brave Search MCP is available.
      */
@@ -306,12 +303,6 @@ Current date: " . now()->format('Y-m-d');
     {
         return config('ai.model_sync.ai_discovery.model', 'gpt-4o-mini');
     }
-
-
-
-
-
-
 
     /**
      * Perform Brave Search using direct service call (manual discovery).
@@ -372,9 +363,9 @@ Current date: " . now()->format('Y-m-d');
                         'title' => 'AI Discovery Result',
                         'snippet' => $content,
                         'url' => 'ai://discovery',
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ];
 
         $extractedPricing = $this->extractPricingFromResults($mockResults, $provider, $model);

@@ -61,8 +61,8 @@ class QueuePerformanceTest extends TestCase
                     userId: 1,
                     provider: 'mock',
                     model: 'gpt-4',
-                    inputTokens: 100,
-                    outputTokens: 50,
+                    input_tokens: 100,
+                    output_tokens: 50,
                     metadata: ['test' => "iteration_{$i}"]
                 );
 
@@ -161,8 +161,8 @@ class QueuePerformanceTest extends TestCase
                 ProcessBudgetAlert::dispatch(
                     userId: 1,
                     currentSpend: 50.00,
-                    budgetLimit: 100.00,
-                    thresholdPercentage: 50,
+                    budget_limit: 100.00,
+                    threshold_percentage: 50,
                     metadata: ['test' => "iteration_{$i}"]
                 );
 
@@ -257,8 +257,8 @@ class QueuePerformanceTest extends TestCase
                     userId: 1,
                     provider: 'mock',
                     model: 'gpt-4',
-                    inputTokens: 100,
-                    outputTokens: 50,
+                    input_tokens: 100,
+                    output_tokens: 50,
                     metadata: ['concurrent' => "job_{$i}"]
                 );
 
@@ -309,8 +309,8 @@ class QueuePerformanceTest extends TestCase
                     userId: 1,
                     provider: 'mock',
                     model: 'gpt-4',
-                    inputTokens: 100,
-                    outputTokens: 50,
+                    input_tokens: 100,
+                    output_tokens: 50,
                     metadata: ['throughput' => "job_{$i}"]
                 );
             }
@@ -358,8 +358,8 @@ class QueuePerformanceTest extends TestCase
                     userId: 1,
                     provider: 'mock',
                     model: 'gpt-4',
-                    inputTokens: 100,
-                    outputTokens: 50,
+                    input_tokens: 100,
+                    output_tokens: 50,
                     metadata: ['memory_test' => "iteration_{$i}"]
                 );
 
@@ -410,8 +410,8 @@ class QueuePerformanceTest extends TestCase
                     userId: 1,
                     provider: 'invalid_provider', // This should cause failure
                     model: 'invalid_model',
-                    inputTokens: 100,
-                    outputTokens: 50,
+                    input_tokens: 100,
+                    output_tokens: 50,
                     metadata: ['failure_test' => "iteration_{$i}"]
                 );
 

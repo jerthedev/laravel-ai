@@ -68,7 +68,6 @@ class BudgetController extends Controller
                     ]),
                 ],
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -90,7 +89,7 @@ class BudgetController extends Controller
         try {
             $budget = $this->budgetService->getBudget($id);
 
-            if (!$budget) {
+            if (! $budget) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Budget not found',
@@ -98,7 +97,7 @@ class BudgetController extends Controller
             }
 
             // Check authorization
-            if (!$this->canAccessBudget($request, $budget)) {
+            if (! $this->canAccessBudget($request, $budget)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized access to budget',
@@ -119,7 +118,6 @@ class BudgetController extends Controller
                 'success' => true,
                 'data' => array_merge($budget, ['status' => $status]),
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -139,9 +137,9 @@ class BudgetController extends Controller
     {
         try {
             $budgetData = $request->validated();
-            
+
             // Set user ID from authenticated user if not provided
-            if (!isset($budgetData['user_id'])) {
+            if (! isset($budgetData['user_id'])) {
                 $budgetData['user_id'] = $request->user()->id;
             }
 
@@ -152,7 +150,6 @@ class BudgetController extends Controller
                 'data' => $budget,
                 'message' => 'Budget created successfully',
             ], 201);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -174,7 +171,7 @@ class BudgetController extends Controller
         try {
             $budget = $this->budgetService->getBudget($id);
 
-            if (!$budget) {
+            if (! $budget) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Budget not found',
@@ -182,7 +179,7 @@ class BudgetController extends Controller
             }
 
             // Check authorization
-            if (!$this->canModifyBudget($request, $budget)) {
+            if (! $this->canModifyBudget($request, $budget)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized to modify budget',
@@ -197,7 +194,6 @@ class BudgetController extends Controller
                 'data' => $updatedBudget,
                 'message' => 'Budget updated successfully',
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -219,7 +215,7 @@ class BudgetController extends Controller
         try {
             $budget = $this->budgetService->getBudget($id);
 
-            if (!$budget) {
+            if (! $budget) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Budget not found',
@@ -227,7 +223,7 @@ class BudgetController extends Controller
             }
 
             // Check authorization
-            if (!$this->canModifyBudget($request, $budget)) {
+            if (! $this->canModifyBudget($request, $budget)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized to delete budget',
@@ -247,7 +243,6 @@ class BudgetController extends Controller
                 'success' => false,
                 'error' => 'Failed to delete budget',
             ], 500);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -294,7 +289,6 @@ class BudgetController extends Controller
                     'checked_at' => now()->toISOString(),
                 ],
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -332,7 +326,7 @@ class BudgetController extends Controller
         try {
             $budget = $this->budgetService->getBudget($id);
 
-            if (!$budget) {
+            if (! $budget) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Budget not found',
@@ -340,7 +334,7 @@ class BudgetController extends Controller
             }
 
             // Check authorization
-            if (!$this->canModifyBudget($request, $budget)) {
+            if (! $this->canModifyBudget($request, $budget)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized to modify budget thresholds',
@@ -355,7 +349,6 @@ class BudgetController extends Controller
                 'data' => $updatedBudget,
                 'message' => 'Budget thresholds updated successfully',
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -377,7 +370,7 @@ class BudgetController extends Controller
         try {
             $budget = $this->budgetService->getBudget($id);
 
-            if (!$budget) {
+            if (! $budget) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Budget not found',
@@ -385,7 +378,7 @@ class BudgetController extends Controller
             }
 
             // Check authorization (only admins or budget owners)
-            if (!$this->canResetBudget($request, $budget)) {
+            if (! $this->canResetBudget($request, $budget)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized to reset budget',
@@ -399,7 +392,6 @@ class BudgetController extends Controller
                 'data' => $resetResult,
                 'message' => 'Budget reset successfully',
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -436,7 +428,7 @@ class BudgetController extends Controller
         try {
             $budget = $this->budgetService->getBudget($id);
 
-            if (!$budget) {
+            if (! $budget) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Budget not found',
@@ -444,7 +436,7 @@ class BudgetController extends Controller
             }
 
             // Check authorization
-            if (!$this->canAccessBudget($request, $budget)) {
+            if (! $this->canAccessBudget($request, $budget)) {
                 return response()->json([
                     'success' => false,
                     'error' => 'Unauthorized access to budget usage',
@@ -458,7 +450,6 @@ class BudgetController extends Controller
                 'success' => true,
                 'data' => $usage,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -478,8 +469,8 @@ class BudgetController extends Controller
     protected function canAccessBudget(Request $request, array $budget): bool
     {
         $user = $request->user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return false;
         }
 
@@ -512,8 +503,8 @@ class BudgetController extends Controller
     protected function canModifyBudget(Request $request, array $budget): bool
     {
         $user = $request->user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return false;
         }
 
@@ -536,8 +527,8 @@ class BudgetController extends Controller
     protected function canResetBudget(Request $request, array $budget): bool
     {
         $user = $request->user();
-        
-        if (!$user) {
+
+        if (! $user) {
             return false;
         }
 

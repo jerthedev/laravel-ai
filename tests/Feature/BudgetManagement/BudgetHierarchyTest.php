@@ -2,14 +2,12 @@
 
 namespace JTD\LaravelAI\Tests\Feature\BudgetManagement;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\BudgetService;
-
-use JTD\LaravelAI\Exceptions\BudgetExceededException;
-use JTD\LaravelAI\Models\AIMessage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use JTD\LaravelAI\Exceptions\BudgetExceededException;
+use JTD\LaravelAI\Services\BudgetService;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 
 /**
@@ -78,7 +76,7 @@ class BudgetHierarchyTest extends TestCase
         // In a real implementation with proper database setup, this would throw an exception
         try {
             $this->budgetService->checkBudgetLimits($userId, $estimatedCost, [
-                'project_id' => $projectId
+                'project_id' => $projectId,
             ]);
             $this->assertTrue(true, 'Budget check completed (limits not found in database)');
         } catch (BudgetExceededException $e) {
@@ -107,7 +105,7 @@ class BudgetHierarchyTest extends TestCase
         // In a real implementation with proper database setup, this would throw an exception
         try {
             $this->budgetService->checkBudgetLimits($userId, $estimatedCost, [
-                'organization_id' => $organizationId
+                'organization_id' => $organizationId,
             ]);
             $this->assertTrue(true, 'Budget check completed (limits not found in database)');
         } catch (BudgetExceededException $e) {
@@ -341,7 +339,9 @@ class BudgetHierarchyTest extends TestCase
     protected function createProjectBudget($projectId, array $budgets, ?string $organizationId = null): void
     {
         foreach ($budgets as $type => $limit) {
-            if ($type === 'override_parent') continue;
+            if ($type === 'override_parent') {
+                continue;
+            }
 
             // Use cache instead of database
             $cacheKey = "project_budget_limit_{$projectId}_{$type}";
@@ -371,7 +371,7 @@ class BudgetHierarchyTest extends TestCase
     protected function setUserSpending(int $userId, array $spending): void
     {
         foreach ($spending as $type => $amount) {
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "user_daily_spending_{$userId}_" . now()->format('Y-m-d'),
                 'monthly' => "user_monthly_spending_{$userId}_" . now()->format('Y-m'),
                 default => "user_spending_{$userId}_{$type}",
@@ -383,7 +383,7 @@ class BudgetHierarchyTest extends TestCase
     protected function setProjectSpending($projectId, array $spending): void
     {
         foreach ($spending as $type => $amount) {
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "project_daily_spending_{$projectId}_" . now()->format('Y-m-d'),
                 'monthly' => "project_monthly_spending_{$projectId}_" . now()->format('Y-m'),
                 default => "project_spending_{$projectId}_{$type}",
@@ -395,7 +395,7 @@ class BudgetHierarchyTest extends TestCase
     protected function setOrganizationSpending(string $organizationId, array $spending): void
     {
         foreach ($spending as $type => $amount) {
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "org_daily_spending_{$organizationId}_" . now()->format('Y-m-d'),
                 'monthly' => "org_monthly_spending_{$organizationId}_" . now()->format('Y-m'),
                 default => "org_spending_{$organizationId}_{$type}",
@@ -406,18 +406,18 @@ class BudgetHierarchyTest extends TestCase
 
     protected function getAggregatedSpending($id, string $type, string $level = 'user'): float
     {
-        $cacheKey = match($level) {
-            'project' => match($type) {
+        $cacheKey = match ($level) {
+            'project' => match ($type) {
                 'daily' => "project_daily_spending_{$id}_" . now()->format('Y-m-d'),
                 'monthly' => "project_monthly_spending_{$id}_" . now()->format('Y-m'),
                 default => "project_spending_{$id}_{$type}",
             },
-            'organization' => match($type) {
+            'organization' => match ($type) {
                 'daily' => "org_daily_spending_{$id}_" . now()->format('Y-m-d'),
                 'monthly' => "org_monthly_spending_{$id}_" . now()->format('Y-m'),
                 default => "org_spending_{$id}_{$type}",
             },
-            default => match($type) {
+            default => match ($type) {
                 'daily' => "user_daily_spending_{$id}_" . now()->format('Y-m-d'),
                 'monthly' => "user_monthly_spending_{$id}_" . now()->format('Y-m'),
                 default => "user_spending_{$id}_{$type}",
@@ -431,7 +431,7 @@ class BudgetHierarchyTest extends TestCase
     {
         $spending = $this->getAggregatedSpending($id, $type, $level);
 
-        $limitCacheKey = match($level) {
+        $limitCacheKey = match ($level) {
             'project' => "project_budget_limit_{$id}_{$type}",
             'organization' => "org_budget_limit_{$id}_{$type}",
             default => "budget_limit_{$id}_{$type}",
@@ -445,7 +445,7 @@ class BudgetHierarchyTest extends TestCase
     protected function seedBudgetHierarchyTestData(): void
     {
         // Create test tables if they don't exist (simplified for testing)
-        if (!DB::getSchemaBuilder()->hasTable('ai_budgets')) {
+        if (! DB::getSchemaBuilder()->hasTable('ai_budgets')) {
             DB::statement('CREATE TABLE ai_budgets (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,
@@ -458,7 +458,7 @@ class BudgetHierarchyTest extends TestCase
             )');
         }
 
-        if (!DB::getSchemaBuilder()->hasTable('ai_project_budgets')) {
+        if (! DB::getSchemaBuilder()->hasTable('ai_project_budgets')) {
             DB::statement('CREATE TABLE ai_project_budgets (
                 id INTEGER PRIMARY KEY,
                 project_id TEXT,
@@ -472,7 +472,7 @@ class BudgetHierarchyTest extends TestCase
             )');
         }
 
-        if (!DB::getSchemaBuilder()->hasTable('ai_organization_budgets')) {
+        if (! DB::getSchemaBuilder()->hasTable('ai_organization_budgets')) {
             DB::statement('CREATE TABLE ai_organization_budgets (
                 id INTEGER PRIMARY KEY,
                 organization_id TEXT,

@@ -2,22 +2,21 @@
 
 namespace JTD\LaravelAI\Tests\Integration;
 
-use JTD\LaravelAI\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use JTD\LaravelAI\Enums\BillingModel;
+use JTD\LaravelAI\Enums\PricingUnit;
 use JTD\LaravelAI\Services\PricingService;
 use JTD\LaravelAI\Services\PricingValidator;
-use JTD\LaravelAI\Services\DriverManager;
-use JTD\LaravelAI\Enums\PricingUnit;
-use JTD\LaravelAI\Enums\BillingModel;
+use JTD\LaravelAI\Tests\TestCase;
 
 class EnhancedPricingSystemTest extends TestCase
 {
     use RefreshDatabase;
 
     protected PricingService $pricingService;
+
     protected PricingValidator $pricingValidator;
 
     protected function setUp(): void

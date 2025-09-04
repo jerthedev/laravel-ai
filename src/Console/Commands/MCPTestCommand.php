@@ -43,7 +43,7 @@ class MCPTestCommand extends Command
     public function __construct(MCPManager $mcpManager, MCPServerValidator $validator)
     {
         parent::__construct();
-        
+
         $this->mcpManager = $mcpManager;
         $this->validator = $validator;
     }
@@ -66,6 +66,7 @@ class MCPTestCommand extends Command
             }
         } catch (\Exception $e) {
             $this->error("Server testing failed: {$e->getMessage()}");
+
             return 1;
         }
     }
@@ -75,16 +76,17 @@ class MCPTestCommand extends Command
      */
     protected function testAllServers(bool $comprehensive, bool $jsonOutput, bool $quiet): int
     {
-        if (!$jsonOutput && !$quiet) {
+        if (! $jsonOutput && ! $quiet) {
             $this->info('🧪 Testing all MCP servers...');
         }
 
         $servers = $this->mcpManager->getEnabledServers();
-        
+
         if (empty($servers)) {
-            if (!$jsonOutput) {
+            if (! $jsonOutput) {
                 $this->warn('No enabled MCP servers found.');
             }
+
             return 0;
         }
 
@@ -97,9 +99,9 @@ class MCPTestCommand extends Command
             } else {
                 $result = $this->performBasicTest($name, $server);
             }
-            
+
             $results[$name] = $result;
-            
+
             // Update overall status
             if ($result['overall_status'] === 'error' || $result['overall_status'] === 'failed') {
                 $overallStatus = 'failed';
@@ -114,10 +116,11 @@ class MCPTestCommand extends Command
                 'servers_tested' => count($results),
                 'results' => $results,
             ], JSON_PRETTY_PRINT));
+
             return 0;
         }
 
-        if (!$quiet) {
+        if (! $quiet) {
             $this->displayAllTestResults($results);
         }
 
@@ -132,15 +135,16 @@ class MCPTestCommand extends Command
     protected function testServer(string $serverName, bool $comprehensive, bool $jsonOutput, bool $quiet): int
     {
         $server = $this->mcpManager->getServer($serverName);
-        
-        if (!$server) {
-            if (!$jsonOutput) {
+
+        if (! $server) {
+            if (! $jsonOutput) {
                 $this->error("Server '{$serverName}' not found or not enabled.");
             }
+
             return 1;
         }
 
-        if (!$jsonOutput && !$quiet) {
+        if (! $jsonOutput && ! $quiet) {
             $this->info("🧪 Testing server '{$serverName}'...");
         }
 
@@ -152,10 +156,11 @@ class MCPTestCommand extends Command
 
         if ($jsonOutput) {
             $this->line(json_encode($result, JSON_PRETTY_PRINT));
+
             return 0;
         }
 
-        if (!$quiet) {
+        if (! $quiet) {
             $this->displayServerTestResult($result);
         } else {
             $this->displayServerSummary($result);
@@ -195,7 +200,6 @@ class MCPTestCommand extends Command
             if ($testResult['status'] !== 'healthy') {
                 $result['errors'][] = $testResult['message'] ?? 'Connection test failed';
             }
-
         } catch (\Exception $e) {
             $result['overall_status'] = 'error';
             $result['errors'][] = "Test failed: {$e->getMessage()}";
@@ -233,17 +237,17 @@ class MCPTestCommand extends Command
         // Server header with status
         $statusIcon = $this->getStatusIcon($status);
         $statusColor = $this->getStatusColor($status);
-        
+
         $this->line("  {$statusIcon} <fg={$statusColor}>{$serverName}</> - " . ucfirst($status));
 
         // Show test details if available
-        if (!empty($result['tests'])) {
+        if (! empty($result['tests'])) {
             foreach ($result['tests'] as $test) {
                 $testIcon = $this->getStatusIcon($test['status']);
                 $testColor = $this->getStatusColor($test['status']);
-                
+
                 $this->line("    {$testIcon} <fg={$testColor}>{$test['test_name']}</>");
-                
+
                 if (isset($test['response_time_ms'])) {
                     $this->line("      Response time: {$test['response_time_ms']}ms");
                 }
@@ -251,14 +255,14 @@ class MCPTestCommand extends Command
         }
 
         // Show errors
-        if (!empty($result['errors'])) {
+        if (! empty($result['errors'])) {
             foreach ($result['errors'] as $error) {
                 $this->line("    <fg=red>✗</> {$error}");
             }
         }
 
         // Show warnings
-        if (!empty($result['warnings'])) {
+        if (! empty($result['warnings'])) {
             foreach ($result['warnings'] as $warning) {
                 $this->line("    <fg=yellow>⚠</> {$warning}");
             }
@@ -274,7 +278,7 @@ class MCPTestCommand extends Command
         $status = $result['overall_status'];
         $statusIcon = $this->getStatusIcon($status);
         $statusColor = $this->getStatusColor($status);
-        
+
         $this->line("{$statusIcon} <fg={$statusColor}>{$serverName}</> - " . ucfirst($status));
     }
 
@@ -285,7 +289,7 @@ class MCPTestCommand extends Command
     {
         $this->line('');
         $this->info('📋 Summary:');
-        
+
         $statusCounts = [
             'passed' => 0,
             'warning' => 0,
@@ -303,15 +307,15 @@ class MCPTestCommand extends Command
         $total = count($results);
         $this->line("   Total servers tested: {$total}");
         $this->line("   Passed: {$statusCounts['passed']}");
-        
+
         if ($statusCounts['warning'] > 0) {
             $this->line("   <fg=yellow>Warnings: {$statusCounts['warning']}</>");
         }
-        
+
         if ($statusCounts['failed'] > 0) {
             $this->line("   <fg=red>Failed: {$statusCounts['failed']}</>");
         }
-        
+
         if ($statusCounts['error'] > 0) {
             $this->line("   <fg=red>Errors: {$statusCounts['error']}</>");
         }
@@ -319,7 +323,7 @@ class MCPTestCommand extends Command
         $this->line('');
         $overallIcon = $this->getStatusIcon($overallStatus);
         $overallColor = $this->getStatusColor($overallStatus);
-        $this->line("   {$overallIcon} <fg={$overallColor}>Overall Status: " . ucfirst($overallStatus) . "</>");
+        $this->line("   {$overallIcon} <fg={$overallColor}>Overall Status: " . ucfirst($overallStatus) . '</>');
     }
 
     /**

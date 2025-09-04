@@ -2,13 +2,13 @@
 
 namespace JTD\LaravelAI\Tests\Feature\MCPFramework;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\MCPManager;
-use JTD\LaravelAI\Services\MCPServerChain;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Services\MCPManager;
+use JTD\LaravelAI\Services\MCPServerChain;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Server Chaining Tests
@@ -24,7 +24,9 @@ class MCPServerChainingTest extends TestCase
     use RefreshDatabase;
 
     protected MCPManager $mcpManager;
+
     protected ?MCPServerChain $serverChain;
+
     protected string $configPath;
 
     protected function setUp(): void
@@ -559,7 +561,7 @@ class MCPServerChainingTest extends TestCase
                 $results = $conditionalResult['execution_results'];
                 $branchAExecuted = isset($results['conditional_server_a']);
                 $branchBExecuted = isset($results['conditional_server_b']);
-                $this->assertTrue($branchAExecuted XOR $branchBExecuted,
+                $this->assertTrue($branchAExecuted xor $branchBExecuted,
                     'Only one conditional branch should be executed');
 
                 $this->assertTrue(true, 'Conditional server execution completed successfully');

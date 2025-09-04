@@ -13,10 +13,10 @@ class TestCalculateTipListener
     {
         $amount = $event->parameters['amount'] ?? 0;
         $percentage = $event->parameters['percentage'] ?? 15;
-        
+
         $tip = ($amount * $percentage) / 100;
         $total = $amount + $tip;
-        
+
         logger()->info('Test tip calculation performed', [
             'original_amount' => $amount,
             'tip_percentage' => $percentage,

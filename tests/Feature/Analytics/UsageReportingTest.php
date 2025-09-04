@@ -2,18 +2,15 @@
 
 namespace JTD\LaravelAI\Tests\Feature\Analytics;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\CostAnalyticsService;
-use JTD\LaravelAI\Services\TrendAnalysisService;
-use JTD\LaravelAI\Services\ReportExportService;
-use JTD\LaravelAI\Models\AIMessage;
-use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Models\TokenUsage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Services\CostAnalyticsService;
+use JTD\LaravelAI\Services\ReportExportService;
+use JTD\LaravelAI\Services\TrendAnalysisService;
+use JTD\LaravelAI\Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Usage Reporting Tests
@@ -29,7 +26,9 @@ class UsageReportingTest extends TestCase
     use RefreshDatabase;
 
     protected CostAnalyticsService $costAnalyticsService;
+
     protected TrendAnalysisService $trendAnalysisService;
+
     protected ReportExportService $reportExportService;
 
     protected function setUp(): void
@@ -99,7 +98,7 @@ class UsageReportingTest extends TestCase
         $this->assertIsArray($breakdown);
 
         // If breakdown has data, verify structure
-        if (!empty($breakdown)) {
+        if (! empty($breakdown)) {
             foreach ($breakdown as $providerData) {
                 $this->assertArrayHasKey('provider', $providerData);
                 $this->assertArrayHasKey('total_cost', $providerData);
@@ -132,7 +131,7 @@ class UsageReportingTest extends TestCase
         $this->assertIsArray($breakdown);
 
         // If breakdown has data, verify structure
-        if (!empty($breakdown)) {
+        if (! empty($breakdown)) {
             foreach ($breakdown as $modelData) {
                 $this->assertArrayHasKey('model', $modelData);
                 $this->assertArrayHasKey('provider', $modelData);
@@ -381,7 +380,7 @@ class UsageReportingTest extends TestCase
 
         // Transform trends data into chart format
         $chartData = [
-            'labels' => array_map(fn($i) => now()->subDays($i)->format('M d'), range(29, 0)),
+            'labels' => array_map(fn ($i) => now()->subDays($i)->format('M d'), range(29, 0)),
             'datasets' => [
                 [
                     'label' => 'Daily Cost',
@@ -527,7 +526,7 @@ class UsageReportingTest extends TestCase
     protected function seedUsageReportingTestData(): void
     {
         // Create test tables if they don't exist (simplified for testing)
-        if (!DB::getSchemaBuilder()->hasTable('ai_usage_reports')) {
+        if (! DB::getSchemaBuilder()->hasTable('ai_usage_reports')) {
             DB::statement('CREATE TABLE ai_usage_reports (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,

@@ -35,7 +35,7 @@ class CreateBudgetRequest extends FormRequest
                 'exists:users,id',
                 function ($attribute, $value, $fail) {
                     // User can only create budgets for themselves unless they're admin
-                    if ($value && $value !== $this->user()->id && !$this->isAdmin()) {
+                    if ($value && $value !== $this->user()->id && ! $this->isAdmin()) {
                         $fail('You can only create budgets for yourself.');
                     }
                 },
@@ -46,7 +46,7 @@ class CreateBudgetRequest extends FormRequest
                 'max:255',
                 function ($attribute, $value, $fail) {
                     // Validate project access if project_id is provided
-                    if ($value && !$this->hasProjectAccess($value)) {
+                    if ($value && ! $this->hasProjectAccess($value)) {
                         $fail('You do not have access to this project.');
                     }
                 },
@@ -57,7 +57,7 @@ class CreateBudgetRequest extends FormRequest
                 'max:255',
                 function ($attribute, $value, $fail) {
                     // Validate organization access if organization_id is provided
-                    if ($value && !$this->hasOrganizationAccess($value)) {
+                    if ($value && ! $this->hasOrganizationAccess($value)) {
                         $fail('You do not have access to this organization.');
                     }
                 },
@@ -194,13 +194,13 @@ class CreateBudgetRequest extends FormRequest
 
         switch ($type) {
             case 'project':
-                if (!$this->input('project_id')) {
+                if (! $this->input('project_id')) {
                     $this->merge(['project_id' => $this->route('project_id')]);
                 }
                 break;
 
             case 'organization':
-                if (!$this->input('organization_id')) {
+                if (! $this->input('organization_id')) {
                     $this->merge(['organization_id' => $this->route('organization_id')]);
                 }
                 break;
@@ -256,7 +256,7 @@ class CreateBudgetRequest extends FormRequest
         if ($type === 'daily') {
             $monthlyLimit = $this->getMonthlyBudgetLimit();
             if ($monthlyLimit && $limit * 31 > $monthlyLimit) {
-                $validator->errors()->add('limit_amount', 
+                $validator->errors()->add('limit_amount',
                     'Daily budget limit would exceed monthly budget when multiplied by 31 days.');
             }
         }
@@ -264,7 +264,7 @@ class CreateBudgetRequest extends FormRequest
         if ($type === 'project') {
             $orgLimit = $this->getOrganizationBudgetLimit();
             if ($orgLimit && $limit > $orgLimit) {
-                $validator->errors()->add('limit_amount', 
+                $validator->errors()->add('limit_amount',
                     'Project budget limit cannot exceed organization budget limit.');
             }
         }

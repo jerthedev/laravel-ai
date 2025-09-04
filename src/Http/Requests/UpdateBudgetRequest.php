@@ -140,14 +140,14 @@ class UpdateBudgetRequest extends FormRequest
         $budgetId = $this->route('budget') ?? $this->route('id');
         $newLimit = $this->input('limit_amount');
 
-        if (!$newLimit) {
+        if (! $newLimit) {
             return;
         }
 
         // Get current budget to validate constraints
         $currentBudget = $this->getCurrentBudget($budgetId);
-        
-        if (!$currentBudget) {
+
+        if (! $currentBudget) {
             return;
         }
 
@@ -180,10 +180,10 @@ class UpdateBudgetRequest extends FormRequest
 
                 if ($finalWarning >= $finalCritical) {
                     if ($warning !== null) {
-                        $validator->errors()->add('warning_threshold', 
+                        $validator->errors()->add('warning_threshold',
                             'Warning threshold must be less than current critical threshold.');
                     } else {
-                        $validator->errors()->add('critical_threshold', 
+                        $validator->errors()->add('critical_threshold',
                             'Critical threshold must be greater than current warning threshold.');
                     }
                 }
@@ -202,7 +202,7 @@ class UpdateBudgetRequest extends FormRequest
             case 'daily':
                 $monthlyLimit = $this->getMonthlyBudgetLimit($currentBudget['user_id']);
                 if ($monthlyLimit && $newLimit * 31 > $monthlyLimit) {
-                    $validator->errors()->add('limit_amount', 
+                    $validator->errors()->add('limit_amount',
                         'Daily budget limit would exceed monthly budget when multiplied by 31 days.');
                 }
                 break;
@@ -210,7 +210,7 @@ class UpdateBudgetRequest extends FormRequest
             case 'project':
                 $orgLimit = $this->getOrganizationBudgetLimit($currentBudget['organization_id']);
                 if ($orgLimit && $newLimit > $orgLimit) {
-                    $validator->errors()->add('limit_amount', 
+                    $validator->errors()->add('limit_amount',
                         'Project budget limit cannot exceed organization budget limit.');
                 }
                 break;
@@ -219,7 +219,7 @@ class UpdateBudgetRequest extends FormRequest
                 // Check if daily budgets would be affected
                 $dailyLimit = $this->getDailyBudgetLimit($currentBudget['user_id']);
                 if ($dailyLimit && $dailyLimit * 31 > $newLimit) {
-                    $validator->errors()->add('limit_amount', 
+                    $validator->errors()->add('limit_amount',
                         'Monthly budget limit cannot be less than daily budget × 31.');
                 }
                 break;
@@ -234,8 +234,8 @@ class UpdateBudgetRequest extends FormRequest
         $currentSpending = $this->getCurrentSpending($currentBudget);
 
         if ($currentSpending > $newLimit) {
-            $validator->errors()->add('limit_amount', 
-                'New budget limit ($' . number_format($newLimit, 2) . ') cannot be less than current spending ($' . 
+            $validator->errors()->add('limit_amount',
+                'New budget limit ($' . number_format($newLimit, 2) . ') cannot be less than current spending ($' .
                 number_format($currentSpending, 2) . ').');
         }
     }
@@ -282,7 +282,7 @@ class UpdateBudgetRequest extends FormRequest
      */
     protected function getOrganizationBudgetLimit(?string $organizationId): ?float
     {
-        if (!$organizationId) {
+        if (! $organizationId) {
             return null;
         }
 
@@ -296,10 +296,10 @@ class UpdateBudgetRequest extends FormRequest
     public function getPartialRules(): array
     {
         $rules = $this->rules();
-        
+
         // Make all rules nullable for partial updates
         foreach ($rules as $field => $fieldRules) {
-            if (!in_array('nullable', $fieldRules)) {
+            if (! in_array('nullable', $fieldRules)) {
                 array_unshift($rules[$field], 'nullable');
             }
         }

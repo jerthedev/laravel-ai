@@ -2,28 +2,27 @@
 
 namespace JTD\LaravelAI\Tests\Feature\BudgetManagement;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Middleware\BudgetEnforcementMiddleware;
-use JTD\LaravelAI\Events\BudgetThresholdReached;
-use JTD\LaravelAI\Listeners\BudgetAlertListener;
-use JTD\LaravelAI\Services\BudgetService;
-use JTD\LaravelAI\Services\BudgetAlertService;
-use JTD\LaravelAI\Services\PricingService;
-use JTD\LaravelAI\Services\PricingValidator;
-use JTD\LaravelAI\Services\DriverManager;
-use JTD\LaravelAI\Exceptions\BudgetExceededException;
-use JTD\LaravelAI\Models\AIMessage;
-use JTD\LaravelAI\Models\AIResponse;
-use JTD\LaravelAI\Models\TokenUsage;
-use JTD\LaravelAI\Notifications\BudgetThresholdNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use PHPUnit\Framework\Attributes\Test;
+use JTD\LaravelAI\Events\BudgetThresholdReached;
+use JTD\LaravelAI\Exceptions\BudgetExceededException;
+use JTD\LaravelAI\Listeners\BudgetAlertListener;
+use JTD\LaravelAI\Middleware\BudgetEnforcementMiddleware;
+use JTD\LaravelAI\Models\AIMessage;
+use JTD\LaravelAI\Models\AIResponse;
+use JTD\LaravelAI\Models\TokenUsage;
+use JTD\LaravelAI\Services\BudgetAlertService;
+use JTD\LaravelAI\Services\BudgetService;
+use JTD\LaravelAI\Services\DriverManager;
+use JTD\LaravelAI\Services\PricingService;
+use JTD\LaravelAI\Services\PricingValidator;
+use JTD\LaravelAI\Tests\TestCase;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Budget Management Integration Tests
@@ -37,9 +36,13 @@ class BudgetManagementIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected BudgetEnforcementMiddleware $middleware;
+
     protected BudgetService $budgetService;
+
     protected BudgetAlertService $budgetAlertService;
+
     protected BudgetAlertListener $budgetAlertListener;
+
     protected PricingService $pricingService;
 
     protected function setUp(): void
@@ -159,7 +162,7 @@ class BudgetManagementIntegrationTest extends TestCase
             'metadata' => [
                 'project_id' => 'project_123',
                 'organization_id' => 'org_456',
-            ]
+            ],
         ]);
         $response = $this->createTestAIResponse();
 
@@ -195,9 +198,9 @@ class BudgetManagementIntegrationTest extends TestCase
         $event = new BudgetThresholdReached(
             userId: 1,
             budgetType: 'monthly',
-            currentSpending: 85.0,
-            budgetLimit: 100.0,
-            percentage: 85.0,
+            current_spending: 85.0,
+            budget_limit: 100.0,
+            threshold_percentage: 85.0,
             severity: 'warning'
         );
 
@@ -330,6 +333,7 @@ class BudgetManagementIntegrationTest extends TestCase
         $result = $this->middleware->handle($message, function ($msg) use ($response) {
             // Simulate cost tracking updating spending
             $this->updateRealTimeSpending($msg->user_id, 'daily', 1.5);
+
             return $response;
         });
 
@@ -397,8 +401,8 @@ class BudgetManagementIntegrationTest extends TestCase
     protected function createTestAIResponse(): AIResponse
     {
         $tokenUsage = new TokenUsage(
-            inputTokens: 200,
-            outputTokens: 100,
+            input_tokens: 200,
+            output_tokens: 100,
             totalTokens: 300,
             totalCost: 0.02
         );
@@ -422,7 +426,7 @@ class BudgetManagementIntegrationTest extends TestCase
     protected function setCurrentSpending(int $userId, array $spending): void
     {
         foreach ($spending as $type => $amount) {
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "daily_spending_{$userId}_" . now()->format('Y-m-d'),
                 'monthly' => "monthly_spending_{$userId}_" . now()->format('Y-m'),
                 default => "spending_{$userId}_{$type}",
@@ -441,7 +445,7 @@ class BudgetManagementIntegrationTest extends TestCase
     protected function setProjectCurrentSpending(string $projectId, array $spending): void
     {
         foreach ($spending as $type => $amount) {
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "project_daily_spending_{$projectId}_" . now()->format('Y-m-d'),
                 'monthly' => "project_monthly_spending_{$projectId}_" . now()->format('Y-m'),
                 default => "project_spending_{$projectId}_{$type}",
@@ -460,7 +464,7 @@ class BudgetManagementIntegrationTest extends TestCase
     protected function setOrganizationCurrentSpending(string $organizationId, array $spending): void
     {
         foreach ($spending as $type => $amount) {
-            $cacheKey = match($type) {
+            $cacheKey = match ($type) {
                 'daily' => "org_daily_spending_{$organizationId}_" . now()->format('Y-m-d'),
                 'monthly' => "org_monthly_spending_{$organizationId}_" . now()->format('Y-m'),
                 default => "org_spending_{$organizationId}_{$type}",
@@ -486,7 +490,7 @@ class BudgetManagementIntegrationTest extends TestCase
 
     protected function updateRealTimeSpending(int $userId, string $type, float $additionalCost): void
     {
-        $cacheKey = match($type) {
+        $cacheKey = match ($type) {
             'daily' => "daily_spending_{$userId}_" . now()->format('Y-m-d'),
             'monthly' => "monthly_spending_{$userId}_" . now()->format('Y-m'),
             default => "spending_{$userId}_{$type}",
@@ -498,7 +502,7 @@ class BudgetManagementIntegrationTest extends TestCase
 
     protected function getCurrentSpending(int $userId, string $type): float
     {
-        $cacheKey = match($type) {
+        $cacheKey = match ($type) {
             'daily' => "daily_spending_{$userId}_" . now()->format('Y-m-d'),
             'monthly' => "monthly_spending_{$userId}_" . now()->format('Y-m'),
             default => "spending_{$userId}_{$type}",
@@ -520,7 +524,7 @@ class BudgetManagementIntegrationTest extends TestCase
         ]);
 
         // Create test tables if they don't exist
-        if (!DB::getSchemaBuilder()->hasTable('ai_budget_alerts')) {
+        if (! DB::getSchemaBuilder()->hasTable('ai_budget_alerts')) {
             DB::statement('CREATE TABLE ai_budget_alerts (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,
@@ -538,7 +542,7 @@ class BudgetManagementIntegrationTest extends TestCase
             )');
         }
 
-        if (!DB::getSchemaBuilder()->hasTable('ai_budgets')) {
+        if (! DB::getSchemaBuilder()->hasTable('ai_budgets')) {
             DB::statement('CREATE TABLE ai_budgets (
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER,

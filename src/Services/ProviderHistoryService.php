@@ -102,8 +102,8 @@ class ProviderHistoryService
 
         // Update metrics
         $activeSession->message_count += 1;
-        $activeSession->total_input_tokens += $response->tokenUsage->inputTokens;
-        $activeSession->total_output_tokens += $response->tokenUsage->outputTokens;
+        $activeSession->total_input_tokens += $response->tokenUsage->input_tokens;
+        $activeSession->total_output_tokens += $response->tokenUsage->output_tokens;
         $activeSession->total_cost += $response->tokenUsage->totalCost;
 
         if ($successful) {

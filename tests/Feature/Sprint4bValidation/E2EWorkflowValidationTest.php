@@ -62,8 +62,8 @@ class E2EWorkflowValidationTest extends TestCase
                 userId: 1,
                 provider: 'mock',
                 model: 'gpt-4',
-                inputTokens: 100,
-                outputTokens: 50,
+                input_tokens: 100,
+                output_tokens: 50,
                 cost: 0.001,
                 metadata: []
             ));
@@ -120,8 +120,8 @@ class E2EWorkflowValidationTest extends TestCase
             event(new BudgetThresholdReached(
                 userId: 1,
                 currentSpend: 75.00,
-                budgetLimit: 100.00,
-                thresholdPercentage: 75,
+                budget_limit: 100.00,
+                threshold_percentage: 75,
                 metadata: []
             ));
             Event::assertDispatched(BudgetThresholdReached::class);

@@ -15,32 +15,28 @@ interface MCPManagerInterface
 {
     /**
      * Load MCP configuration from files and environment.
-     *
-     * @return void
      */
     public function loadConfiguration(): void;
 
     /**
      * Register an MCP server with the manager.
      *
-     * @param string $name Server identifier
-     * @param MCPServerInterface $server Server instance
-     * @return void
+     * @param  string  $name  Server identifier
+     * @param  MCPServerInterface  $server  Server instance
      */
     public function registerServer(string $name, MCPServerInterface $server): void;
 
     /**
      * Unregister an MCP server from the manager.
      *
-     * @param string $name Server identifier
-     * @return void
+     * @param  string  $name  Server identifier
      */
     public function unregisterServer(string $name): void;
 
     /**
      * Get a registered MCP server by name.
      *
-     * @param string $name Server identifier
+     * @param  string  $name  Server identifier
      * @return MCPServerInterface|null Server instance or null if not found
      */
     public function getServer(string $name): ?MCPServerInterface;
@@ -62,7 +58,7 @@ interface MCPManagerInterface
     /**
      * Check if an MCP server is registered and enabled.
      *
-     * @param string $name Server identifier
+     * @param  string  $name  Server identifier
      * @return bool True if server is registered and enabled
      */
     public function hasServer(string $name): bool;
@@ -70,8 +66,8 @@ interface MCPManagerInterface
     /**
      * Process a message through specified MCP servers.
      *
-     * @param AIMessage $message Message to process
-     * @param array $enabledServers Array of server names to use
+     * @param  AIMessage  $message  Message to process
+     * @param  array  $enabledServers  Array of server names to use
      * @return AIMessage Processed message
      *
      * @throws \JTD\LaravelAI\Exceptions\MCPException
@@ -81,8 +77,8 @@ interface MCPManagerInterface
     /**
      * Process a response through specified MCP servers.
      *
-     * @param AIResponse $response Response to process
-     * @param array $enabledServers Array of server names to use
+     * @param  AIResponse  $response  Response to process
+     * @param  array  $enabledServers  Array of server names to use
      * @return AIResponse Processed response
      *
      * @throws \JTD\LaravelAI\Exceptions\MCPException
@@ -92,17 +88,17 @@ interface MCPManagerInterface
     /**
      * Get all available tools from specified servers.
      *
-     * @param string|null $serverName Specific server name or null for all servers
+     * @param  string|null  $serverName  Specific server name or null for all servers
      * @return array Array of tools organized by server
      */
-    public function getAvailableTools(string $serverName = null): array;
+    public function getAvailableTools(?string $serverName = null): array;
 
     /**
      * Execute a tool from a specific server.
      *
-     * @param string $serverName Server identifier
-     * @param string $toolName Tool identifier
-     * @param array $parameters Tool parameters
+     * @param  string  $serverName  Server identifier
+     * @param  string  $toolName  Tool identifier
+     * @param  array  $parameters  Tool parameters
      * @return array Tool execution result
      *
      * @throws \JTD\LaravelAI\Exceptions\MCPException
@@ -113,7 +109,7 @@ interface MCPManagerInterface
     /**
      * Discover and cache tools from all configured servers.
      *
-     * @param bool $forceRefresh Force refresh of tool cache
+     * @param  bool  $forceRefresh  Force refresh of tool cache
      * @return array Discovery results with statistics
      */
     public function discoverTools(bool $forceRefresh = false): array;
@@ -121,23 +117,23 @@ interface MCPManagerInterface
     /**
      * Test connectivity for all or specific MCP servers.
      *
-     * @param string|null $serverName Specific server name or null for all servers
+     * @param  string|null  $serverName  Specific server name or null for all servers
      * @return array Test results organized by server
      */
-    public function testServers(string $serverName = null): array;
+    public function testServers(?string $serverName = null): array;
 
     /**
      * Get performance metrics for all or specific MCP servers.
      *
-     * @param string|null $serverName Specific server name or null for all servers
+     * @param  string|null  $serverName  Specific server name or null for all servers
      * @return array Performance metrics organized by server
      */
-    public function getMetrics(string $serverName = null): array;
+    public function getMetrics(?string $serverName = null): array;
 
     /**
      * Enable an MCP server.
      *
-     * @param string $name Server identifier
+     * @param  string  $name  Server identifier
      * @return bool True if server was enabled successfully
      */
     public function enableServer(string $name): bool;
@@ -145,7 +141,7 @@ interface MCPManagerInterface
     /**
      * Disable an MCP server.
      *
-     * @param string $name Server identifier
+     * @param  string  $name  Server identifier
      * @return bool True if server was disabled successfully
      */
     public function disableServer(string $name): bool;
@@ -160,7 +156,7 @@ interface MCPManagerInterface
     /**
      * Update MCP configuration.
      *
-     * @param array $config New configuration
+     * @param  array  $config  New configuration
      * @return bool True if configuration was updated successfully
      */
     public function updateConfiguration(array $config): bool;
@@ -168,7 +164,7 @@ interface MCPManagerInterface
     /**
      * Validate MCP configuration.
      *
-     * @param array $config Configuration to validate
+     * @param  array  $config  Configuration to validate
      * @return array Validation results with errors if any
      */
     public function validateConfiguration(array $config): array;

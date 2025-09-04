@@ -5,7 +5,6 @@ namespace JTD\LaravelAI\Tests\Unit\Drivers;
 use JTD\LaravelAI\Drivers\Gemini\GeminiDriver;
 use JTD\LaravelAI\Drivers\OpenAI\OpenAIDriver;
 use JTD\LaravelAI\Drivers\XAI\XAIDriver;
-use JTD\LaravelAI\Models\AIMessage;
 use JTD\LaravelAI\Services\AIFunctionEvent;
 use JTD\LaravelAI\Tests\Support\TestEmailSenderListener;
 use JTD\LaravelAI\Tests\TestCase;
@@ -38,7 +37,7 @@ class UnifiedToolSystemCompatibilityTest extends TestCase
     }
 
     #[Test]
-    public function openai_driver_has_formatToolsForAPI_method()
+    public function openai_driver_has_format_tools_for_ap_i_method()
     {
         $driver = new OpenAIDriver(['api_key' => 'sk-test-key-for-testing']);
 
@@ -46,7 +45,7 @@ class UnifiedToolSystemCompatibilityTest extends TestCase
     }
 
     #[Test]
-    public function gemini_driver_has_formatToolsForAPI_method()
+    public function gemini_driver_has_format_tools_for_ap_i_method()
     {
         $driver = new GeminiDriver(['api_key' => 'test-key']);
 
@@ -54,7 +53,7 @@ class UnifiedToolSystemCompatibilityTest extends TestCase
     }
 
     #[Test]
-    public function xai_driver_has_formatToolsForAPI_method()
+    public function xai_driver_has_format_tools_for_ap_i_method()
     {
         $driver = new XAIDriver(['api_key' => 'test-key']);
 
@@ -179,7 +178,7 @@ class UnifiedToolSystemCompatibilityTest extends TestCase
     }
 
     #[Test]
-    public function all_drivers_inherit_processToolOptions_from_abstract_provider()
+    public function all_drivers_inherit_process_tool_options_from_abstract_provider()
     {
         $openaiDriver = new OpenAIDriver(['api_key' => 'sk-test-key-for-testing']);
         $geminiDriver = new GeminiDriver(['api_key' => 'test-key']);

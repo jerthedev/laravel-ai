@@ -58,7 +58,7 @@ class CostTrackingListener implements ShouldQueue
 
         try {
             // Enhanced cost calculation with provider-specific pricing models
-            $costData = $this->calculateEnhancedMessageCost($event->message, $event->response, $event->providerMetadata);
+            $costData = $this->calculateEnhancedMessageCost($event->message, $event->response, $event->provider_metadata);
 
             // Store cost record in database for historical tracking
             $costRecord = $this->storeCostRecord($costData, $event);
@@ -69,8 +69,8 @@ class CostTrackingListener implements ShouldQueue
                 provider: $costData['provider'],
                 model: $costData['model'],
                 cost: $costData['total_cost'],
-                inputTokens: $costData['input_tokens'],
-                outputTokens: $costData['output_tokens'],
+                input_tokens: $costData['input_tokens'],
+                output_tokens: $costData['output_tokens'],
                 conversationId: $event->message->conversation_id,
                 messageId: $event->message->id
             ));
@@ -80,7 +80,6 @@ class CostTrackingListener implements ShouldQueue
 
             // Track cost accuracy for validation
             $this->trackCostAccuracy($costData, $event);
-
         } catch (\Exception $e) {
             // Enhanced error handling with detailed context
             $this->handleCostTrackingError($e, $event);
@@ -107,7 +106,6 @@ class CostTrackingListener implements ShouldQueue
 
             // Update user spending analytics
             $this->updateSpendingAnalytics($event);
-
         } catch (\Exception $e) {
             $this->handleCostCalculatedError($e, $event);
         } finally {
@@ -125,8 +123,8 @@ class CostTrackingListener implements ShouldQueue
             'provider' => $event->provider,
             'model' => $event->model,
             'cost' => $event->cost,
-            'input_tokens' => $event->inputTokens,
-            'output_tokens' => $event->outputTokens,
+            'input_tokens' => $event->input_tokens,
+            'output_tokens' => $event->output_tokens,
             'conversation_id' => $event->conversationId,
             'message_id' => $event->messageId,
             'calculated_at' => now(),
@@ -251,7 +249,7 @@ class CostTrackingListener implements ShouldQueue
      */
     protected function getInputTokens($response): int
     {
-        return $response->tokenUsage?->inputTokens ?? 0;
+        return $response->tokenUsage?->input_tokens ?? 0;
     }
 
     /**
@@ -262,7 +260,7 @@ class CostTrackingListener implements ShouldQueue
      */
     protected function getOutputTokens($response): int
     {
-        return $response->tokenUsage?->outputTokens ?? 0;
+        return $response->tokenUsage?->output_tokens ?? 0;
     }
 
     /**
@@ -274,10 +272,10 @@ class CostTrackingListener implements ShouldQueue
      * @param  array  $providerMetadata  Provider metadata
      * @return array Enhanced cost data with breakdown
      */
-    protected function calculateEnhancedMessageCost($message, $response, array $providerMetadata): array
+    protected function calculateEnhancedMessageCost($message, $response, array $provider_metadata): array
     {
-        $provider = $providerMetadata['provider'] ?? 'unknown';
-        $model = $providerMetadata['model'] ?? 'unknown';
+        $provider = $provider_metadata['provider'] ?? 'unknown';
+        $model = $provider_metadata['model'] ?? 'unknown';
         $inputTokens = $this->getInputTokens($response);
         $outputTokens = $this->getOutputTokens($response);
 
@@ -299,7 +297,7 @@ class CostTrackingListener implements ShouldQueue
                 'pricing_source' => $costData['source'] ?? 'fallback',
                 'unit_type' => $costData['unit'] ?? '1k_tokens',
                 'calculated_at' => now()->toISOString(),
-                'processing_time_ms' => $providerMetadata['processing_time'] ?? 0,
+                'processing_time_ms' => $provider_metadata['processing_time'] ?? 0,
             ];
         } catch (\Exception $e) {
             // Fallback calculation with error tracking
@@ -384,7 +382,6 @@ class CostTrackingListener implements ShouldQueue
 
             // Check cost anomalies
             $this->checkCostAnomalies($userId, $costData);
-
         } catch (\Exception $e) {
             logger()->error('Budget checking failed', [
                 'user_id' => $userId,
@@ -457,8 +454,8 @@ class CostTrackingListener implements ShouldQueue
             'event' => class_basename($event),
             'message_id' => $event->message->id ?? null,
             'user_id' => $this->getUserId($event),
-            'provider' => $event->providerMetadata['provider'] ?? 'unknown',
-            'model' => $event->providerMetadata['model'] ?? 'unknown',
+            'provider' => $event->provider_metadata['provider'] ?? 'unknown',
+            'model' => $event->provider_metadata['model'] ?? 'unknown',
             'error' => $e->getMessage(),
             'trace' => $e->getTraceAsString(),
         ];
@@ -484,8 +481,8 @@ class CostTrackingListener implements ShouldQueue
         $performanceData = [
             'operation' => $operation,
             'duration_ms' => round($durationMs, 2),
-            'provider' => $event->providerMetadata['provider'] ?? 'unknown',
-            'model' => $event->providerMetadata['model'] ?? 'unknown',
+            'provider' => $event->provider_metadata['provider'] ?? 'unknown',
+            'model' => $event->provider_metadata['model'] ?? 'unknown',
             'user_id' => $this->getUserId($event),
             'message_id' => $event->message->id ?? null,
         ];
@@ -502,8 +499,8 @@ class CostTrackingListener implements ShouldQueue
         logger()->debug('Enhanced cost tracking performance', $performanceData);
 
         // Store performance metrics for analytics
-        Cache::increment("cost_tracking_operations_total");
-        Cache::increment("cost_tracking_duration_total", $durationMs);
+        Cache::increment('cost_tracking_operations_total');
+        Cache::increment('cost_tracking_duration_total', $durationMs);
     }
 
     /**
@@ -552,10 +549,10 @@ class CostTrackingListener implements ShouldQueue
             event(new \JTD\LaravelAI\Events\BudgetThresholdReached(
                 userId: $userId,
                 budgetType: 'daily',
-                currentSpending: $dailySpent,
-                budgetLimit: $dailyBudget,
+                current_spending: $dailySpent,
+                budget_limit: $dailyBudget,
                 additionalCost: $cost,
-                thresholdPercentage: (($dailySpent + $cost) / $dailyBudget) * 100
+                threshold_percentage: (($dailySpent + $cost) / $dailyBudget) * 100
             ));
         }
     }
@@ -575,10 +572,10 @@ class CostTrackingListener implements ShouldQueue
             event(new \JTD\LaravelAI\Events\BudgetThresholdReached(
                 userId: $userId,
                 budgetType: 'monthly',
-                currentSpending: $monthlySpent,
-                budgetLimit: $monthlyBudget,
+                current_spending: $monthlySpent,
+                budget_limit: $monthlyBudget,
                 additionalCost: $cost,
-                thresholdPercentage: (($monthlySpent + $cost) / $monthlyBudget) * 100
+                threshold_percentage: (($monthlySpent + $cost) / $monthlyBudget) * 100
             ));
         }
     }
@@ -593,7 +590,7 @@ class CostTrackingListener implements ShouldQueue
     {
         $projectId = $event->context['project_id'] ?? null;
 
-        if (!$projectId) {
+        if (! $projectId) {
             return;
         }
 
@@ -604,10 +601,10 @@ class CostTrackingListener implements ShouldQueue
             event(new \JTD\LaravelAI\Events\BudgetThresholdReached(
                 userId: $this->getUserId($event),
                 budgetType: 'project',
-                currentSpending: $projectSpent,
-                budgetLimit: $projectBudget,
+                current_spending: $projectSpent,
+                budget_limit: $projectBudget,
                 additionalCost: $cost,
-                thresholdPercentage: (($projectSpent + $cost) / $projectBudget) * 100,
+                threshold_percentage: (($projectSpent + $cost) / $projectBudget) * 100,
                 projectId: $projectId
             ));
         }
@@ -717,6 +714,7 @@ class CostTrackingListener implements ShouldQueue
     protected function getCurrentUserSpending(int $userId): float
     {
         $cacheKey = "user_spending_{$userId}_" . now()->format('Y-m-d');
+
         return Cache::get($cacheKey, 0);
     }
 
@@ -757,9 +755,9 @@ class CostTrackingListener implements ShouldQueue
         event(new \JTD\LaravelAI\Events\BudgetThresholdReached(
             userId: $userId,
             budgetType: $budgetType,
-            currentSpending: $currentSpending,
-            budgetLimit: $budgetLimit,
-            percentage: $percentage,
+            current_spending: $currentSpending,
+            budget_limit: $budgetLimit,
+            threshold_percentage: $percentage,
             severity: $severity
         ));
     }

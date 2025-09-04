@@ -15,13 +15,12 @@ use PHPUnit\Framework\Attributes\Test;
 /**
  * E2E test with real OpenAI API calls.
  * Tests the unified architecture with actual OpenAI responses.
- *
- * @group e2e
  */
 #[Group('e2e')]
 class RealOpenAIE2ETest extends TestCase
 {
     protected array $firedEvents = [];
+
     protected bool $hasCredentials = false;
 
     protected function setUp(): void
@@ -31,7 +30,7 @@ class RealOpenAIE2ETest extends TestCase
         // Check if E2E credentials are available
         $credentialsPath = __DIR__ . '/../credentials/e2e-credentials.json';
 
-        if (!file_exists($credentialsPath)) {
+        if (! file_exists($credentialsPath)) {
             $this->markTestSkipped('E2E credentials file not found. Run: php artisan ai:setup-e2e');
         }
 
@@ -72,7 +71,7 @@ class RealOpenAIE2ETest extends TestCase
     #[Test]
     public function it_works_with_real_openai_default_provider()
     {
-        if (!$this->hasCredentials) {
+        if (! $this->hasCredentials) {
             $this->markTestSkipped('No OpenAI credentials available');
         }
 
@@ -112,19 +111,19 @@ class RealOpenAIE2ETest extends TestCase
         $responseEvent = $this->firedEvents['ResponseGenerated'][0];
         $this->assertNotEmpty($responseEvent->response->content);
         $this->assertTrue($responseEvent->context['provider_level_event']);
-        $this->assertGreaterThan(0, $responseEvent->totalProcessingTime);
+        $this->assertGreaterThan(0, $responseEvent->total_processing_time);
 
         // Verify CostCalculated event with real cost data
         $costEvent = $this->firedEvents['CostCalculated'][0];
         $this->assertEquals(123, $costEvent->userId);
         $this->assertEquals('openai', $costEvent->provider);
         $this->assertStringStartsWith('gpt-3.5-turbo', $costEvent->model);
-        $this->assertGreaterThan(0, $costEvent->inputTokens);
-        $this->assertGreaterThan(0, $costEvent->outputTokens);
+        $this->assertGreaterThan(0, $costEvent->input_tokens);
+        $this->assertGreaterThan(0, $costEvent->output_tokens);
         $this->assertGreaterThan(0, $costEvent->cost);
         $this->assertEquals(456, $costEvent->conversationId);
 
-        echo "\nReal OpenAI Response: " . substr($response->content, 0, 100) . "...";
+        echo "\nReal OpenAI Response: " . substr($response->content, 0, 100) . '...';
         echo "\nTokens Used: " . $response->tokenUsage->totalTokens;
         echo "\nCost: $" . number_format($response->getTotalCost(), 6);
     }
@@ -132,7 +131,7 @@ class RealOpenAIE2ETest extends TestCase
     #[Test]
     public function it_works_with_real_openai_specific_provider()
     {
-        if (!$this->hasCredentials) {
+        if (! $this->hasCredentials) {
             $this->markTestSkipped('No OpenAI credentials available');
         }
 
@@ -169,7 +168,7 @@ class RealOpenAIE2ETest extends TestCase
     #[Test]
     public function it_works_with_real_openai_conversation_builder()
     {
-        if (!$this->hasCredentials) {
+        if (! $this->hasCredentials) {
             $this->markTestSkipped('No OpenAI credentials available');
         }
 
@@ -199,7 +198,7 @@ class RealOpenAIE2ETest extends TestCase
     #[Test]
     public function it_works_with_real_openai_streaming()
     {
-        if (!$this->hasCredentials) {
+        if (! $this->hasCredentials) {
             $this->markTestSkipped('No OpenAI credentials available');
         }
 
@@ -246,14 +245,14 @@ class RealOpenAIE2ETest extends TestCase
         $this->assertTrue($responseEvent->context['streaming_response']);
         $this->assertGreaterThan(0, $responseEvent->context['total_chunks']);
 
-        echo "\nStreaming Response: " . substr($fullContent, 0, 100) . "...";
+        echo "\nStreaming Response: " . substr($fullContent, 0, 100) . '...';
         echo "\nChunks Received: " . count($chunks);
     }
 
     #[Test]
     public function it_calculates_real_costs_accurately()
     {
-        if (!$this->hasCredentials) {
+        if (! $this->hasCredentials) {
             $this->markTestSkipped('No OpenAI credentials available');
         }
 
@@ -269,15 +268,15 @@ class RealOpenAIE2ETest extends TestCase
 
         // Verify cost calculation
         $this->assertNotNull($response->tokenUsage);
-        $this->assertGreaterThan(0, $response->tokenUsage->inputTokens);
-        $this->assertGreaterThan(0, $response->tokenUsage->outputTokens);
+        $this->assertGreaterThan(0, $response->tokenUsage->input_tokens);
+        $this->assertGreaterThan(0, $response->tokenUsage->output_tokens);
         $this->assertGreaterThan(0, $response->tokenUsage->totalTokens);
         $this->assertGreaterThan(0, $response->getTotalCost());
 
         // Verify cost event has accurate data
         $costEvent = $this->firedEvents['CostCalculated'][0];
-        $this->assertEquals($response->tokenUsage->inputTokens, $costEvent->inputTokens);
-        $this->assertEquals($response->tokenUsage->outputTokens, $costEvent->outputTokens);
+        $this->assertEquals($response->tokenUsage->input_tokens, $costEvent->input_tokens);
+        $this->assertEquals($response->tokenUsage->output_tokens, $costEvent->output_tokens);
         $this->assertEquals($response->getTotalCost(), $costEvent->cost);
         $this->assertEquals(999, $costEvent->userId);
 
@@ -285,15 +284,15 @@ class RealOpenAIE2ETest extends TestCase
         $this->assertLessThan(0.01, $response->getTotalCost());
 
         echo "\nCost Analysis:";
-        echo "\nInput Tokens: " . $response->tokenUsage->inputTokens;
-        echo "\nOutput Tokens: " . $response->tokenUsage->outputTokens;
+        echo "\nInput Tokens: " . $response->tokenUsage->input_tokens;
+        echo "\nOutput Tokens: " . $response->tokenUsage->output_tokens;
         echo "\nTotal Cost: $" . number_format($response->getTotalCost(), 6);
     }
 
     #[Test]
     public function it_handles_real_openai_errors_gracefully()
     {
-        if (!$this->hasCredentials) {
+        if (! $this->hasCredentials) {
             $this->markTestSkipped('No OpenAI credentials available');
         }
 
@@ -306,7 +305,6 @@ class RealOpenAIE2ETest extends TestCase
             ]);
 
             $this->fail('Should have thrown an exception for invalid model');
-
         } catch (\Exception $e) {
             // Verify error handling works
             $this->assertNotEmpty($e->getMessage());

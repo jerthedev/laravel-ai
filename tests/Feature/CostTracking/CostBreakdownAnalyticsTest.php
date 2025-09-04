@@ -2,13 +2,13 @@
 
 namespace JTD\LaravelAI\Tests\Feature\CostTracking;
 
-use JTD\LaravelAI\Tests\TestCase;
-use JTD\LaravelAI\Services\CostAnalyticsService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use PHPUnit\Framework\Attributes\Test;
 use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use JTD\LaravelAI\Services\CostAnalyticsService;
+use JTD\LaravelAI\Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Cost Breakdown Analytics Tests
@@ -283,7 +283,7 @@ class CostBreakdownAnalyticsTest extends TestCase
             $totalTokens = $inputTokens + $outputTokens;
 
             // Vary costs by provider
-            $baseCost = match($provider) {
+            $baseCost = match ($provider) {
                 'openai' => 0.0001,
                 'anthropic' => 0.0002,
                 'google' => 0.00005,

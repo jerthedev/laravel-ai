@@ -5,13 +5,12 @@ namespace JTD\LaravelAI\Tests\Unit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Log;
-use JTD\LaravelAI\Events\MCPServerFailed;
 use JTD\LaravelAI\Events\MCPFallbackActivated;
+use JTD\LaravelAI\Events\MCPServerFailed;
 use JTD\LaravelAI\Services\MCPManager;
 use JTD\LaravelAI\Tests\TestCase;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\Test;
 
 /**
  * MCP Fallback Mechanisms Tests
@@ -29,7 +28,7 @@ class MCPFallbackMechanismsTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->mcpManager = app(MCPManager::class);
         $this->setupFallbackConfiguration();
     }
@@ -101,7 +100,7 @@ class MCPFallbackMechanismsTest extends TestCase
         ]);
 
         $firstResult = $this->mcpManager->executeTool('cached_tool', ['query' => 'test']);
-        
+
         $this->assertTrue($firstResult['success']);
         $this->assertEquals('cached_response', $firstResult['result']);
 
@@ -252,7 +251,7 @@ class MCPFallbackMechanismsTest extends TestCase
         $this->assertTrue($result['partial_success']);
         $this->assertArrayHasKey('results', $result);
         $this->assertCount(2, $result['results']);
-        
+
         // Verify partial results are preserved
         $this->assertTrue($result['results'][0]['success']);
         $this->assertFalse($result['results'][1]['success']);
@@ -284,6 +283,7 @@ class MCPFallbackMechanismsTest extends TestCase
                 if ($callCount <= 2) {
                     return \Illuminate\Support\Facades\Process::result('', 'Server error', 1);
                 }
+
                 return \Illuminate\Support\Facades\Process::result(
                     '{"success": true, "result": "server_recovered"}', '', 0
                 );
@@ -414,13 +414,13 @@ class MCPFallbackMechanismsTest extends TestCase
 
         $this->assertTrue($result['success']);
         $this->assertArrayHasKey('metrics', $result);
-        
+
         $metrics = $result['metrics'];
         $this->assertArrayHasKey('primary_server_failed', $metrics);
         $this->assertArrayHasKey('fallback_server_used', $metrics);
         $this->assertArrayHasKey('fallback_activation_time', $metrics);
         $this->assertArrayHasKey('total_execution_time', $metrics);
-        
+
         $this->assertTrue($metrics['primary_server_failed']);
         $this->assertEquals('metrics_fallback', $metrics['fallback_server_used']);
         $this->assertIsFloat($metrics['fallback_activation_time']);

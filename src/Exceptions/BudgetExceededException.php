@@ -4,7 +4,7 @@ namespace JTD\LaravelAI\Exceptions;
 
 /**
  * Budget Exceeded Exception
- * 
+ *
  * Thrown when a budget limit would be exceeded by a request.
  */
 class BudgetExceededException extends AIException

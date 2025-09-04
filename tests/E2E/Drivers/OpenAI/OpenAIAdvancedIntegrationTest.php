@@ -136,9 +136,9 @@ class OpenAIAdvancedIntegrationTest extends E2ETestCase
 
                 $this->assertInstanceOf(AIResponse::class, $response);
                 $this->assertNotEmpty($response->content);
-                $this->assertLessThanOrEqual($params['max_tokens'] + 5, $response->tokenUsage->outputTokens); // Allow small margin
+                $this->assertLessThanOrEqual($params['max_tokens'] + 5, $response->tokenUsage->output_tokens); // Allow small margin
 
-                $this->logTestStep("✅ {$name}: \"{$response->content}\" ({$response->tokenUsage->outputTokens} output tokens)");
+                $this->logTestStep("✅ {$name}: \"{$response->content}\" ({$response->tokenUsage->output_tokens} output tokens)");
             } catch (\Exception $e) {
                 $this->logTestStep("❌ {$name} failed: " . $e->getMessage());
                 throw $e;
@@ -234,7 +234,7 @@ class OpenAIAdvancedIntegrationTest extends E2ETestCase
             ]);
 
             $this->assertInstanceOf(AIResponse::class, $response);
-            $this->assertLessThanOrEqual(3, $response->tokenUsage->outputTokens); // Very small response
+            $this->assertLessThanOrEqual(3, $response->tokenUsage->output_tokens); // Very small response
             $this->logTestStep('✅ Minimal token limit handled: "' . $response->content . '"');
         } catch (\Exception $e) {
             $this->logTestStep('❌ Minimal token limit failed: ' . $e->getMessage());

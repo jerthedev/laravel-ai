@@ -15,7 +15,7 @@ class ConversationBuilderUnifiedTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         config([
             'ai.default' => 'mock',
             'ai.providers.mock.enabled' => true,
@@ -38,7 +38,7 @@ class ConversationBuilderUnifiedTest extends TestCase
         $response = AI::conversation()
             ->message('Test conversation builder unified API')
             ->send();
-        
+
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertEquals('Mock response for conversation builder test', $response->content);
         $this->assertEquals('mock', $response->provider);
@@ -52,7 +52,7 @@ class ConversationBuilderUnifiedTest extends TestCase
             ->provider('mock')
             ->message('Test provider-specific conversation')
             ->send();
-        
+
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertEquals('Mock response for conversation builder test', $response->content);
         $this->assertEquals('mock', $response->provider);
@@ -65,15 +65,15 @@ class ConversationBuilderUnifiedTest extends TestCase
         $generator = AI::conversation()
             ->message('Test streaming conversation')
             ->stream();
-        
+
         $this->assertInstanceOf(\Generator::class, $generator);
-        
+
         $chunks = [];
         foreach ($generator as $chunk) {
             $chunks[] = $chunk;
             $this->assertInstanceOf(AIResponse::class, $chunk);
         }
-        
+
         $this->assertNotEmpty($chunks);
     }
 
@@ -88,7 +88,7 @@ class ConversationBuilderUnifiedTest extends TestCase
             ->temperature(0.7)
             ->maxTokens(100)
             ->send();
-        
+
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertEquals('Mock response for conversation builder test', $response->content);
     }
@@ -102,7 +102,7 @@ class ConversationBuilderUnifiedTest extends TestCase
             ->message('Second message')
             ->message('Third message')
             ->send();
-        
+
         $this->assertInstanceOf(AIResponse::class, $response);
         $this->assertEquals('Mock response for conversation builder test', $response->content);
     }
@@ -114,15 +114,15 @@ class ConversationBuilderUnifiedTest extends TestCase
         $conversation = AI::conversation()
             ->title('Test Conversation')
             ->message('Hello');
-        
+
         $response1 = $conversation->send();
         $this->assertInstanceOf(AIResponse::class, $response1);
-        
+
         // Add another message to the same conversation
         $response2 = $conversation
             ->message('Follow up question')
             ->send();
-        
+
         $this->assertInstanceOf(AIResponse::class, $response2);
     }
 }

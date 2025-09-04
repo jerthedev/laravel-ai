@@ -4,7 +4,6 @@ namespace JTD\LaravelAI\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\SlackMessage;
 use Illuminate\Notifications\Notification;
 use JTD\LaravelAI\Mail\PerformanceAlertMail;
@@ -99,7 +98,7 @@ class PerformanceAlertNotification extends Notification implements ShouldQueue
                     ->markdown(['text', 'fields']);
 
                 // Add recommended actions
-                if (!empty($this->alert['recommended_actions'])) {
+                if (! empty($this->alert['recommended_actions'])) {
                     $actions = implode("\n• ", $this->alert['recommended_actions']);
                     $attachment->field('Recommended Actions', "• {$actions}");
                 }
@@ -158,7 +157,7 @@ class PerformanceAlertNotification extends Notification implements ShouldQueue
         if (isset($this->alert['context']['test']) &&
             $this->alert['context']['test'] === true &&
             app()->environment('production') &&
-            !config('ai.performance.alerts.send_test_in_production', false)) {
+            ! config('ai.performance.alerts.send_test_in_production', false)) {
             return false;
         }
 
